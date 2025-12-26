@@ -1,14 +1,16 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Landing from './pages/Landing';
+import SortingPage from './pages/SortingPage';
+
 function App() {
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8">
-      <h1 className="text-4xl font-bold text-center mb-8">
-        Algorithm Visualizer
-      </h1>
-      <p className="text-center text-gray-400">
-        Let's build something amazing!
-      </p>
-    </div>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/sorting" element={<SortingPage />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
