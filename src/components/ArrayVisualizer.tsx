@@ -131,16 +131,8 @@ function ArrayVisualizer() {
 
   return (
     <div className="space-y-8 relative">
-      {/* Controls */}
+      {/* Algorithm Controls */}
       <div className="flex justify-center gap-4">
-        <button
-          onClick={generateRandomArray}
-          disabled={isSorting}
-          className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed px-6 py-3 rounded-lg font-semibold transition"
-        >
-          Generate Random Array
-        </button>
-
         <button
           onClick={bubbleSort}
           disabled={isSorting}
@@ -163,6 +155,18 @@ function ArrayVisualizer() {
             <span className="text-white text-sm font-bold">{value}</span>
           </div>
         ))}
+      </div>
+
+      {/* Generate Array Button - Below Visualization */}
+      <div className="flex justify-center">
+        <button
+          onClick={generateRandomArray}
+          disabled={isSorting}
+          className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed px-6 py-3 rounded-lg font-semibold transition flex items-center gap-2"
+        >
+          <span>🔄</span>
+          <span>Generate Random Array</span>
+        </button>
       </div>
 
       {/* X-Ray Button - Bottom Left */}
