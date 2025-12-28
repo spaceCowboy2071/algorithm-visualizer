@@ -16,8 +16,12 @@ function ArrayVisualizer() {
   const [isSorting, setIsSorting] = useState(false);
   const [comparing, setComparing] = useState<number[]>([]);
   const [showComplexity, setShowComplexity] = useState(false);
-  const [showExplanation, setShowExplanation] = useState(true);
   const [currentAlgorithm, setCurrentAlgorithm] = useState<ComplexityInfo | null>(null);
+  const [showExplanation, setShowExplanation] = useState(true);
+  const [showXRay, setShowXRay] = useState(true);
+  const [xRayEnabled, setXRayEnabled] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState<'javascript' | 'python'>('javascript');
+  const [currentLine, setCurrentLine] = useState<number | null>(null);
 
   const BUBBLE_SORT_INFO: ComplexityInfo = {
     name: "Bubble Sort",
@@ -30,6 +34,35 @@ function ArrayVisualizer() {
     explanation: "Bubble Sort repeatedly steps through the array, compares adjacent elements, and swaps them if they're in the wrong order. The largest values 'bubble up' to the end with each pass. This continues until no more swaps are needed, meaning the array is sorted."
   };
 
+  const BUBBLE_SORT_CODE = {
+    javascript: `function bubbleSort(arr) {
+  const n = arr.length;
+  
+  for (let i = 0; i < n - 1; i++) {
+    for (let j = 0; j < n - i - 1; j++) {
+      if (arr[j] > arr[j + 1]) {
+        // Swap elements
+        const temp = arr[j];
+        arr[j] = arr[j + 1];
+        arr[j + 1] = temp;
+      }
+    }
+  }
+  
+  return arr;
+}`,
+    python: `def bubble_sort(arr):
+    n = len(arr)
+    
+    for i in range(n - 1):
+        for j in range(n - i - 1):
+            if arr[j] > arr[j + 1]:
+                # Swap elements
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
+    
+    return arr`
+  };
+
   const generateRandomArray = () => {
     const newArray = [];
     for (let i = 0; i < 10; i++) {
@@ -39,6 +72,8 @@ function ArrayVisualizer() {
     setComparing([]);
     setShowComplexity(false);
     setCurrentAlgorithm(null);
+    setXRayEnabled(false);
+    setShowXRay(false);
   };
 
   const sleep = (ms: number) => {
@@ -49,18 +84,38 @@ function ArrayVisualizer() {
     setIsSorting(true);
     setShowComplexity(true);
     setCurrentAlgorithm(BUBBLE_SORT_INFO);
+    setXRayEnabled(true);
     
     const arr = [...array];
     const n = arr.length;
 
+    setCurrentLine(2); // const n = arr.length
+    await sleep(300);
+
     for (let i = 0; i < n - 1; i++) {
+      setCurrentLine(4); // outer for loop
+      await sleep(300);
+      
       for (let j = 0; j < n - i - 1; j++) {
+        setCurrentLine(5); // inner for loop
+        await sleep(300);
+        
         setComparing([j, j + 1]);
+        setCurrentLine(6); // if condition
         await sleep(300);
 
         if (arr[j] > arr[j + 1]) {
+          setCurrentLine(8); // swap - line 1
+          await sleep(300);
+          
           const temp = arr[j];
+          
+          setCurrentLine(9); // swap - line 2
+          await sleep(300);
           arr[j] = arr[j + 1];
+          
+          setCurrentLine(10); // swap - line 3
+          await sleep(300);
           arr[j + 1] = temp;
 
           setArray([...arr]);
@@ -70,6 +125,7 @@ function ArrayVisualizer() {
     }
 
     setComparing([]);
+    setCurrentLine(null);
     setIsSorting(false);
   };
 
@@ -108,6 +164,86 @@ function ArrayVisualizer() {
           </div>
         ))}
       </div>
+
+      {/* X-Ray Button - Bottom Left */}
+      {xRayEnabled && (
+        <button
+          onClick={() => setShowXRay(!showXRay)}
+          className="fixed bottom-8 left-8 bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-lg font-semibold transition shadow-lg flex items-center gap-2"
+        >
+          <span className="text-xl">👁️</span>
+          <span>{showXRay ? 'Hide X-Ray' : 'Show X-Ray'}</span>
+        </button>
+      )}
+
+            {/* X-Ray Code Viewer - Inline */}
+      {showXRay && (
+        <div className="bg-gray-900 border-2 border-gray-700 rounded-lg w-full max-w-4xl mx-auto shadow-2xl">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-700">
+            <h2 className="text-xl font-bold text-white">X-Ray Code Viewer</h2>
+            
+            {/* Language Tabs */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentLanguage('javascript')}
+                className={`px-4 py-2 rounded-lg font-semibold transition ${
+                  currentLanguage === 'javascript'
+                    ? 'bg-yellow-600 text-white'
+                    : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                }`}
+              >
+                JavaScript
+              </button>
+              <button
+                onClick={() => setCurrentLanguage('python')}
+                className={`px-4 py-2 rounded-lg font-semibold transition ${
+                  currentLanguage === 'python'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                }`}
+              >
+                Python
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowXRay(false)}
+              className="text-gray-400 hover:text-white text-2xl font-bold transition"
+            >
+              ×
+            </button>
+          </div>
+
+          {/* Code Display */}
+          <div className="overflow-auto p-6 bg-gray-950 max-h-96">
+            <pre className="text-sm font-mono leading-relaxed">
+              {BUBBLE_SORT_CODE[currentLanguage].split('\n').map((line, index) => {
+                const lineNumber = index + 1;
+                const isActive = currentLine === lineNumber;
+                
+                return (
+                  <div
+                    key={index}
+                    className={`px-3 py-1 ${
+                      isActive 
+                        ? 'bg-yellow-900 bg-opacity-50 border-l-4 border-green-500' 
+                        : ''
+                    }`}
+                  >
+                    <span className="text-gray-500 select-none mr-4 inline-block w-6 text-right">
+                      {lineNumber}
+                    </span>
+                    <code className={isActive ? 'text-green-400 font-bold' : 'text-gray-300'}>
+                      {line}
+                    </code>
+                  </div>
+                );
+              })}
+            </pre>
+          </div>
+        </div>
+      )}
 
       {/* Complexity Info Box */}
       {showComplexity && currentAlgorithm && (
