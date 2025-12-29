@@ -8,7 +8,12 @@ interface ComplexityInfo {
     worst: string;
   };
   spaceComplexity: string;
-  explanation: string;
+  explanations: {
+    how: string;
+    when: string;
+    where: string;
+    why: string;
+  };
 }
 
 function ArrayVisualizer() {
@@ -22,6 +27,8 @@ function ArrayVisualizer() {
   const [xRayEnabled, setXRayEnabled] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<'javascript' | 'python'>('javascript');
   const [currentLine, setCurrentLine] = useState<number | null>(null);
+  const [showContext, setShowContext] = useState(true);
+  const [activeTab, setActiveTab] = useState<'how' | 'when' | 'where' | 'why'>('how');
 
   const BUBBLE_SORT_INFO: ComplexityInfo = {
     name: "Bubble Sort",
@@ -31,7 +38,12 @@ function ArrayVisualizer() {
       worst: "O(n²)"
     },
     spaceComplexity: "O(1)",
-    explanation: "Bubble Sort repeatedly steps through the array, compares adjacent elements, and swaps them if they're in the wrong order. The largest values 'bubble up' to the end with each pass. This continues until no more swaps are needed, meaning the array is sorted."
+    explanations: {
+      how: "Bubble Sort repeatedly steps through the array, compares adjacent elements, and swaps them if they're in the wrong order. The largest values 'bubble up' to the end with each pass. This continues until no more swaps are needed, meaning the array is sorted.",
+      when: "Use Bubble Sort for small datasets (< 50 elements) or when the data is nearly sorted. It's also useful for educational purposes to understand basic sorting concepts. However, it's rarely used in production due to poor performance on large datasets.",
+      where: "Bubble Sort is typically found in educational codebases, embedded systems with memory constraints, or as a subroutine in hybrid sorting algorithms. You might see it in interview questions or algorithm courses, but rarely in production applications.",
+      why: "Choose Bubble Sort when: (1) the dataset is very small, (2) simplicity is more important than performance, (3) you need a stable sort with O(1) space complexity, or (4) the data is already nearly sorted, where it can achieve O(n) performance."
+    }
   };
 
   const BUBBLE_SORT_CODE = {
@@ -70,10 +82,7 @@ function ArrayVisualizer() {
     }
     setArray(newArray);
     setComparing([]);
-    setShowComplexity(false);
-    setCurrentAlgorithm(null);
-    setXRayEnabled(false);
-    setShowXRay(false);
+    setCurrentLine(null);
   };
 
   const sleep = (ms: number) => {
@@ -212,10 +221,13 @@ function ArrayVisualizer() {
             </div>
 
             <button
-              onClick={() => setShowXRay(false)}
-              className="text-gray-400 hover:text-white text-2xl font-bold transition"
+              onClick={() => {
+                setShowXRay(false);
+                setShowContext(false);
+              }}
+              className="text-gray-400 hover:text-white px-3 py-1 rounded hover:bg-gray-800 transition"
             >
-              ×
+              Close X-Ray
             </button>
           </div>
 
@@ -245,6 +257,41 @@ function ArrayVisualizer() {
                 );
               })}
             </pre>
+          </div>
+        </div>
+      )}
+
+      {/* Context Thought Bubble */}
+      {showContext && currentAlgorithm && (
+        <div className="relative">
+          {/* Thought bubble tail */}
+          <div className="absolute -top-3 left-12 w-0 h-0 border-l-[15px] border-l-transparent border-r-[15px] border-r-transparent border-b-[15px] border-b-gray-800"></div>
+          
+          <div className="bg-gray-800 border-2 border-gray-700 rounded-3xl p-6 shadow-2xl w-full max-w-4xl mx-auto">
+            {/* Tabs */}
+            <div className="flex gap-1 mb-4 border-b border-gray-700">
+              {(['how', 'when', 'where', 'why'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-6 py-2 font-semibold capitalize transition relative ${
+                    activeTab === tab
+                      ? 'text-white'
+                      : 'text-gray-400 hover:text-gray-300'
+                  }`}
+                >
+                  {tab}
+                  {activeTab === tab && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"></div>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Content */}
+            <div className="text-gray-300 leading-relaxed">
+              <p>{currentAlgorithm.explanations[activeTab]}</p>
+            </div>
           </div>
         </div>
       )}
@@ -281,22 +328,7 @@ function ArrayVisualizer() {
               </div>
             </div>
 
-            {/* Explanation Section */}
-            <div className="border-t border-gray-700 pt-3">
-              <button
-                onClick={() => setShowExplanation(!showExplanation)}
-                className="w-full flex items-center justify-between text-left text-sm font-semibold text-gray-400 hover:text-white transition"
-              >
-                <span>Explanation</span>
-                <span className="text-lg">{showExplanation ? '−' : '+'}</span>
-              </button>
-              
-              {showExplanation && (
-                <p className="mt-3 text-sm text-gray-300 leading-relaxed">
-                  {currentAlgorithm.explanation}
-                </p>
-              )}
-            </div>
+            
           </div>
         </div>
       )}
