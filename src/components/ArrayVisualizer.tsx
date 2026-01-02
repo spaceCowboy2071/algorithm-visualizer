@@ -30,6 +30,7 @@ function ArrayVisualizer() {
   const [showContext, setShowContext] = useState(true);
   const [activeTab, setActiveTab] = useState<'how' | 'when' | 'where' | 'why'>('how');
   const [selectedAlgorithm, setSelectedAlgorithm] = useState<string | null>(null);
+  const [arraySize, setArraySize] = useState(10);
 
   const BUBBLE_SORT_INFO: ComplexityInfo = {
     name: "Bubble Sort",
@@ -78,7 +79,7 @@ function ArrayVisualizer() {
 
   const generateRandomArray = () => {
     const newArray = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < arraySize; i++) {
       newArray.push(Math.floor(Math.random() * 99) + 1);
     }
     setArray(newArray);
@@ -197,18 +198,40 @@ function ArrayVisualizer() {
         </div>
       </div>
 
-        {/* Generate Array Button */}
-        <div className="flex justify-center p-4 border-2 border-gray-700 bg-gray-900">
+        {/* Generate Array Controls */}
+        <div className="flex justify-between items-center p-4 border-2 border-gray-700 bg-gray-900">
+          {/* Left: Array Size Slider */}
+          <div className="flex items-center gap-4">
+            <label className="text-gray-300 text-sm font-semibold whitespace-nowrap">
+              Array Size:
+            </label>
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min="1"
+                max="10"
+                value={arraySize}
+                onChange={(e) => setArraySize(Number(e.target.value))}
+                disabled={isSorting}
+                className="w-48 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed accent-blue-500"
+              />
+              <span className="text-blue-400 font-mono text-sm font-bold w-6 text-center">
+                {arraySize}
+              </span>
+            </div>
+          </div>
+
+          {/* Right: Generate Button */}
           <button
             onClick={generateRandomArray}
             disabled={isSorting}
             className="bg-slate-600 hover:bg-slate-700 disabled:bg-gray-600 disabled:cursor-not-allowed px-6 py-3 rounded-lg font-semibold transition flex items-center gap-2"
           >
-            <span>🔄</span>
-            <span>Generate Random Array</span>
-          </button>
+              <span>🔄</span>
+              <span>Generate Random Array</span>
+            </button>
+          </div>
         </div>
-      </div>
 
       {/* X-Ray Button - Bottom Left */}
       {xRayEnabled && (
