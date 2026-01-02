@@ -196,18 +196,18 @@ function ArrayVisualizer() {
                   {/* Bar */}
                   <div
                     className={`w-12 sm:w-16 flex items-center justify-center transition-all duration-300 rounded-t-md ${
-                      comparing.includes(index) ? 'bg-red-500' : sortedIndices.includes(index) ? 'bg-green-500' : ''
+                      comparing.includes(index) ? 'bg-yellow-500' : sortedIndices.includes(index) ? 'bg-green-500' : ''
                     }`}
                     style={{ 
                       height: `${(value / 100) * 170}px`, 
                       minHeight: '25px',
                       background: comparing.includes(index) 
-                        ? undefined 
+                        ? 'linear-gradient(180deg, #eab308 0%, #ca8a04 100%)'
                         : sortedIndices.includes(index)
                         ? 'linear-gradient(180deg, #10b981 0%, #059669 100%)'
                         : 'linear-gradient(180deg, #5b9dff 0%, #3b7de8 100%)',
                       boxShadow: comparing.includes(index)
-                        ? undefined
+                        ? '0 4px 15px rgba(234, 179, 8, 0.4)'
                         : sortedIndices.includes(index)
                         ? '0 4px 15px rgba(16, 185, 129, 0.3)'
                         : '0 4px 15px rgba(91, 157, 255, 0.3)'
