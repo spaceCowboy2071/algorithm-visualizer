@@ -29,6 +29,7 @@ function ArrayVisualizer() {
   const [currentLine, setCurrentLine] = useState<number | null>(null);
   const [showContext, setShowContext] = useState(true);
   const [activeTab, setActiveTab] = useState<'how' | 'when' | 'where' | 'why'>('how');
+  const [selectedAlgorithm, setSelectedAlgorithm] = useState<string | null>(null);
 
   const BUBBLE_SORT_INFO: ComplexityInfo = {
     name: "Bubble Sort",
@@ -83,6 +84,7 @@ function ArrayVisualizer() {
     setArray(newArray);
     setComparing([]);
     setCurrentLine(null);
+    setSelectedAlgorithm(null);
   };
 
   const sleep = (ms: number) => {
@@ -90,6 +92,7 @@ function ArrayVisualizer() {
   };
 
   const bubbleSort = async () => {
+    setSelectedAlgorithm('Bubble Sort');
     setIsSorting(true);
     setShowComplexity(true);
     setCurrentAlgorithm(BUBBLE_SORT_INFO);
@@ -151,31 +154,41 @@ function ArrayVisualizer() {
         </button>
       </div>
 
-      {/* Array Visualization */}
-      <div className="flex items-end justify-center gap-2 h-64">
-        {array.map((value, index) => (
-          <div
-            key={index}
-            className={`w-16 flex items-center justify-center transition-all duration-300 ${
-              comparing.includes(index) ? 'bg-red-500' : 'bg-blue-500'
-            }`}
-            style={{ height: `${value}%` }}
-          >
-            <span className="text-white text-sm font-bold">{value}</span>
-          </div>
-        ))}
-      </div>
+      {/* Array Visualization Container */}
+      <div className="bg-gray-800 border-2 border-gray-700 rounded-lg shadow-2xl w-full max-w-5xl mx-auto overflow-hidden">
+        {/* Header */}
+        <div className="p-4 border-2 border-gray-700 bg-gray-900">
+          <h2 className="text-xl font-bold text-white text-center">
+            {selectedAlgorithm ? `${selectedAlgorithm}: Array Visualization` : 'Array Visualization'}
+          </h2>
+        </div>
+        
+        {/* Array Bars */}
+        <div className="flex items-end justify-center gap-2 h-64 p-6">
+          {array.map((value, index) => (
+            <div
+              key={index}
+              className={`w-16 flex items-center justify-center transition-all duration-300 ${
+                comparing.includes(index) ? 'bg-red-500' : 'bg-blue-500'
+              }`}
+              style={{ height: `${value}%` }}
+            >
+              <span className="text-white text-sm font-bold">{value}</span>
+            </div>
+          ))}
+        </div>
 
-      {/* Generate Array Button - Below Visualization */}
-      <div className="flex justify-center">
-        <button
-          onClick={generateRandomArray}
-          disabled={isSorting}
-          className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed px-6 py-3 rounded-lg font-semibold transition flex items-center gap-2"
-        >
-          <span>🔄</span>
-          <span>Generate Random Array</span>
-        </button>
+        {/* Generate Array Button */}
+        <div className="flex justify-center p-4 border-2 border-gray-700 bg-gray-900">
+          <button
+            onClick={generateRandomArray}
+            disabled={isSorting}
+            className="bg-slate-600 hover:bg-slate-700 disabled:bg-gray-600 disabled:cursor-not-allowed px-6 py-3 rounded-lg font-semibold transition flex items-center gap-2"
+          >
+            <span>🔄</span>
+            <span>Generate Random Array</span>
+          </button>
+        </div>
       </div>
 
       {/* X-Ray Button - Bottom Left */}
