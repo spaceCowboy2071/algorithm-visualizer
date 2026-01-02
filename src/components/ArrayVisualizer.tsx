@@ -163,20 +163,39 @@ function ArrayVisualizer() {
           </h2>
         </div>
         
-        {/* Array Bars */}
-        <div className="flex items-end justify-center gap-2 h-64 p-6">
+      {/* Array Bars */}
+      <div className="p-6">
+        {/* Bars with indices */}
+        <div className="flex items-end justify-center gap-2" style={{ height: '256px' }}>
           {array.map((value, index) => (
-            <div
-              key={index}
-              className={`w-16 flex items-center justify-center transition-all duration-300 ${
-                comparing.includes(index) ? 'bg-red-500' : 'bg-blue-500'
-              }`}
-              style={{ height: `${value}%` }}
-            >
-              <span className="text-white text-sm font-bold">{value}</span>
+            <div key={index} className="flex flex-col items-center justify-end h-full">
+              {/* Bar - height calculated as percentage of max possible value (100) */}
+              <div
+                className={`w-16 flex items-center justify-center transition-all duration-300 rounded-t-md ${
+                  comparing.includes(index) ? 'bg-red-500' : ''
+                }`}
+                style={{ 
+                  height: `${(value / 100) * 220}px`, 
+                  minHeight: '30px',
+                  background: comparing.includes(index) 
+                    ? undefined 
+                    : 'linear-gradient(180deg, #5b9dff 0%, #3b7de8 100%)',
+                  boxShadow: comparing.includes(index)
+                    ? undefined
+                    : '0 4px 15px rgba(91, 157, 255, 0.3)'
+                }}
+              >
+                <span className="text-white text-sm font-bold">{value}</span>
+              </div>
+              
+              {/* Index below bar */}
+              <span className="text-gray-400 text-xs font-mono mt-2">
+                {index}
+              </span>
             </div>
           ))}
         </div>
+      </div>
 
         {/* Generate Array Button */}
         <div className="flex justify-center p-4 border-2 border-gray-700 bg-gray-900">
