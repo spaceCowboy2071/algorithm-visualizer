@@ -316,77 +316,74 @@ function ArrayVisualizer() {
         </div>
       )}
 
-      {/* Context Thought Bubble */}
-      {showContext && currentAlgorithm && (
-        <div className="relative">
-          {/* Thought bubble tail */}
-          <div className="absolute -top-3 left-12 w-0 h-0 border-l-[15px] border-l-transparent border-r-[15px] border-r-transparent border-b-[15px] border-b-gray-800"></div>
-          
-          <div className="bg-gray-800 border-2 border-gray-700 rounded-3xl p-6 shadow-2xl w-full max-w-4xl mx-auto">
-            {/* Tabs */}
-            <div className="flex gap-1 mb-4 border-b border-gray-700">
-              {(['how', 'when', 'where', 'why'] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-6 py-2 font-semibold capitalize transition relative ${
-                    activeTab === tab
-                      ? 'text-white'
-                      : 'text-gray-400 hover:text-gray-300'
-                  }`}
-                >
-                  {tab}
-                  {activeTab === tab && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"></div>
-                  )}
-                </button>
-              ))}
+{/* Unified Complexity & Context Panel - Right Side */}
+{showComplexity && currentAlgorithm && (
+  <div className="fixed top-32 right-8 bg-gray-800 border-2 border-gray-700 rounded-lg shadow-2xl w-96 max-h-[calc(100vh-10rem)] overflow-y-auto">
+    {/* Complexity Section */}
+    <div className="p-6">
+      <h3 className="text-xl font-bold text-white mb-4">{currentAlgorithm.name}</h3>
+      
+      <div className="space-y-3">
+        <div>
+          <h4 className="text-sm font-semibold text-gray-400 mb-2">Time Complexity</h4>
+          <div className="space-y-1 text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-300">Best:</span>
+              <span className="text-green-400 font-mono">{currentAlgorithm.timeComplexity.best}</span>
             </div>
-
-            {/* Content */}
-            <div className="text-gray-300 leading-relaxed">
-              <p>{currentAlgorithm.explanations[activeTab]}</p>
+            <div className="flex justify-between">
+              <span className="text-gray-300">Average:</span>
+              <span className="text-yellow-400 font-mono">{currentAlgorithm.timeComplexity.average}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-300">Worst:</span>
+              <span className="text-red-400 font-mono">{currentAlgorithm.timeComplexity.worst}</span>
             </div>
           </div>
         </div>
-      )}
 
-      {/* Complexity Info Box */}
-      {showComplexity && currentAlgorithm && (
-        <div className="fixed bottom-8 right-8 bg-gray-800 border border-gray-700 rounded-lg p-6 shadow-2xl w-96">
-          <h3 className="text-xl font-bold text-white mb-4">{currentAlgorithm.name}</h3>
-          
-          <div className="space-y-3">
-            <div>
-              <h4 className="text-sm font-semibold text-gray-400 mb-2">Time Complexity</h4>
-              <div className="space-y-1 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-300">Best:</span>
-                  <span className="text-green-400 font-mono">{currentAlgorithm.timeComplexity.best}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-300">Average:</span>
-                  <span className="text-yellow-400 font-mono">{currentAlgorithm.timeComplexity.average}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-300">Worst:</span>
-                  <span className="text-red-400 font-mono">{currentAlgorithm.timeComplexity.worst}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t border-gray-700 pt-3">
-              <h4 className="text-sm font-semibold text-gray-400 mb-2">Space Complexity</h4>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-300">Extra Space:</span>
-                <span className="text-blue-400 font-mono">{currentAlgorithm.spaceComplexity}</span>
-              </div>
-            </div>
-
-            
+        <div className="border-t border-gray-700 pt-3">
+          <h4 className="text-sm font-semibold text-gray-400 mb-2">Space Complexity</h4>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-300">Extra Space:</span>
+            <span className="text-blue-400 font-mono">{currentAlgorithm.spaceComplexity}</span>
           </div>
         </div>
-      )}
+      </div>
+    </div>
+
+    {/* Context Section */}
+    {showContext && (
+      <div className="border-t-2 border-gray-700 p-6">
+        {/* Tabs */}
+        <div className="flex gap-1 mb-4 border-b border-gray-700">
+          {(['how', 'when', 'where', 'why'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 font-semibold capitalize transition relative text-sm ${
+                activeTab === tab
+                  ? 'text-white'
+                  : 'text-gray-400 hover:text-gray-300'
+              }`}
+            >
+              {tab}
+              {activeTab === tab && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"></div>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Content */}
+        <div className="text-gray-300 text-sm leading-relaxed">
+          <p>{currentAlgorithm.explanations[activeTab]}</p>
+        </div>
+      </div>
+    )}
+  </div>
+)}
+
     </div>
   );
 }
