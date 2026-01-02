@@ -143,247 +143,257 @@ function ArrayVisualizer() {
   };
 
   return (
-    <div className="space-y-8 relative">
-      {/* Algorithm Controls */}
-      <div className="flex justify-center gap-4">
+    <div className="flex min-h-[calc(100vh-73px)]">
+      {/* Left Sidebar - Algorithm Buttons */}
+      <div className="w-48 border-r border-gray-800 p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wider">
+          Algorithms
+        </h3>
         <button
           onClick={bubbleSort}
           disabled={isSorting}
-          className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed px-6 py-3 rounded-lg font-semibold transition"
+          className={`w-full ${
+            selectedAlgorithm === 'Bubble Sort'
+              ? 'bg-green-700'
+              : 'bg-green-600 hover:bg-green-700'
+          } disabled:bg-gray-600 disabled:cursor-not-allowed px-4 py-2.5 rounded-lg font-semibold transition text-sm`}
         >
-          {isSorting ? 'Sorting...' : 'Bubble Sort'}
+          {isSorting && selectedAlgorithm === 'Bubble Sort' ? 'Sorting...' : 'Bubble Sort'}
         </button>
+        {/* Future algorithm buttons will go here */}
       </div>
 
-      {/* Array Visualization Container */}
-      <div className="bg-gray-800 border-2 border-gray-700 rounded-lg shadow-2xl w-full max-w-5xl mx-auto overflow-hidden">
-        {/* Header */}
-        <div className="p-4 border-2 border-gray-700 bg-gray-900">
-          <h2 className="text-xl font-bold text-white text-center">
-            {selectedAlgorithm ? `${selectedAlgorithm}: Array Visualization` : 'Array Visualization'}
-          </h2>
-        </div>
-        
-      {/* Array Bars */}
-      <div className="p-6">
-        {/* Bars with indices */}
-        <div className="flex items-end justify-center gap-2" style={{ height: '256px' }}>
-          {array.map((value, index) => (
-            <div key={index} className="flex flex-col items-center justify-end h-full">
-              {/* Bar - height calculated as percentage of max possible value (100) */}
-              <div
-                className={`w-16 flex items-center justify-center transition-all duration-300 rounded-t-md ${
-                  comparing.includes(index) ? 'bg-red-500' : ''
-                }`}
-                style={{ 
-                  height: `${(value / 100) * 220}px`, 
-                  minHeight: '30px',
-                  background: comparing.includes(index) 
-                    ? undefined 
-                    : 'linear-gradient(180deg, #5b9dff 0%, #3b7de8 100%)',
-                  boxShadow: comparing.includes(index)
-                    ? undefined
-                    : '0 4px 15px rgba(91, 157, 255, 0.3)'
-                }}
-              >
-                <span className="text-white text-sm font-bold">{value}</span>
-              </div>
-              
-              {/* Index below bar */}
-              <span className="text-gray-400 text-xs font-mono mt-2">
-                {index}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-        {/* Generate Array Controls */}
-        <div className="flex justify-between items-center p-4 border-2 border-gray-700 bg-gray-900">
-          {/* Left: Array Size Slider */}
-          <div className="flex items-center gap-4">
-            <label className="text-gray-300 text-sm font-semibold whitespace-nowrap">
-              Array Size:
-            </label>
-            <div className="flex items-center gap-3">
-              <input
-                type="range"
-                min="1"
-                max="10"
-                value={arraySize}
-                onChange={(e) => setArraySize(Number(e.target.value))}
-                disabled={isSorting}
-                className="w-48 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed accent-blue-500"
-              />
-              <span className="text-blue-400 font-mono text-sm font-bold w-6 text-center">
-                {arraySize}
-              </span>
-            </div>
-          </div>
-
-          {/* Right: Generate Button */}
-          <button
-            onClick={generateRandomArray}
-            disabled={isSorting}
-            className="bg-slate-600 hover:bg-slate-700 disabled:bg-gray-600 disabled:cursor-not-allowed px-6 py-3 rounded-lg font-semibold transition flex items-center gap-2"
-          >
-              <span>🔄</span>
-              <span>Generate Random Array</span>
-            </button>
-          </div>
-        </div>
-
-      {/* X-Ray Button - Bottom Left */}
-      {xRayEnabled && (
-        <button
-          onClick={() => setShowXRay(!showXRay)}
-          className="fixed bottom-8 left-8 bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-lg font-semibold transition shadow-lg flex items-center gap-2"
-        >
-          <span className="text-xl">👁️</span>
-          <span>{showXRay ? 'Hide X-Ray' : 'Show X-Ray'}</span>
-        </button>
-      )}
-
-            {/* X-Ray Code Viewer - Inline */}
-      {showXRay && (
-        <div className="bg-gray-900 border-2 border-gray-700 rounded-lg w-full max-w-4xl mx-auto shadow-2xl">
+      {/* Main Content Area */}
+      <div className="flex-1 pl-6 pr-6 lg:pr-8 py-6 space-y-6">
+        {/* Array Visualization Container */}
+        <div className="bg-gray-800 border-2 border-gray-700 rounded-lg shadow-2xl w-full lg:max-w-3xl overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-700">
-            <h2 className="text-xl font-bold text-white">X-Ray Code Viewer</h2>
-            
-            {/* Language Tabs */}
-            <div className="flex gap-2">
+          <div className="p-3 border-2 border-gray-700 bg-gray-900">
+            <h2 className="text-lg font-bold text-white text-center">
+              {selectedAlgorithm ? `${selectedAlgorithm}: Array Visualization` : 'Array Visualization'}
+            </h2>
+          </div>
+          
+          {/* Array Bars */}
+          <div className="p-4">
+            {/* Bars with indices */}
+            <div className="flex items-end justify-center gap-2" style={{ height: '200px' }}>
+              {array.map((value, index) => (
+                <div key={index} className="flex flex-col items-center justify-end h-full">
+                  {/* Bar */}
+                  <div
+                    className={`w-12 sm:w-16 flex items-center justify-center transition-all duration-300 rounded-t-md ${
+                      comparing.includes(index) ? 'bg-red-500' : ''
+                    }`}
+                    style={{ 
+                      height: `${(value / 100) * 170}px`, 
+                      minHeight: '25px',
+                      background: comparing.includes(index) 
+                        ? undefined 
+                        : 'linear-gradient(180deg, #5b9dff 0%, #3b7de8 100%)',
+                      boxShadow: comparing.includes(index)
+                        ? undefined
+                        : '0 4px 15px rgba(91, 157, 255, 0.3)'
+                    }}
+                  >
+                    <span className="text-white text-xs sm:text-sm font-bold">{value}</span>
+                  </div>
+                  
+                  {/* Index below bar */}
+                  <span className="text-gray-400 text-xs font-mono mt-1.5">
+                    {index}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Generate Array Controls */}
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3 p-3 border-2 border-gray-700 bg-gray-900">
+            {/* Left: Array Size Slider */}
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <label className="text-gray-300 text-xs font-semibold whitespace-nowrap">
+                Array Size:
+              </label>
+              <div className="flex items-center gap-2 flex-1 sm:flex-initial">
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  value={arraySize}
+                  onChange={(e) => setArraySize(Number(e.target.value))}
+                  disabled={isSorting}
+                  className="w-32 sm:w-40 h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed accent-blue-500"
+                />
+                <span className="text-blue-400 font-mono text-xs font-bold w-5 text-center">
+                  {arraySize}
+                </span>
+              </div>
+            </div>
+
+            {/* Right: Generate Button */}
+            <button
+              onClick={generateRandomArray}
+              disabled={isSorting}
+              className="bg-slate-600 hover:bg-slate-700 disabled:bg-gray-600 disabled:cursor-not-allowed px-4 py-2 rounded-lg font-semibold transition flex items-center gap-2 text-sm w-full sm:w-auto justify-center"
+            >
+              <span>🔄</span>
+              <span>Generate Array</span>
+            </button>
+          </div>
+        </div>
+
+        {/* X-Ray Code Viewer - Inline */}
+        {showXRay && (
+          <div className="bg-gray-900 border-2 border-gray-700 rounded-lg w-full lg:max-w-3xl shadow-2xl">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row items-center justify-between p-2.5 border-b border-gray-700 gap-2">
+              <h2 className="text-base font-bold text-white">X-Ray Code Viewer</h2>
+              
+              {/* Language Tabs */}
+              <div className="flex gap-1.5">
+                <button
+                  onClick={() => setCurrentLanguage('javascript')}
+                  className={`px-3 py-1.5 rounded-lg font-semibold transition text-xs ${
+                    currentLanguage === 'javascript'
+                      ? 'bg-yellow-600 text-white'
+                      : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                  }`}
+                >
+                  JavaScript
+                </button>
+                <button
+                  onClick={() => setCurrentLanguage('python')}
+                  className={`px-3 py-1.5 rounded-lg font-semibold transition text-xs ${
+                    currentLanguage === 'python'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                  }`}
+                >
+                  Python
+                </button>
+              </div>
+
               <button
-                onClick={() => setCurrentLanguage('javascript')}
-                className={`px-4 py-2 rounded-lg font-semibold transition ${
-                  currentLanguage === 'javascript'
-                    ? 'bg-yellow-600 text-white'
-                    : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                }`}
+                onClick={() => {
+                  setShowXRay(false);
+                  setShowContext(false);
+                }}
+                className="text-gray-400 hover:text-white px-2 py-1 rounded hover:bg-gray-800 transition text-xs"
               >
-                JavaScript
-              </button>
-              <button
-                onClick={() => setCurrentLanguage('python')}
-                className={`px-4 py-2 rounded-lg font-semibold transition ${
-                  currentLanguage === 'python'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                }`}
-              >
-                Python
+                Close X-Ray
               </button>
             </div>
 
-            <button
-              onClick={() => {
-                setShowXRay(false);
-                setShowContext(false);
-              }}
-              className="text-gray-400 hover:text-white px-3 py-1 rounded hover:bg-gray-800 transition"
-            >
-              Close X-Ray
-            </button>
+            {/* Code Display */}
+            <div className="overflow-auto p-4 bg-gray-950 max-h-80">
+              <pre className="text-xs font-mono leading-tight">
+                {BUBBLE_SORT_CODE[currentLanguage].split('\n').map((line, index) => {
+                  const lineNumber = index + 1;
+                  const isActive = currentLine === lineNumber;
+                  
+                  return (
+                    <div
+                      key={index}
+                      className={`px-2 py-0.5 ${
+                        isActive 
+                          ? 'bg-yellow-900 bg-opacity-50 border-l-4 border-green-500' 
+                          : ''
+                      }`}
+                    >
+                      <span className="text-gray-500 select-none mr-3 inline-block w-4 text-right">
+                        {lineNumber}
+                      </span>
+                      <code className={isActive ? 'text-green-400 font-bold' : 'text-gray-300'}>
+                        {line}
+                      </code>
+                    </div>
+                  );
+                })}
+              </pre>
+            </div>
+          </div>
+        )}
+
+        {/* X-Ray Button - Bottom Left (only show when hidden) */}
+        {xRayEnabled && !showXRay && (
+          <button
+            onClick={() => setShowXRay(true)}
+            className="fixed bottom-8 left-56 bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg font-semibold transition shadow-lg flex items-center gap-2 text-sm"
+          >
+            <span className="text-lg">👁️</span>
+            <span>Show X-Ray</span>
+          </button>
+        )}
+      </div>
+
+      {/* Unified Complexity & Context Panel - Right Side */}
+      {showComplexity && currentAlgorithm && (
+        <div className="hidden lg:block fixed top-20 right-8 bg-gray-800 border-2 border-gray-700 rounded-lg shadow-2xl w-80 max-h-[calc(100vh-6rem)] overflow-y-auto">
+          {/* Complexity Section */}
+          <div className="p-4">
+            <h3 className="text-lg font-bold text-white mb-3">{currentAlgorithm.name}</h3>
+            
+            <div className="space-y-2.5">
+              <div>
+                <h4 className="text-xs font-semibold text-gray-400 mb-1.5">Time Complexity</h4>
+                <div className="space-y-1 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-gray-300">Best:</span>
+                    <span className="text-green-400 font-mono">{currentAlgorithm.timeComplexity.best}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-300">Average:</span>
+                    <span className="text-yellow-400 font-mono">{currentAlgorithm.timeComplexity.average}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-300">Worst:</span>
+                    <span className="text-red-400 font-mono">{currentAlgorithm.timeComplexity.worst}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-gray-700 pt-2.5">
+                <h4 className="text-xs font-semibold text-gray-400 mb-1.5">Space Complexity</h4>
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-300">Extra Space:</span>
+                  <span className="text-blue-400 font-mono">{currentAlgorithm.spaceComplexity}</span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Code Display */}
-          <div className="overflow-auto p-6 bg-gray-950 max-h-96">
-            <pre className="text-sm font-mono leading-relaxed">
-              {BUBBLE_SORT_CODE[currentLanguage].split('\n').map((line, index) => {
-                const lineNumber = index + 1;
-                const isActive = currentLine === lineNumber;
-                
-                return (
-                  <div
-                    key={index}
-                    className={`px-3 py-1 ${
-                      isActive 
-                        ? 'bg-yellow-900 bg-opacity-50 border-l-4 border-green-500' 
-                        : ''
+          {/* Context Section */}
+          {showContext && (
+            <div className="border-t-2 border-gray-700 p-4">
+              {/* Tabs */}
+              <div className="flex gap-0.5 mb-3 border-b border-gray-700">
+                {(['how', 'when', 'where', 'why'] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-2.5 py-1.5 font-semibold capitalize transition relative text-xs ${
+                      activeTab === tab
+                        ? 'text-white'
+                        : 'text-gray-400 hover:text-gray-300'
                     }`}
                   >
-                    <span className="text-gray-500 select-none mr-4 inline-block w-6 text-right">
-                      {lineNumber}
-                    </span>
-                    <code className={isActive ? 'text-green-400 font-bold' : 'text-gray-300'}>
-                      {line}
-                    </code>
-                  </div>
-                );
-              })}
-            </pre>
-          </div>
+                    {tab}
+                    {activeTab === tab && (
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"></div>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {/* Content */}
+              <div className="text-gray-300 text-xs leading-relaxed">
+                <p>{currentAlgorithm.explanations[activeTab]}</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
-
-{/* Unified Complexity & Context Panel - Right Side */}
-{showComplexity && currentAlgorithm && (
-  <div className="fixed top-32 right-8 bg-gray-800 border-2 border-gray-700 rounded-lg shadow-2xl w-96 max-h-[calc(100vh-10rem)] overflow-y-auto">
-    {/* Complexity Section */}
-    <div className="p-6">
-      <h3 className="text-xl font-bold text-white mb-4">{currentAlgorithm.name}</h3>
-      
-      <div className="space-y-3">
-        <div>
-          <h4 className="text-sm font-semibold text-gray-400 mb-2">Time Complexity</h4>
-          <div className="space-y-1 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-300">Best:</span>
-              <span className="text-green-400 font-mono">{currentAlgorithm.timeComplexity.best}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-300">Average:</span>
-              <span className="text-yellow-400 font-mono">{currentAlgorithm.timeComplexity.average}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-300">Worst:</span>
-              <span className="text-red-400 font-mono">{currentAlgorithm.timeComplexity.worst}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="border-t border-gray-700 pt-3">
-          <h4 className="text-sm font-semibold text-gray-400 mb-2">Space Complexity</h4>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-300">Extra Space:</span>
-            <span className="text-blue-400 font-mono">{currentAlgorithm.spaceComplexity}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {/* Context Section */}
-    {showContext && (
-      <div className="border-t-2 border-gray-700 p-6">
-        {/* Tabs */}
-        <div className="flex gap-1 mb-4 border-b border-gray-700">
-          {(['how', 'when', 'where', 'why'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 font-semibold capitalize transition relative text-sm ${
-                activeTab === tab
-                  ? 'text-white'
-                  : 'text-gray-400 hover:text-gray-300'
-              }`}
-            >
-              {tab}
-              {activeTab === tab && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"></div>
-              )}
-            </button>
-          ))}
-        </div>
-
-        {/* Content */}
-        <div className="text-gray-300 text-sm leading-relaxed">
-          <p>{currentAlgorithm.explanations[activeTab]}</p>
-        </div>
-      </div>
-    )}
-  </div>
-)}
-
     </div>
   );
 }
