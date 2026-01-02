@@ -31,6 +31,7 @@ function ArrayVisualizer() {
   const [activeTab, setActiveTab] = useState<'how' | 'when' | 'where' | 'why'>('how');
   const [selectedAlgorithm, setSelectedAlgorithm] = useState<string | null>(null);
   const [arraySize, setArraySize] = useState(10);
+  const [sortedIndices, setSortedIndices] = useState<number[]>([]);
 
   const BUBBLE_SORT_INFO: ComplexityInfo = {
     name: "Bubble Sort",
@@ -86,6 +87,7 @@ function ArrayVisualizer() {
     setComparing([]);
     setCurrentLine(null);
     setSelectedAlgorithm(null);
+    setSortedIndices([]);
   };
 
   const sleep = (ms: number) => {
@@ -98,36 +100,38 @@ function ArrayVisualizer() {
     setShowComplexity(true);
     setCurrentAlgorithm(BUBBLE_SORT_INFO);
     setXRayEnabled(true);
+    setSortedIndices([]); // Clear any previous sorted state
     
     const arr = [...array];
     const n = arr.length;
+    const sorted: number[] = [];
 
-    setCurrentLine(2); // const n = arr.length
+    setCurrentLine(2);
     await sleep(300);
 
     for (let i = 0; i < n - 1; i++) {
-      setCurrentLine(4); // outer for loop
+      setCurrentLine(4);
       await sleep(300);
       
       for (let j = 0; j < n - i - 1; j++) {
-        setCurrentLine(5); // inner for loop
+        setCurrentLine(5);
         await sleep(300);
         
         setComparing([j, j + 1]);
-        setCurrentLine(6); // if condition
+        setCurrentLine(6);
         await sleep(300);
 
         if (arr[j] > arr[j + 1]) {
-          setCurrentLine(8); // swap - line 1
+          setCurrentLine(8);
           await sleep(300);
           
           const temp = arr[j];
           
-          setCurrentLine(9); // swap - line 2
+          setCurrentLine(9);
           await sleep(300);
           arr[j] = arr[j + 1];
           
-          setCurrentLine(10); // swap - line 3
+          setCurrentLine(10);
           await sleep(300);
           arr[j + 1] = temp;
 
@@ -135,7 +139,16 @@ function ArrayVisualizer() {
           await sleep(300);
         }
       }
+      
+      // After each pass, the element at position (n - i - 1) is in its final sorted position
+      sorted.push(n - i - 1);
+      setSortedIndices([...sorted]);
+      await sleep(200);
     }
+
+    // Mark first element as sorted too (it's sorted when we finish)
+    sorted.push(0);
+    setSortedIndices([...sorted]);
 
     setComparing([]);
     setCurrentLine(null);
@@ -183,16 +196,20 @@ function ArrayVisualizer() {
                   {/* Bar */}
                   <div
                     className={`w-12 sm:w-16 flex items-center justify-center transition-all duration-300 rounded-t-md ${
-                      comparing.includes(index) ? 'bg-red-500' : ''
+                      comparing.includes(index) ? 'bg-red-500' : sortedIndices.includes(index) ? 'bg-green-500' : ''
                     }`}
                     style={{ 
                       height: `${(value / 100) * 170}px`, 
                       minHeight: '25px',
                       background: comparing.includes(index) 
                         ? undefined 
+                        : sortedIndices.includes(index)
+                        ? 'linear-gradient(180deg, #10b981 0%, #059669 100%)'
                         : 'linear-gradient(180deg, #5b9dff 0%, #3b7de8 100%)',
                       boxShadow: comparing.includes(index)
                         ? undefined
+                        : sortedIndices.includes(index)
+                        ? '0 4px 15px rgba(16, 185, 129, 0.3)'
                         : '0 4px 15px rgba(91, 157, 255, 0.3)'
                     }}
                   >
