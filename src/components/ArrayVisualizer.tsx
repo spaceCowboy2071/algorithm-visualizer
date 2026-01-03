@@ -324,20 +324,20 @@ const sleep = async (ms: number) => {
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Top Navigation Bar */}
-      <div className="flex items-center justify-between px-6 py-4 bg-gray-800 border-b border-gray-700">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 px-4 sm:px-6 py-3 sm:py-4 bg-gray-800 border-b border-gray-700">
         {/* Left: Back to Home */}
         <Link 
           to="/"
-          className="text-blue-400 hover:text-blue-300 transition text-sm"
+          className="text-blue-400 hover:text-blue-300 transition text-xs sm:text-sm whitespace-nowrap"
         >
           ← Back to Home
         </Link>
         
         {/* Center: Algorithm Selector */}
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-400">Select Algorithm</span>
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <span className="text-xs sm:text-sm text-gray-400 hidden sm:inline">Select Algorithm</span>
           <select 
-            className="bg-gray-700 text-white px-4 py-2 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500 cursor-pointer"
+            className="bg-gray-700 text-white px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500 cursor-pointer text-xs sm:text-sm flex-1 sm:flex-none"
             value={selectedAlgorithm || ''}
             disabled={isSorting}
             onChange={(e) => {
@@ -355,9 +355,9 @@ const sleep = async (ms: number) => {
         </div>
 
         {/* Right: Array Size and Generate */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-400">Array Size</span>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="text-xs sm:text-sm text-gray-400 whitespace-nowrap">Array Size</span>
             <input
               type="range"
               min="1"
@@ -365,16 +365,16 @@ const sleep = async (ms: number) => {
               value={arraySize}
               onChange={(e) => setArraySize(Number(e.target.value))}
               disabled={isSorting}
-              className="w-32 h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed accent-blue-500"
+              className="w-20 sm:w-32 h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed accent-blue-500"
             />
-            <span className="bg-gray-700 px-3 py-1 rounded text-sm font-mono w-8 text-center">
+            <span className="bg-gray-700 px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-mono w-6 sm:w-8 text-center">
               {arraySize}
             </span>
           </div>
           <button
             onClick={generateRandomArray}
             disabled={isSorting}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed px-5 py-2 rounded-lg font-semibold transition text-sm"
+            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg font-semibold transition text-xs sm:text-sm whitespace-nowrap"
           >
             Generate Array
           </button>
@@ -396,12 +396,12 @@ const sleep = async (ms: number) => {
               </h2>
               
               {/* Array Bars Container */}
-              <div className="h-96 flex items-end justify-center gap-4 mb-4">
+              <div className="h-64 sm:h-80 lg:h-96 flex items-end justify-center gap-2 sm:gap-3 lg:gap-4 mb-4 px-2">
                 {array.map((value, index) => (
-                  <div key={index} className="flex flex-col items-center justify-end h-full">
+                  <div key={index} className="flex flex-col items-center justify-end h-full" style={{ flex: '0 1 80px', minWidth: '40px', maxWidth: '100px' }}>
                     {/* Bar */}
                     <div
-                      className={`w-24 flex items-center justify-center transition-all duration-300 rounded-t-lg`}
+                      className={`w-full flex items-center justify-center transition-all duration-300 rounded-t-lg`}
                       style={{ 
                         height: `${(value / 100) * 85}%`, 
                         minHeight: '50px',
@@ -440,40 +440,38 @@ const sleep = async (ms: number) => {
           {/* Controls Panel */}
           <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-xl p-6">
             {/* Playback Buttons */}
-            <div className="flex items-center justify-center gap-4 mb-6">
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 lg:gap-4 mb-6">
               <button 
-                className="px-5 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center gap-2"
+                className="px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5 bg-gray-700 hover:bg-gray-600 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm flex items-center gap-1 sm:gap-2"
                 disabled={true}
               >
-                <span>⏮</span> Step Back
+                <span>⏮</span> <span className="hidden sm:inline">Step Back</span>
               </button>
               <button 
                 onClick={() => {
                   if (isSorting) {
-                    // Toggle pause
                     const newPauseState = !isPaused;
                     setIsPaused(newPauseState);
                     pauseRef.current = newPauseState;
                   } else {
-                    // Start sorting
                     pauseRef.current = false;
                     bubbleSort();
                   }
                 }}
-                className="px-7 py-2.5 bg-green-600 hover:bg-green-700 rounded-lg transition font-semibold text-sm flex items-center gap-2"
+                className="px-4 sm:px-6 lg:px-7 py-2 sm:py-2.5 bg-green-600 hover:bg-green-700 rounded-lg transition font-semibold text-xs sm:text-sm flex items-center gap-1 sm:gap-2"
               >
                 <span>{isSorting ? (isPaused ? '▶' : '⏸') : '▶'}</span> 
-                {isSorting ? (isPaused ? 'Resume' : 'Pause') : 'Play'}
+                <span className="hidden sm:inline">{isSorting ? (isPaused ? 'Resume' : 'Pause') : 'Play'}</span>
+                <span className="sm:hidden">{isSorting ? (isPaused ? 'Resume' : 'Pause') : 'Play'}</span>
               </button>
               <button 
-                className="px-5 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center gap-2"
+                className="px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5 bg-gray-700 hover:bg-gray-600 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm flex items-center gap-1 sm:gap-2"
                 disabled={true}
               >
-                Step Forward <span>⏭</span>
+                <span className="hidden sm:inline">Step Forward</span> <span>⏭</span>
               </button>
               <button 
                 onClick={() => {
-                  // Force stop everything
                   setIsSorting(false);
                   setIsPaused(false);
                   pauseRef.current = false;
@@ -482,18 +480,17 @@ const sleep = async (ms: number) => {
                   setSortedIndices([]);
                   setCurrentLine(null);
                   setSelectedAlgorithm(null);
-                  // Generate new array
                   generateRandomArray();
                 }}
-                className="px-5 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-sm flex items-center gap-2"
+                className="px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-xs sm:text-sm flex items-center gap-1 sm:gap-2"
               >
-                <span>↻</span> Reset
+                <span>↻</span> <span className="hidden sm:inline">Reset</span>
               </button>
             </div>
 
             {/* Speed Slider */}
-            <div className="flex items-center justify-center gap-4">
-              <span className="text-sm text-gray-400">Speed:</span>
+            <div className="flex items-center justify-center gap-2 sm:gap-3 lg:gap-4">
+              <span className="text-xs sm:text-sm text-gray-400">Speed:</span>
               <input
                 type="range"
                 min="0.25"
@@ -501,9 +498,9 @@ const sleep = async (ms: number) => {
                 step="0.25"
                 value={animationSpeed}
                 onChange={(e) => setAnimationSpeed(Number(e.target.value))}
-                className="w-64 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                className="w-32 sm:w-48 lg:w-64 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
               />
-              <span className="text-sm text-gray-400 font-mono w-12">{animationSpeed.toFixed(1)}x</span>
+              <span className="text-xs sm:text-sm text-gray-400 font-mono w-8 sm:w-12">{animationSpeed.toFixed(1)}x</span>
             </div>
           </div>
         </div>
