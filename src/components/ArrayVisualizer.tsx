@@ -218,8 +218,8 @@ function ArrayVisualizer() {
 
       {/* Main Content Area */}
       <div className="p-6 flex gap-6">
-        {/* Left Side - Visualization and Controls */}
-        <div className="flex-1 space-y-6">
+        {/* Left Side - Visualization and Controls - 60% */}
+        <div className="w-[60%] space-y-6">
           {/* Array Visualization */}
           <div className="bg-gradient-to-br from-gray-800 via-gray-850 to-gray-900 border border-gray-700 rounded-xl shadow-2xl p-8 relative">
             {/* Shine overlay */}
@@ -321,8 +321,8 @@ function ArrayVisualizer() {
           </div>
         </div>
 
-        {/* Right Side - Info Panels */}
-        <div className="w-[450px] space-y-6">
+        {/* Right Side - Info Panels - 40% */}
+        <div className="w-[40%] space-y-6">
           {/* Complexity Table */}
           {showComplexity && currentAlgorithm && (
             <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden shadow-xl">
@@ -413,14 +413,16 @@ function ArrayVisualizer() {
               </div>
 
               {/* Variables */}
-              <div className="bg-gray-900 border-b border-gray-700 p-3">
-                <div className="text-xs">
-                  <div className="font-semibold text-gray-300 mb-2">Variables:</div>
-                  <div className="font-mono text-gray-400 space-y-0.5">
-                    <div>i=0</div>
-                    <div>j=3</div>
-                    <div>temp=null</div>
-                    <div>arr=[{array.join(', ')}]</div>
+              <div className="bg-gray-900 border-b border-gray-700 px-3 py-2">
+                <div className="flex items-start gap-3 text-xs">
+                  <div className="font-semibold text-gray-300 min-w-fit">Variables:</div>
+                  <div className="font-mono text-gray-400 flex-1">
+                    <div className="flex gap-3 flex-wrap">
+                      <span>i=0</span>
+                      <span>j=3</span>
+                      <span>temp=null</span>
+                    </div>
+                    <div className="mt-1">arr=[{array.join(', ')}]</div>
                   </div>
                 </div>
               </div>
