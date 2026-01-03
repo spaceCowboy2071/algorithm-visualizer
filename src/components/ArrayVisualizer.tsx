@@ -382,9 +382,9 @@ const sleep = async (ms: number) => {
       </div>
 
       {/* Main Content Area */}
-      <div className="p-6 flex gap-6">
-        {/* Left Side - Visualization and Controls - 60% */}
-        <div className="w-[60%] space-y-6">
+      <div className="p-6 flex flex-col lg:flex-row gap-6">
+        {/* Left Side - Visualization and Controls */}
+        <div className="w-full lg:w-[60%] space-y-6">
           {/* Array Visualization */}
           <div className="bg-gradient-to-br from-gray-800 via-gray-850 to-gray-900 border border-gray-700 rounded-xl shadow-2xl p-8 relative">
             {/* Shine overlay */}
@@ -508,8 +508,8 @@ const sleep = async (ms: number) => {
           </div>
         </div>
 
-        {/* Right Side - Info Panels - 40% */}
-        <div className="w-[40%] space-y-6">
+        {/* Right Side - Info Panels */}
+        <div className="w-full lg:w-[40%] space-y-6">
           {/* Complexity Table */}
           {showComplexity && currentAlgorithm && (
             <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden shadow-xl">
@@ -545,8 +545,8 @@ const sleep = async (ms: number) => {
           )}
 
           {/* How/When/Where/Why Tabs */}
-          {showContext && currentAlgorithm && (
-            <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden shadow-xl">
+          {showComplexity && currentAlgorithm && (
+            <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden shadow-xl order-last lg:order-none">
               <div className="flex border-b border-gray-700">
                 {(['how', 'when', 'where', 'why'] as const).map((tab) => (
                   <button
