@@ -56,6 +56,22 @@ function ArrayVisualizer() {
     }
   };
 
+  const QUICK_SORT_INFO: ComplexityInfo = {
+    name: "Quick Sort",
+    timeComplexity: {
+      best: "O(n log n)",
+      average: "O(n log n)",
+      worst: "O(n²)"
+    },
+    spaceComplexity: "O(log n)",
+    explanations: {
+      how: "Quick Sort picks a 'pivot' element and partitions the array so all elements smaller than the pivot come before it, and all larger elements come after. It then recursively sorts the sub-arrays on either side of the pivot. This divide-and-conquer approach is very efficient.",
+      when: "Use Quick Sort for general-purpose sorting of large datasets. It's one of the fastest sorting algorithms in practice, though it has poor worst-case performance. Ideal when average-case performance matters more than worst-case, and when you want in-place sorting with minimal memory overhead.",
+      where: "Quick Sort is found in many standard library implementations (like C's qsort), database systems, and situations requiring fast in-place sorting. It's commonly used in production systems where performance is critical and the data isn't adversarially arranged.",
+      why: "Choose Quick Sort when: (1) you need fast average-case performance, (2) memory is limited (in-place sorting), (3) you're working with large datasets, or (4) you want a practical, battle-tested algorithm. It's often faster than Merge Sort due to better cache locality."
+    }
+  };
+
   const BUBBLE_SORT_CODE = {
     javascript: `function bubbleSort(arr) {
   const n = arr.length;
@@ -83,6 +99,55 @@ function ArrayVisualizer() {
                 arr[j], arr[j + 1] = arr[j + 1], arr[j]
     
     return arr`
+  };
+
+  const QUICK_SORT_CODE = {
+    javascript: `function quickSort(arr, low = 0, high = arr.length - 1) {
+    if (low < high) {
+      const pivotIndex = partition(arr, low, high);
+      
+      quickSort(arr, low, pivotIndex - 1);
+      quickSort(arr, pivotIndex + 1, high);
+    }
+    return arr;
+  }
+
+  function partition(arr, low, high) {
+    const pivot = arr[high];
+    let i = low - 1;
+    
+    for (let j = low; j < high; j++) {
+      if (arr[j] < pivot) {
+        i++;
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+    [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
+    return i + 1;
+  }`,
+    python: `def quick_sort(arr, low=0, high=None):
+      if high is None:
+          high = len(arr) - 1
+      
+      if low < high:
+          pivot_index = partition(arr, low, high)
+          
+          quick_sort(arr, low, pivot_index - 1)
+          quick_sort(arr, pivot_index + 1, high)
+      
+      return arr
+
+  def partition(arr, low, high):
+      pivot = arr[high]
+      i = low - 1
+      
+      for j in range(low, high):
+          if arr[j] < pivot:
+              i += 1
+              arr[i], arr[j] = arr[j], arr[i]
+      
+      arr[i + 1], arr[high] = arr[high], arr[i + 1]
+      return i + 1`
   };
 
 const generateRandomArray = () => {
@@ -171,6 +236,90 @@ const sleep = async (ms: number) => {
     setIsSorting(false);
   };
 
+  const quickSort = async () => {
+    setSelectedAlgorithm('Quick Sort');
+    setIsSorting(true);
+    setShowComplexity(true);
+    setCurrentAlgorithm(QUICK_SORT_INFO);
+    setSortedIndices([]);
+    
+    const arr = [...array];
+    
+    // Quick sort implementation
+    const partition = async (low: number, high: number): Promise<number> => {
+      const pivot = arr[high];
+      let i = low - 1;
+      
+      setCurrentLine(12);
+      await sleep(300);
+      
+      for (let j = low; j < high; j++) {
+        setCurrentLine(14);
+        await sleep(200);
+        
+        setComparing([j, high]); // Compare with pivot
+        setComparisonMessage(`Comparing ${arr[j]} with pivot ${pivot}`);
+        
+        if (arr[j] < pivot) {
+          i++;
+          setCurrentLine(16);
+          await sleep(300);
+          
+          // Swap
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+          setArray([...arr]);
+          await sleep(300);
+        }
+      }
+      
+      setCurrentLine(19);
+      await sleep(300);
+      
+      // Place pivot in correct position
+      [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
+      setArray([...arr]);
+      
+      // Mark pivot as sorted
+      setSortedIndices(prev => [...prev, i + 1]);
+      await sleep(300);
+      
+      return i + 1;
+    };
+    
+    const quickSortRecursive = async (low: number, high: number): Promise<void> => {
+      if (low < high) {
+        setCurrentLine(2);
+        await sleep(200);
+        
+        const pivotIndex = await partition(low, high);
+        
+        setCurrentLine(4);
+        await sleep(200);
+        
+        // Sort left partition
+        await quickSortRecursive(low, pivotIndex - 1);
+        
+        setCurrentLine(5);
+        await sleep(200);
+        
+        // Sort right partition
+        await quickSortRecursive(pivotIndex + 1, high);
+      } else if (low === high) {
+        // Single element is sorted
+        setSortedIndices(prev => [...prev, low]);
+      }
+    };
+    
+    await quickSortRecursive(0, arr.length - 1);
+    
+    // Mark all as sorted
+    setSortedIndices(Array.from({ length: arr.length }, (_, i) => i));
+    
+    setComparing([]);
+    setComparisonMessage('');
+    setCurrentLine(null);
+    setIsSorting(false);
+  };
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -194,11 +343,14 @@ const sleep = async (ms: number) => {
             onChange={(e) => {
               if (e.target.value === 'Bubble Sort') {
                 bubbleSort();
+              } else if (e.target.value === 'Quick Sort') {
+                quickSort();
               }
             }}
           >
             <option value="">Choose...</option>
             <option value="Bubble Sort">Bubble Sort</option>
+            <option value="Quick Sort">Quick Sort</option>
           </select>
         </div>
 
