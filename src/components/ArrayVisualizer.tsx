@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
+
 
 interface ComplexityInfo {
   name: string;
@@ -23,17 +24,21 @@ function ArrayVisualizer() {
   const [comparing, setComparing] = useState<number[]>([]);
   const [showComplexity, setShowComplexity] = useState(false);
   const [currentAlgorithm, setCurrentAlgorithm] = useState<ComplexityInfo | null>(null);
-  const [showExplanation, setShowExplanation] = useState(true);
-  const [showXRay, setShowXRay] = useState(true);
-  const [xRayEnabled, setXRayEnabled] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<'javascript' | 'python'>('javascript');
   const [currentLine, setCurrentLine] = useState<number | null>(null);
-  const [showContext, setShowContext] = useState(true);
   const [activeTab, setActiveTab] = useState<'how' | 'when' | 'where' | 'why'>('how');
   const [selectedAlgorithm, setSelectedAlgorithm] = useState<string | null>(null);
   const [arraySize, setArraySize] = useState(10);
   const [sortedIndices, setSortedIndices] = useState<number[]>([]);
   const [comparisonMessage, setComparisonMessage] = useState<string>('');
+  const [animationSpeed, setAnimationSpeed] = useState(1);
+  const [isPaused, setIsPaused] = useState(false);
+
+  const pauseRef = useRef(false);
+
+  const showXRay = true;
+  const showContext = true;
+
 
   const BUBBLE_SORT_INFO: ComplexityInfo = {
     name: "Bubble Sort",
@@ -80,28 +85,35 @@ function ArrayVisualizer() {
     return arr`
   };
 
-  const generateRandomArray = () => {
-    const newArray = [];
-    for (let i = 0; i < arraySize; i++) {
-      newArray.push(Math.floor(Math.random() * 99) + 1);
-    }
-    setArray(newArray);
-    setComparing([]);
-    setCurrentLine(null);
-    setSelectedAlgorithm(null);
-    setSortedIndices([]);
-  };
+const generateRandomArray = () => {
+  const newArray = [];
+  for (let i = 0; i < arraySize; i++) {
+    newArray.push(Math.floor(Math.random() * 99) + 1);
+  }
+  setArray(newArray);
+  setComparing([]);
+  setCurrentLine(null);
+  setSelectedAlgorithm(null);
+  setSortedIndices([]);
+};
 
-  const sleep = (ms: number) => {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  };
+const sleep = async (ms: number) => {
+  const adjustedMs = ms / animationSpeed;
+  
+  // Normal delay
+  await new Promise(resolve => setTimeout(resolve, adjustedMs));
+  
+  // Check for pause
+  while (pauseRef.current) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+};
 
   const bubbleSort = async () => {
     setSelectedAlgorithm('Bubble Sort');
     setIsSorting(true);
     setShowComplexity(true);
     setCurrentAlgorithm(BUBBLE_SORT_INFO);
-    setXRayEnabled(true);
     setSortedIndices([]); // Clear any previous sorted state
     
     const arr = [...array];
@@ -120,7 +132,7 @@ function ArrayVisualizer() {
         await sleep(300);
         
         setComparing([j, j + 1]);
-        setComparisonMessage(`Comparing index ${j} and ${j + 1}`);
+        setComparisonMessage(`Comparing index ${j} and ${j + 1}`); // Fixed: added opening (
         setCurrentLine(6);
         await sleep(300);
 
@@ -158,6 +170,7 @@ function ArrayVisualizer() {
     setCurrentLine(null);
     setIsSorting(false);
   };
+
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -283,11 +296,22 @@ function ArrayVisualizer() {
                 <span>⏮</span> Step Back
               </button>
               <button 
-                onClick={bubbleSort}
-                disabled={isSorting}
-                className="px-7 py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 rounded-lg transition font-semibold text-sm flex items-center gap-2"
+                onClick={() => {
+                  if (isSorting) {
+                    // Toggle pause
+                    const newPauseState = !isPaused;
+                    setIsPaused(newPauseState);
+                    pauseRef.current = newPauseState;
+                  } else {
+                    // Start sorting
+                    pauseRef.current = false;
+                    bubbleSort();
+                  }
+                }}
+                className="px-7 py-2.5 bg-green-600 hover:bg-green-700 rounded-lg transition font-semibold text-sm flex items-center gap-2"
               >
-                <span>{isSorting ? '⏸' : '▶'}</span> {isSorting ? 'Pause' : 'Play'}
+                <span>{isSorting ? (isPaused ? '▶' : '⏸') : '▶'}</span> 
+                {isSorting ? (isPaused ? 'Resume' : 'Pause') : 'Play'}
               </button>
               <button 
                 className="px-5 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center gap-2"
@@ -296,9 +320,20 @@ function ArrayVisualizer() {
                 Step Forward <span>⏭</span>
               </button>
               <button 
-                onClick={generateRandomArray}
-                disabled={isSorting}
-                className="px-5 py-2.5 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 rounded-lg transition text-sm flex items-center gap-2"
+                onClick={() => {
+                  // Force stop everything
+                  setIsSorting(false);
+                  setIsPaused(false);
+                  pauseRef.current = false;
+                  setComparisonMessage('');
+                  setComparing([]);
+                  setSortedIndices([]);
+                  setCurrentLine(null);
+                  setSelectedAlgorithm(null);
+                  // Generate new array
+                  generateRandomArray();
+                }}
+                className="px-5 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-sm flex items-center gap-2"
               >
                 <span>↻</span> Reset
               </button>
@@ -309,14 +344,14 @@ function ArrayVisualizer() {
               <span className="text-sm text-gray-400">Speed:</span>
               <input
                 type="range"
-                min="0.5"
+                min="0.25"
                 max="2"
-                step="0.1"
-                defaultValue="1"
-                disabled={true}
-                className="w-64 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed accent-blue-500"
+                step="0.25"
+                value={animationSpeed}
+                onChange={(e) => setAnimationSpeed(Number(e.target.value))}
+                className="w-64 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
               />
-              <span className="text-sm text-gray-400 font-mono w-12">1x</span>
+              <span className="text-sm text-gray-400 font-mono w-12">{animationSpeed.toFixed(1)}x</span>
             </div>
           </div>
         </div>
