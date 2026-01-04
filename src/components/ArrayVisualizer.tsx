@@ -175,11 +175,8 @@ const sleep = async (ms: number) => {
 };
 
   const bubbleSort = async () => {
-    setSelectedAlgorithm('Bubble Sort');
     setIsSorting(true);
-    setShowComplexity(true);
-    setCurrentAlgorithm(BUBBLE_SORT_INFO);
-    setSortedIndices([]); // Clear any previous sorted state
+    setSortedIndices([]);
     
     const arr = [...array];
     const n = arr.length;
@@ -237,10 +234,7 @@ const sleep = async (ms: number) => {
   };
 
   const quickSort = async () => {
-    setSelectedAlgorithm('Quick Sort');
     setIsSorting(true);
-    setShowComplexity(true);
-    setCurrentAlgorithm(QUICK_SORT_INFO);
     setSortedIndices([]);
     
     const arr = [...array];
@@ -341,10 +335,19 @@ const sleep = async (ms: number) => {
             value={selectedAlgorithm || ''}
             disabled={isSorting}
             onChange={(e) => {
-              if (e.target.value === 'Bubble Sort') {
-                bubbleSort();
-              } else if (e.target.value === 'Quick Sort') {
-                quickSort();
+              const algorithm = e.target.value;
+              setSelectedAlgorithm(algorithm);
+              
+              // Set the algorithm info and complexity without running it
+              if (algorithm === 'Bubble Sort') {
+                setShowComplexity(true);
+                setCurrentAlgorithm(BUBBLE_SORT_INFO);
+              } else if (algorithm === 'Quick Sort') {
+                setShowComplexity(true);
+                setCurrentAlgorithm(QUICK_SORT_INFO);
+              } else {
+                setShowComplexity(false);
+                setCurrentAlgorithm(null);
               }
             }}
           >
@@ -450,15 +453,28 @@ const sleep = async (ms: number) => {
               <button 
                 onClick={() => {
                   if (isSorting) {
+                    // Toggle pause
                     const newPauseState = !isPaused;
                     setIsPaused(newPauseState);
                     pauseRef.current = newPauseState;
                   } else {
+                    // Start the selected algorithm
+                    if (!selectedAlgorithm) {
+                      alert('Please select an algorithm first!');
+                      return;
+                    }
+                    
                     pauseRef.current = false;
-                    bubbleSort();
+                    
+                    if (selectedAlgorithm === 'Bubble Sort') {
+                      bubbleSort();
+                    } else if (selectedAlgorithm === 'Quick Sort') {
+                      quickSort();
+                    }
                   }
                 }}
-                className="px-4 sm:px-6 lg:px-7 py-2 sm:py-2.5 bg-green-600 hover:bg-green-700 rounded-lg transition font-semibold text-xs sm:text-sm flex items-center gap-1 sm:gap-2"
+                disabled={!selectedAlgorithm && !isSorting}
+                className="px-4 sm:px-6 lg:px-7 py-2 sm:py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition font-semibold text-xs sm:text-sm flex items-center gap-1 sm:gap-2"
               >
                 <span>{isSorting ? (isPaused ? '▶' : '⏸') : '▶'}</span> 
                 <span className="hidden sm:inline">{isSorting ? (isPaused ? 'Resume' : 'Pause') : 'Play'}</span>
