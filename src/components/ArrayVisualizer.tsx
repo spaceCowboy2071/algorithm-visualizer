@@ -35,6 +35,7 @@ function ArrayVisualizer() {
   const [isPaused, setIsPaused] = useState(false);
 
   const pauseRef = useRef(false);
+  const cancelRef = useRef(false);
 
   const showXRay = true;
   const showContext = true;
@@ -158,161 +159,188 @@ const generateRandomArray = () => {
   setArray(newArray);
   setComparing([]);
   setCurrentLine(null);
-  setSelectedAlgorithm(null);
   setSortedIndices([]);
 };
 
 const sleep = async (ms: number) => {
+  // Check if cancelled before sleeping
+  if (cancelRef.current) {
+    throw new Error('CANCELLED');
+  }
+  
   const adjustedMs = ms / animationSpeed;
   
   // Normal delay
   await new Promise(resolve => setTimeout(resolve, adjustedMs));
   
   // Check for pause
-  while (pauseRef.current) {
+  while (pauseRef.current && !cancelRef.current) {
     await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  
+  // Check if cancelled after sleeping
+  if (cancelRef.current) {
+    throw new Error('CANCELLED');
   }
 };
 
   const bubbleSort = async () => {
     setIsSorting(true);
     setSortedIndices([]);
+    cancelRef.current = false; // Reset cancel flag
     
-    const arr = [...array];
-    const n = arr.length;
-    const sorted: number[] = [];
+    try {
+      const arr = [...array];
+      const n = arr.length;
+      const sorted: number[] = [];
 
-    setCurrentLine(2);
-    await sleep(300);
-
-    for (let i = 0; i < n - 1; i++) {
-      setCurrentLine(4);
+      setCurrentLine(2);
       await sleep(300);
-      
-      for (let j = 0; j < n - i - 1; j++) {
-        setCurrentLine(5);
+
+      for (let i = 0; i < n - 1; i++) {
+        setCurrentLine(4);
         await sleep(300);
         
-        setComparing([j, j + 1]);
-        setComparisonMessage(`Comparing index ${j} and ${j + 1}`); // Fixed: added opening (
-        setCurrentLine(6);
-        await sleep(300);
+        for (let j = 0; j < n - i - 1; j++) {
+          setCurrentLine(5);
+          await sleep(300);
+          
+          setComparing([j, j + 1]);
+          setComparisonMessage(`Comparing index ${j} and ${j + 1}`);
+          setCurrentLine(6);
+          await sleep(300);
 
-        if (arr[j] > arr[j + 1]) {
-          setCurrentLine(8);
-          await sleep(300);
-          
-          const temp = arr[j];
-          
-          setCurrentLine(9);
-          await sleep(300);
-          arr[j] = arr[j + 1];
-          
-          setCurrentLine(10);
-          await sleep(300);
-          arr[j + 1] = temp;
+          if (arr[j] > arr[j + 1]) {
+            setCurrentLine(8);
+            await sleep(300);
+            
+            const temp = arr[j];
+            
+            setCurrentLine(9);
+            await sleep(300);
+            arr[j] = arr[j + 1];
+            
+            setCurrentLine(10);
+            await sleep(300);
+            arr[j + 1] = temp;
 
-          setArray([...arr]);
-          await sleep(300);
+            setArray([...arr]);
+            await sleep(300);
+          }
         }
+        
+        // After each pass, the element at position (n - i - 1) is in its final sorted position
+        sorted.push(n - i - 1);
+        setSortedIndices([...sorted]);
+        await sleep(200);
       }
-      
-      // After each pass, the element at position (n - i - 1) is in its final sorted position
-      sorted.push(n - i - 1);
+
+      // Mark first element as sorted too (it's sorted when we finish)
+      sorted.push(0);
       setSortedIndices([...sorted]);
-      await sleep(200);
+    } catch (error) {
+      // Sorting was cancelled - cleanup happens in finally
+      if (error instanceof Error && error.message !== 'CANCELLED') {
+        console.error('Sorting error:', error);
+      }
+    } finally {
+      // Always cleanup, whether completed or cancelled
+      setComparing([]);
+      setComparisonMessage('');
+      setCurrentLine(null);
+      setIsSorting(false);
     }
-
-    // Mark first element as sorted too (it's sorted when we finish)
-    sorted.push(0);
-    setSortedIndices([...sorted]);
-
-    setComparing([]);
-    setComparisonMessage('');
-    setCurrentLine(null);
-    setIsSorting(false);
   };
 
   const quickSort = async () => {
     setIsSorting(true);
     setSortedIndices([]);
+    cancelRef.current = false; // Reset cancel flag
     
-    const arr = [...array];
-    
-    // Quick sort implementation
-    const partition = async (low: number, high: number): Promise<number> => {
-      const pivot = arr[high];
-      let i = low - 1;
+    try {
+      const arr = [...array];
       
-      setCurrentLine(12);
-      await sleep(300);
-      
-      for (let j = low; j < high; j++) {
-        setCurrentLine(14);
-        await sleep(200);
+      // Quick sort implementation
+      const partition = async (low: number, high: number): Promise<number> => {
+        const pivot = arr[high];
+        let i = low - 1;
         
-        setComparing([j, high]); // Compare with pivot
-        setComparisonMessage(`Comparing ${arr[j]} with pivot ${pivot}`);
+        setCurrentLine(12);
+        await sleep(300);
         
-        if (arr[j] < pivot) {
-          i++;
-          setCurrentLine(16);
-          await sleep(300);
+        for (let j = low; j < high; j++) {
+          setCurrentLine(14);
+          await sleep(200);
           
-          // Swap
-          [arr[i], arr[j]] = [arr[j], arr[i]];
-          setArray([...arr]);
-          await sleep(300);
+          setComparing([j, high]); // Compare with pivot
+          setComparisonMessage(`Comparing ${arr[j]} with pivot ${pivot}`);
+          
+          if (arr[j] < pivot) {
+            i++;
+            setCurrentLine(16);
+            await sleep(300);
+            
+            // Swap
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+            setArray([...arr]);
+            await sleep(300);
+          }
         }
+        
+        setCurrentLine(19);
+        await sleep(300);
+        
+        // Place pivot in correct position
+        [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
+        setArray([...arr]);
+        
+        // Mark pivot as sorted
+        setSortedIndices(prev => [...prev, i + 1]);
+        await sleep(300);
+        
+        return i + 1;
+      };
+      
+      const quickSortRecursive = async (low: number, high: number): Promise<void> => {
+        if (low < high) {
+          setCurrentLine(2);
+          await sleep(200);
+          
+          const pivotIndex = await partition(low, high);
+          
+          setCurrentLine(4);
+          await sleep(200);
+          
+          // Sort left partition
+          await quickSortRecursive(low, pivotIndex - 1);
+          
+          setCurrentLine(5);
+          await sleep(200);
+          
+          // Sort right partition
+          await quickSortRecursive(pivotIndex + 1, high);
+        } else if (low === high) {
+          // Single element is sorted
+          setSortedIndices(prev => [...prev, low]);
+        }
+      };
+      
+      await quickSortRecursive(0, arr.length - 1);
+      
+      // Mark all as sorted
+      setSortedIndices(Array.from({ length: arr.length }, (_, i) => i));
+    } catch (error) {
+      // Sorting was cancelled - cleanup happens in finally
+      if (error instanceof Error && error.message !== 'CANCELLED') {
+        console.error('Sorting error:', error);
       }
-      
-      setCurrentLine(19);
-      await sleep(300);
-      
-      // Place pivot in correct position
-      [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
-      setArray([...arr]);
-      
-      // Mark pivot as sorted
-      setSortedIndices(prev => [...prev, i + 1]);
-      await sleep(300);
-      
-      return i + 1;
-    };
-    
-    const quickSortRecursive = async (low: number, high: number): Promise<void> => {
-      if (low < high) {
-        setCurrentLine(2);
-        await sleep(200);
-        
-        const pivotIndex = await partition(low, high);
-        
-        setCurrentLine(4);
-        await sleep(200);
-        
-        // Sort left partition
-        await quickSortRecursive(low, pivotIndex - 1);
-        
-        setCurrentLine(5);
-        await sleep(200);
-        
-        // Sort right partition
-        await quickSortRecursive(pivotIndex + 1, high);
-      } else if (low === high) {
-        // Single element is sorted
-        setSortedIndices(prev => [...prev, low]);
-      }
-    };
-    
-    await quickSortRecursive(0, arr.length - 1);
-    
-    // Mark all as sorted
-    setSortedIndices(Array.from({ length: arr.length }, (_, i) => i));
-    
-    setComparing([]);
-    setComparisonMessage('');
-    setCurrentLine(null);
-    setIsSorting(false);
+    } finally {
+      // Always cleanup, whether completed or cancelled
+      setComparing([]);
+      setComparisonMessage('');
+      setCurrentLine(null);
+      setIsSorting(false);
+    }
   };
 
   return (
@@ -487,15 +515,24 @@ const sleep = async (ms: number) => {
                 <span className="hidden sm:inline">Step Forward</span> <span>⏭</span>
               </button>
               <button 
-                onClick={() => {
+                onClick={async () => {
+                  // Cancel any ongoing sort
+                  cancelRef.current = true;
+                  pauseRef.current = false; // Unpause so it can exit quickly
+                  
+                  // Give the async function time to see the cancel flag and cleanup
+                  await new Promise(resolve => setTimeout(resolve, 50));
+                  
+                  // Reset all state
                   setIsSorting(false);
                   setIsPaused(false);
-                  pauseRef.current = false;
                   setComparisonMessage('');
                   setComparing([]);
                   setSortedIndices([]);
                   setCurrentLine(null);
-                  setSelectedAlgorithm(null);
+
+                  
+                  // Generate new array
                   generateRandomArray();
                 }}
                 className="px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-xs sm:text-sm flex items-center gap-1 sm:gap-2"
