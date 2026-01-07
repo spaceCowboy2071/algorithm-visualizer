@@ -37,6 +37,15 @@ function ArrayVisualizer() {
   const pauseRef = useRef(false);
   const cancelRef = useRef(false);
 
+  const stepForwardRef = useRef(false);
+  const [history, setHistory] = useState<Array<{
+    array: number[];
+    comparing: number[];
+    sortedIndices: number[];
+    currentLine: number | null;
+    message: string;
+  }>>([]);
+
   const showXRay = true;
   const showContext = true;
 
@@ -151,38 +160,58 @@ function ArrayVisualizer() {
       return i + 1`
   };
 
-const generateRandomArray = () => {
-  const newArray = [];
-  for (let i = 0; i < arraySize; i++) {
-    newArray.push(Math.floor(Math.random() * 99) + 1);
-  }
-  setArray(newArray);
-  setComparing([]);
-  setCurrentLine(null);
-  setSortedIndices([]);
-};
+  const generateRandomArray = () => {
+    const newArray = [];
+    for (let i = 0; i < arraySize; i++) {
+      newArray.push(Math.floor(Math.random() * 99) + 1);
+    }
+    setArray(newArray);
+    setComparing([]);
+    setCurrentLine(null);
+    setSortedIndices([]);
+  };
 
-const sleep = async (ms: number) => {
-  // Check if cancelled before sleeping
-  if (cancelRef.current) {
-    throw new Error('CANCELLED');
-  }
-  
-  const adjustedMs = ms / animationSpeed;
-  
-  // Normal delay
-  await new Promise(resolve => setTimeout(resolve, adjustedMs));
-  
-  // Check for pause
-  while (pauseRef.current && !cancelRef.current) {
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
-  
-  // Check if cancelled after sleeping
-  if (cancelRef.current) {
-    throw new Error('CANCELLED');
-  }
-};
+  // Saves a snapshot of current visual state and add to history array
+  const saveToHistory = () => {
+    setHistory(prev => [...prev, {
+      array: [...array],
+      comparing: [...comparing],
+      sortedIndices: [...sortedIndices],
+      currentLine: currentLine,
+      message: comparisonMessage
+    }]);
+  };
+
+  const sleep = async (ms: number) => {
+    // Save current state to history before each step
+    saveToHistory();
+    
+    // Check if cancelled before sleeping
+    if (cancelRef.current) {
+      throw new Error('CANCELLED');
+    }
+    
+    const adjustedMs = ms / animationSpeed;
+    
+    // Normal delay
+    await new Promise(resolve => setTimeout(resolve, adjustedMs));
+    
+    // Check for pause
+    while (pauseRef.current && !cancelRef.current) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    
+    // Check for step forward mode
+    if (stepForwardRef.current) {
+      pauseRef.current = true;
+      stepForwardRef.current = false; // One step done, reset flag
+    }
+    
+    // Check if cancelled after sleeping
+    if (cancelRef.current) {
+      throw new Error('CANCELLED');
+    }
+  };
 
   const bubbleSort = async () => {
     setIsSorting(true);
@@ -343,6 +372,57 @@ const sleep = async (ms: number) => {
     }
   };
 
+  const stepForward = () => {
+    if (isSorting) {
+      // Already sorting - just execute one step
+      stepForwardRef.current = true;
+      pauseRef.current = false; // Unpause to let it advance
+    } else {
+      // Not sorting - start in step mode
+      if (!selectedAlgorithm) {
+        alert('Please select an algorithm first!');
+        return;
+      }
+      
+      stepForwardRef.current = true;
+      pauseRef.current = false;
+      
+      // Clear history for fresh start
+      setHistory([]);
+      
+      if (selectedAlgorithm === 'Bubble Sort') {
+        bubbleSort();
+      } else if (selectedAlgorithm === 'Quick Sort') {
+        quickSort();
+      }
+    }
+  };
+
+  const stepBack = () => {
+    if (history.length === 0) {
+      return; // Nothing to go back to
+    }
+    
+    // Pause if currently running
+    if (isSorting) {
+      pauseRef.current = true;
+      setIsPaused(true);
+    }
+    
+    // Get the previous state
+    const previousState = history[history.length - 1];
+    
+    // Restore it
+    setArray(previousState.array);
+    setComparing(previousState.comparing);
+    setSortedIndices(previousState.sortedIndices);
+    setCurrentLine(previousState.currentLine);
+    setComparisonMessage(previousState.message);
+    
+    // Remove from history
+    setHistory(prev => prev.slice(0, -1));
+  };
+
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Top Navigation Bar */}
@@ -473,8 +553,9 @@ const sleep = async (ms: number) => {
             {/* Playback Buttons */}
             <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 lg:gap-4 mb-6">
               <button 
+                onClick={stepBack}
+                disabled={history.length === 0}
                 className="px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5 bg-gray-700 hover:bg-gray-600 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm flex items-center gap-1 sm:gap-2"
-                disabled={true}
               >
                 <span>⏮</span> <span className="hidden sm:inline">Step Back</span>
               </button>
@@ -509,8 +590,9 @@ const sleep = async (ms: number) => {
                 <span className="sm:hidden">{isSorting ? (isPaused ? 'Resume' : 'Pause') : 'Play'}</span>
               </button>
               <button 
+                onClick={stepForward}
+                disabled={!selectedAlgorithm && !isSorting}
                 className="px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5 bg-gray-700 hover:bg-gray-600 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm flex items-center gap-1 sm:gap-2"
-                disabled={true}
               >
                 <span className="hidden sm:inline">Step Forward</span> <span>⏭</span>
               </button>
@@ -519,6 +601,7 @@ const sleep = async (ms: number) => {
                   // Cancel any ongoing sort
                   cancelRef.current = true;
                   pauseRef.current = false; // Unpause so it can exit quickly
+                  stepForwardRef.current = false;
                   
                   // Give the async function time to see the cancel flag and cleanup
                   await new Promise(resolve => setTimeout(resolve, 50));
@@ -530,7 +613,7 @@ const sleep = async (ms: number) => {
                   setComparing([]);
                   setSortedIndices([]);
                   setCurrentLine(null);
-
+                  setHistory([]);
                   
                   // Generate new array
                   generateRandomArray();
