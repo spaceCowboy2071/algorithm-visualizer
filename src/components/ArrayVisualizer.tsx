@@ -16,6 +16,10 @@ interface ComplexityInfo {
     where: string;
     why: string;
   };
+  code?: {  
+    javascript: string;
+    python: string;
+  };
 }
 
 function ArrayVisualizer() {
@@ -79,6 +83,22 @@ function ArrayVisualizer() {
       when: "Use Quick Sort for general-purpose sorting of large datasets. It's one of the fastest sorting algorithms in practice, though it has poor worst-case performance. Ideal when average-case performance matters more than worst-case, and when you want in-place sorting with minimal memory overhead.",
       where: "Quick Sort is found in many standard library implementations (like C's qsort), database systems, and situations requiring fast in-place sorting. It's commonly used in production systems where performance is critical and the data isn't adversarially arranged.",
       why: "Choose Quick Sort when: (1) you need fast average-case performance, (2) memory is limited (in-place sorting), (3) you're working with large datasets, or (4) you want a practical, battle-tested algorithm. It's often faster than Merge Sort due to better cache locality."
+    }
+  };
+
+  const MERGE_SORT_INFO: ComplexityInfo = {
+    name: "Merge Sort",
+    timeComplexity: {
+      best: "O(n log n)",
+      average: "O(n log n)",
+      worst: "O(n log n)"
+    },
+    spaceComplexity: "O(n)",
+    explanations: {
+      how: "Merge Sort divides the array into two halves, recursively sorts each half, then merges the sorted halves back together. The merge step combines two sorted arrays into one sorted array by repeatedly taking the smallest element from either array.",
+      when: "Use Merge Sort when you need guaranteed O(n log n) performance and stability (preserving order of equal elements). Ideal for sorting linked lists, external sorting (data too large for memory), and when worst-case performance matters more than space efficiency.",
+      where: "Merge Sort is used in Java's Arrays.sort() for objects, Python's sorted() and list.sort(), and many database systems for sorting large datasets. It's commonly used in external sorting algorithms and parallel sorting implementations.",
+      why: "Choose Merge Sort when: (1) you need stable sorting, (2) guaranteed O(n log n) time is required, (3) working with linked lists (no random access needed), or (4) data is too large to fit in memory. Trade-off: requires O(n) extra space unlike in-place sorts."
     }
   };
 
@@ -158,6 +178,82 @@ function ArrayVisualizer() {
       
       arr[i + 1], arr[high] = arr[high], arr[i + 1]
       return i + 1`
+  };
+
+  const MERGE_SORT_CODE = {
+    javascript: `function mergeSort(arr, left = 0, right = arr.length - 1) {
+    if (left < right) {
+      const mid = Math.floor((left + right) / 2);
+      
+      mergeSort(arr, left, mid);
+      mergeSort(arr, mid + 1, right);
+      
+      merge(arr, left, mid, right);
+    }
+    return arr;
+  }
+
+  function merge(arr, left, mid, right) {
+    const leftArr = arr.slice(left, mid + 1);
+    const rightArr = arr.slice(mid + 1, right + 1);
+    
+    let i = 0, j = 0, k = left;
+    
+    while (i < leftArr.length && j < rightArr.length) {
+      if (leftArr[i] <= rightArr[j]) {
+        arr[k++] = leftArr[i++];
+      } else {
+        arr[k++] = rightArr[j++];
+      }
+    }
+    
+    while (i < leftArr.length) {
+      arr[k++] = leftArr[i++];
+    }
+    
+    while (j < rightArr.length) {
+      arr[k++] = rightArr[j++];
+    }
+  }`,
+    python: `def merge_sort(arr, left=0, right=None):
+      if right is None:
+          right = len(arr) - 1
+      
+      if left < right:
+          mid = (left + right) // 2
+          
+          merge_sort(arr, left, mid)
+          merge_sort(arr, mid + 1, right)
+          
+          merge(arr, left, mid, right)
+      
+      return arr
+
+  def merge(arr, left, mid, right):
+      left_arr = arr[left:mid + 1]
+      right_arr = arr[mid + 1:right + 1]
+      
+      i = j = 0
+      k = left
+      
+      while i < len(left_arr) and j < len(right_arr):
+          if left_arr[i] <= right_arr[j]:
+              arr[k] = left_arr[i]
+              i += 1
+          else:
+              arr[k] = right_arr[j]
+              j += 1
+          k += 1
+      
+      while i < len(left_arr):
+          arr[k] = left_arr[i]
+          i += 1
+          k += 1
+      
+      while j < len(right_arr):
+          arr[k] = right_arr[j]
+          j += 1
+          k += 1`
   };
 
   const generateRandomArray = () => {
@@ -372,6 +468,128 @@ function ArrayVisualizer() {
     }
   };
 
+  const mergeSort = async () => {
+    setIsSorting(true);
+    setSortedIndices([]);
+    cancelRef.current = false;
+    
+    try {
+      const arr = [...array];
+      
+      // Merge function - combines two sorted subarrays
+      const merge = async (left: number, mid: number, right: number) => {
+        const leftArr = arr.slice(left, mid + 1);
+        const rightArr = arr.slice(mid + 1, right + 1);
+        
+        let i = 0, j = 0, k = left;
+        
+        setCurrentLine(12);
+        await sleep(200);
+        
+        while (i < leftArr.length && j < rightArr.length) {
+          setCurrentLine(14);
+          await sleep(200);
+          
+          setComparing([left + i, mid + 1 + j]);
+          setComparisonMessage(`Comparing ${leftArr[i]} and ${rightArr[j]}`);
+          
+          if (leftArr[i] <= rightArr[j]) {
+            setCurrentLine(16);
+            await sleep(300);
+            
+            arr[k] = leftArr[i];
+            i++;
+          } else {
+            setCurrentLine(19);
+            await sleep(300);
+            
+            arr[k] = rightArr[j];
+            j++;
+          }
+          
+          setArray([...arr]);
+          k++;
+          await sleep(300);
+        }
+        
+        // Copy remaining elements from left array
+        while (i < leftArr.length) {
+          setCurrentLine(25);
+          await sleep(200);
+          
+          arr[k] = leftArr[i];
+          setArray([...arr]);
+          i++;
+          k++;
+          await sleep(200);
+        }
+        
+        // Copy remaining elements from right array
+        while (j < rightArr.length) {
+          setCurrentLine(31);
+          await sleep(200);
+          
+          arr[k] = rightArr[j];
+          setArray([...arr]);
+          j++;
+          k++;
+          await sleep(200);
+        }
+        
+        // Mark merged section as sorted
+        const newSorted: number[] = [];
+        for (let idx = left; idx <= right; idx++) {
+          newSorted.push(idx);
+        }
+        setSortedIndices(prev => [...new Set([...prev, ...newSorted])]);
+        await sleep(300);
+      };
+      
+      // Recursive merge sort
+      const mergeSortRecursive = async (left: number, right: number): Promise<void> => {
+        if (left < right) {
+          setCurrentLine(2);
+          await sleep(200);
+          
+          const mid = Math.floor((left + right) / 2);
+          
+          setCurrentLine(4);
+          await sleep(200);
+          
+          // Sort left half
+          await mergeSortRecursive(left, mid);
+          
+          setCurrentLine(5);
+          await sleep(200);
+          
+          // Sort right half
+          await mergeSortRecursive(mid + 1, right);
+          
+          setCurrentLine(7);
+          await sleep(200);
+          
+          // Merge the sorted halves
+          await merge(left, mid, right);
+        }
+      };
+      
+      await mergeSortRecursive(0, arr.length - 1);
+      
+      // Mark all as sorted
+      setSortedIndices(Array.from({ length: arr.length }, (_, i) => i));
+      
+    } catch (error) {
+      if (error instanceof Error && error.message !== 'CANCELLED') {
+        console.error('Sorting error:', error);
+      }
+    } finally {
+      setComparing([]);
+      setComparisonMessage('');
+      setCurrentLine(null);
+      setIsSorting(false);
+    }
+  };
+
   const stepForward = () => {
     if (isSorting) {
       // Already sorting - just execute one step
@@ -446,13 +664,15 @@ function ArrayVisualizer() {
               const algorithm = e.target.value;
               setSelectedAlgorithm(algorithm);
               
-              // Set the algorithm info and complexity without running it
               if (algorithm === 'Bubble Sort') {
                 setShowComplexity(true);
                 setCurrentAlgorithm(BUBBLE_SORT_INFO);
               } else if (algorithm === 'Quick Sort') {
                 setShowComplexity(true);
                 setCurrentAlgorithm(QUICK_SORT_INFO);
+              } else if (algorithm === 'Merge Sort') {
+                setShowComplexity(true);
+                setCurrentAlgorithm(MERGE_SORT_INFO);
               } else {
                 setShowComplexity(false);
                 setCurrentAlgorithm(null);
@@ -462,6 +682,7 @@ function ArrayVisualizer() {
             <option value="">Choose...</option>
             <option value="Bubble Sort">Bubble Sort</option>
             <option value="Quick Sort">Quick Sort</option>
+            <option value="Merge Sort">Merge Sort</option>
           </select>
         </div>
 
@@ -579,6 +800,8 @@ function ArrayVisualizer() {
                       bubbleSort();
                     } else if (selectedAlgorithm === 'Quick Sort') {
                       quickSort();
+                    } else if (selectedAlgorithm === 'Merge Sort') {
+                      mergeSort();
                     }
                   }
                 }}
