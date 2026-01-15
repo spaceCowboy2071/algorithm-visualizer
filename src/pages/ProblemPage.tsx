@@ -75,6 +75,7 @@ You can return the answer in any order.`,
 
 function ProblemPage() {
   const { id } = useParams<{ id: string }>();
+  const problemId = id || '10'; // Default to Two Sum
   
   // Timer state (20 minutes = 1200 seconds)
   const [timeRemaining, setTimeRemaining] = useState(1200);
@@ -95,7 +96,34 @@ function ProblemPage() {
   // Test output state
   const [testOutput, setTestOutput] = useState('');
   
- const timerIntervalRef = useRef<number | null>(null);
+  const timerIntervalRef = useRef<number | null>(null);
+
+  // Load saved data from localStorage on mount
+  useEffect(() => {
+    const savedCode = localStorage.getItem(`problem_${problemId}_code_${language}`);
+    const savedNotes = localStorage.getItem(`problem_${problemId}_notes`);
+    const savedCompleted = localStorage.getItem(`problem_${problemId}_completed`);
+    const savedSolvedIn20 = localStorage.getItem(`problem_${problemId}_solved_in_20`);
+    
+    if (savedCode) setCode(savedCode);
+    if (savedNotes) setNotes(savedNotes);
+    if (savedCompleted === 'true') setCompleted(true);
+    if (savedSolvedIn20 === 'true') setSolvedIn20Min(true);
+  }, [problemId, language]);
+
+  // Save code to localStorage whenever it changes
+  useEffect(() => {
+    if (code !== TWO_SUM_PROBLEM.starterCode[language]) {
+      localStorage.setItem(`problem_${problemId}_code_${language}`, code);
+    }
+  }, [code, problemId, language]);
+
+  // Save notes to localStorage whenever they change
+  useEffect(() => {
+    if (notes) {
+      localStorage.setItem(`problem_${problemId}_notes`, notes);
+    }
+  }, [notes, problemId]);
 
   // Timer logic
   useEffect(() => {
@@ -290,7 +318,11 @@ function ProblemPage() {
                           <input
                             type="checkbox"
                             checked={completed}
-                            onChange={(e) => setCompleted(e.target.checked)}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              setCompleted(checked);
+                              localStorage.setItem(`problem_${problemId}_completed`, String(checked));
+                            }}
                             className="w-4 h-4 accent-[#4af626]"
                           />
                           Completed
@@ -299,7 +331,11 @@ function ProblemPage() {
                           <input
                             type="checkbox"
                             checked={solvedIn20Min}
-                            onChange={(e) => setSolvedIn20Min(e.target.checked)}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              setSolvedIn20Min(checked);
+                              localStorage.setItem(`problem_${problemId}_solved_in_20`, String(checked));
+                            }}
                             className="w-4 h-4 accent-[#4af626]"
                           />
                           Solved in 20 minutes
