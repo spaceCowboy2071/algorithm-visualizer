@@ -1,81 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useParams } from 'react-router-dom';
-
-interface Problem {
-  id: number;
-  title: string;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
-  category: string;
-  description: string;
-  examples: Array<{
-    input: string;
-    output: string;
-    explanation: string;
-  }>;
-  constraints: string[];
-  starterCode: {
-    javascript: string;
-    python: string;
-  };
-  testCases: Array<{
-    input: string;
-    expectedOutput: string;
-  }>;
-}
-
-// Two Sum problem data (template)
-const TWO_SUM_PROBLEM: Problem = {
-  id: 10,
-  title: 'Two Sum',
-  difficulty: 'Easy',
-  category: 'Array',
-  description: `Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.
-
-You may assume that each input would have exactly one solution, and you may not use the same element twice.
-
-You can return the answer in any order.`,
-  examples: [
-    {
-      input: 'nums = [2,7,11,15], target = 9',
-      output: '[0,1]',
-      explanation: 'Because nums[0] + nums[1] == 9, we return [0, 1].'
-    },
-    {
-      input: 'nums = [3,2,4], target = 6',
-      output: '[1,2]',
-      explanation: 'Because nums[1] + nums[2] == 6, we return [1, 2].'
-    },
-    {
-      input: 'nums = [3,3], target = 6',
-      output: '[0,1]',
-      explanation: 'Because nums[0] + nums[1] == 6, we return [0, 1].'
-    }
-  ],
-  constraints: [
-    '2 <= nums.length <= 10^4',
-    '-10^9 <= nums[i] <= 10^9',
-    '-10^9 <= target <= 10^9',
-    'Only one valid answer exists.'
-  ],
-  starterCode: {
-    javascript: `function twoSum(nums, target) {
-    // Write your solution here
-    
-}`,
-    python: `def two_sum(nums, target):
-    # Write your solution here
-    pass`
-  },
-  testCases: [
-    { input: '[2,7,11,15], 9', expectedOutput: '[0,1]' },
-    { input: '[3,2,4], 6', expectedOutput: '[1,2]' },
-    { input: '[3,3], 6', expectedOutput: '[0,1]' }
-  ]
-};
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import { getProblemById, type Problem } from '../data/problemsData';
 
 function ProblemPage() {
   const { id } = useParams<{ id: string }>();
-  const problemId = id || '10'; // Default to Two Sum
+  const navigate = useNavigate();
+  const problemId = id || '10';
   
   // Timer state (20 minutes = 1200 seconds)
   const [timeRemaining, setTimeRemaining] = useState(1200);
@@ -84,7 +14,7 @@ function ProblemPage() {
   
   // Code editor state
   const [language, setLanguage] = useState<'javascript' | 'python'>('javascript');
-  const [code, setCode] = useState(TWO_SUM_PROBLEM.starterCode.javascript);
+  const [code, setCode] = useState('');
   
   // Notes state
   const [notes, setNotes] = useState('');
@@ -97,26 +27,52 @@ function ProblemPage() {
   const [testOutput, setTestOutput] = useState('');
   
   const timerIntervalRef = useRef<number | null>(null);
-
-  // Load saved data from localStorage on mount
+  
+  // Load problem data
+  const [problem, setProblem] = useState<Problem | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Load problem on mount
   useEffect(() => {
+    const loadedProblem = getProblemById(Number(problemId));
+    if (!loadedProblem) {
+      navigate('/blind75');
+      return;
+    }
+    setProblem(loadedProblem);
+    setIsLoading(false);
+  }, [problemId, navigate]);
+
+  // Load problem-specific data when problem changes
+  useEffect(() => {
+    if (!problem) return;
+    
+    // Load saved data from localStorage
     const savedCode = localStorage.getItem(`problem_${problemId}_code_${language}`);
     const savedNotes = localStorage.getItem(`problem_${problemId}_notes`);
     const savedCompleted = localStorage.getItem(`problem_${problemId}_completed`);
     const savedSolvedIn20 = localStorage.getItem(`problem_${problemId}_solved_in_20`);
     
-    if (savedCode) setCode(savedCode);
+    if (savedCode) {
+      setCode(savedCode);
+    } else {
+      setCode(problem.starterCode[language]);
+    }
+    
     if (savedNotes) setNotes(savedNotes);
-    if (savedCompleted === 'true') setCompleted(true);
-    if (savedSolvedIn20 === 'true') setSolvedIn20Min(true);
-  }, [problemId, language]);
+    else setNotes('');
+    
+    setCompleted(savedCompleted === 'true');
+    setSolvedIn20Min(savedSolvedIn20 === 'true');
+  }, [problem, problemId, language]);
 
   // Save code to localStorage whenever it changes
   useEffect(() => {
-    if (code !== TWO_SUM_PROBLEM.starterCode[language]) {
+    if (!problem) return;
+    if (code && code !== problem.starterCode[language]) {
       localStorage.setItem(`problem_${problemId}_code_${language}`, code);
     }
-  }, [code, problemId, language]);
+  }, [code, problemId, language, problem]);
 
   // Save notes to localStorage whenever they change
   useEffect(() => {
@@ -150,6 +106,15 @@ function ProblemPage() {
     };
   }, [isTimerRunning, timeRemaining]);
 
+  // If problem is still loading, show loading state
+  if (isLoading || !problem) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-[#4af626] font-mono">
+        <div>Loading problem...</div>
+      </div>
+    );
+  }
+
   const startTimer = () => {
     setIsTimerRunning(true);
     setTimerStarted(true);
@@ -179,7 +144,13 @@ function ProblemPage() {
 
   const handleLanguageChange = (newLang: 'javascript' | 'python') => {
     setLanguage(newLang);
-    setCode(TWO_SUM_PROBLEM.starterCode[newLang]);
+    // Load saved code for this language, or use starter code
+    const savedCode = localStorage.getItem(`problem_${problemId}_code_${newLang}`);
+    if (savedCode) {
+      setCode(savedCode);
+    } else {
+      setCode(problem.starterCode[newLang]);
+    }
   };
 
   const runTests = () => {
@@ -211,7 +182,7 @@ function ProblemPage() {
               {/* Terminal Title Bar */}
               <div className="bg-[#1a1a1a] px-4 py-2 border-b border-[#2a2a2a] flex items-center justify-between">
                 <span className="text-gray-500 text-xs font-mono">
-                  terminal@algorithmviz/blind75/{TWO_SUM_PROBLEM.title.toLowerCase().replace(/\s+/g, '-')}
+                  terminal@algorithmviz/blind75/{problem.title.toLowerCase().replace(/\s+/g, '-')}
                 </span>
                 <Link 
                   to="/blind75"
@@ -230,13 +201,13 @@ function ProblemPage() {
                     <div className="mb-6">
                       <div className="flex items-center gap-3 mb-2">
                         <h1 className="text-2xl font-bold text-[#4af626]">
-                          {TWO_SUM_PROBLEM.title}
+                          {problem.title}
                         </h1>
-                        <span className={`text-sm ${getDifficultyColor(TWO_SUM_PROBLEM.difficulty)}`}>
-                          {TWO_SUM_PROBLEM.difficulty}
+                        <span className={`text-sm ${getDifficultyColor(problem.difficulty)}`}>
+                          {problem.difficulty}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-600">Category: {TWO_SUM_PROBLEM.category}</p>
+                      <p className="text-xs text-gray-600">Category: {problem.category}</p>
                     </div>
 
                     {/* Timer Section */}
@@ -278,14 +249,14 @@ function ProblemPage() {
                     <div className="mb-6">
                       <h2 className="text-[#4af626] text-sm font-bold mb-2">Description</h2>
                       <p className="text-gray-300 text-xs leading-relaxed whitespace-pre-line">
-                        {TWO_SUM_PROBLEM.description}
+                        {problem.description}
                       </p>
                     </div>
 
                     {/* Examples */}
                     <div className="mb-6">
                       <h2 className="text-[#4af626] text-sm font-bold mb-2">Examples</h2>
-                      {TWO_SUM_PROBLEM.examples.map((example, idx) => (
+                      {problem.examples.map((example, idx) => (
                         <div key={idx} className="mb-4 p-3 bg-[#1a1a1a] border border-[#2a2a2a] rounded">
                           <p className="text-gray-400 text-xs mb-1">
                             <span className="text-[#4af626]">Input:</span> {example.input}
@@ -304,7 +275,7 @@ function ProblemPage() {
                     <div className="mb-6">
                       <h2 className="text-[#4af626] text-sm font-bold mb-2">Constraints</h2>
                       <ul className="text-gray-400 text-xs space-y-1">
-                        {TWO_SUM_PROBLEM.constraints.map((constraint, idx) => (
+                        {problem.constraints.map((constraint, idx) => (
                           <li key={idx}>• {constraint}</li>
                         ))}
                       </ul>
