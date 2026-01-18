@@ -95,6 +95,38 @@ Each algorithm includes:
 - Tree traversals
 - Data structure visualizations
 
+## TODO
+
+### Phase 1 - Core Features
+
+- [ ] **Implement Searching Algorithms**
+  - [ ] Binary Search
+  - [ ] Linear Search
+  - [ ] Jump Search
+  - [ ] Interpolation Search
+
+- [ ] **Implement Monaco Editor** on Blind 75 problem pages
+
+- [ ] **Implement Video Feature** on each Blind 75 problem page (narrated solutions)
+
+- [ ] **Revamp UI** - Make the interface more visually pleasing
+
+### Phase 2 - Firebase Integration
+
+- [ ] **Implement User Accounts**
+  - [ ] Google login option
+  - [ ] Email/password authentication
+  - [ ] Track Blind 75 problems completed
+  - [ ] Spaced repetition reminders for problem review (1 day, 3 days, 7 days, 14 days, etc.) - user configurable
+
+- [ ] **Complete Phase 2 (Firebase)**
+
+### Phase 3 - Backend & Community
+
+- [ ] **Add Forum** for users to connect, discuss whiteboarding, and practice for interviews together
+
+- [ ] **Complete Phase 3 (Separate Backend)**
+
 ## Development Notes
 
 - Algorithm logic is async with `sleep()` delays for animation
