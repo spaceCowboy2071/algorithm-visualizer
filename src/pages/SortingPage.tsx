@@ -1,9 +1,9 @@
-import ArrayVisualizer from '../components/ArrayVisualizer';
+import SortingVisualizer from '../components/SortingVisualizer';
 
 function SortingPage() {
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      <ArrayVisualizer />
+      <SortingVisualizer />
     </div>
   );
 }

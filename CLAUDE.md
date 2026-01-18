@@ -26,20 +26,22 @@ npm run preview  # Preview production build locally
 ```
 src/
 ├── components/
-│   └── ArrayVisualizer.tsx   # Main visualization component (1000+ lines)
+│   ├── SortingVisualizer.tsx  # Sorting algorithm visualization component
+│   └── SearchVisualizer.tsx   # Search algorithm visualization component
 ├── pages/
-│   ├── Landing.tsx           # Home page with algorithm category selection
-│   └── SortingPage.tsx       # Sorting algorithms page wrapper
-├── App.tsx                   # Root routing configuration
-├── main.tsx                  # React DOM entry point
-└── index.css                 # Tailwind CSS imports
+│   ├── Landing.tsx            # Home page with algorithm category selection
+│   ├── SortingPage.tsx        # Sorting algorithms page wrapper
+│   └── SearchingPage.tsx      # Searching algorithms page wrapper
+├── App.tsx                    # Root routing configuration
+├── main.tsx                   # React DOM entry point
+└── index.css                  # Tailwind CSS imports
 ```
 
 ## Architecture
 
-### Core Component: ArrayVisualizer
+### Core Component: SortingVisualizer
 
-The main visualization engine (`src/components/ArrayVisualizer.tsx`) handles:
+The main sorting visualization engine (`src/components/SortingVisualizer.tsx`) handles:
 
 - **State Management:** Array values, sorting state, comparing indices, sorted indices, animation speed
 - **History System:** Full state snapshots enabling "step backward" time-travel debugging
