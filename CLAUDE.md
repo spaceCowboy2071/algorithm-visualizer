@@ -136,3 +136,7 @@ Each algorithm includes:
 - History is cleared on reset or algorithm change
 - Tailwind responsive breakpoints: sm (640px), lg (1024px)
 - vercel.json rewrites handle client-side routing
+
+## Claude Rules
+
+- After completing any prompt that involves changes to the codebase, provide the recommended git commit message using the conventional commit format (e.g., `feat:`, `fix:`, `docs:`, `refactor:`, `style:`, `test:`, `chore:`)
