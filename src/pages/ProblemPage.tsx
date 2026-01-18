@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
+import Editor from '@monaco-editor/react';
 import { getProblemById, type Problem } from '../data/problemsData';
 
 function ProblemPage() {
@@ -361,13 +362,26 @@ function ProblemPage() {
                     </button>
                   </div>
 
-                  {/* Code Editor (Simple Textarea for now) */}
-                  <div className="flex-1 overflow-auto">
-                    <textarea
+                  {/* Code Editor */}
+                  <div className="flex-1 overflow-hidden">
+                    <Editor
+                      height="100%"
+                      language={language}
                       value={code}
-                      onChange={(e) => setCode(e.target.value)}
-                      className="w-full h-full p-4 bg-[#0d0d0d] text-gray-300 text-sm font-mono focus:outline-none resize-none"
-                      spellCheck={false}
+                      onChange={(value) => setCode(value || '')}
+                      theme="vs-dark"
+                      options={{
+                        minimap: { enabled: false },
+                        fontSize: 14,
+                        fontFamily: 'monospace',
+                        padding: { top: 16 },
+                        scrollBeyondLastLine: false,
+                        automaticLayout: true,
+                        lineNumbers: 'on',
+                        folding: true,
+                        bracketPairColorization: { enabled: true },
+                        tabSize: 2,
+                      }}
                     />
                   </div>
 
