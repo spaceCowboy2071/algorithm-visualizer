@@ -655,7 +655,7 @@ function ArrayVisualizer() {
         
         {/* Center: Algorithm Selector */}
         <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-          <span className="text-xs sm:text-sm text-gray-400 hidden sm:inline">Select Algorithm</span>
+          <span className="text-xs sm:text-sm text-gray-400 hidden sm:inline">Sorting Algorithms:</span>
           <select 
             className="bg-gray-700 text-white px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500 cursor-pointer text-xs sm:text-sm flex-1 sm:flex-none"
             value={selectedAlgorithm || ''}
