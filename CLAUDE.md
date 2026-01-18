@@ -105,6 +105,8 @@ Each algorithm includes:
   - [ ] Jump Search
   - [ ] Interpolation Search
 
+- [ ] **Add Pseudocode** to X-Ray code viewer for sorting and searching algorithm pages
+
 - [ ] **Implement Monaco Editor** on Blind 75 problem pages
 
 - [ ] **Implement Video Feature** on each Blind 75 problem page (narrated solutions)
