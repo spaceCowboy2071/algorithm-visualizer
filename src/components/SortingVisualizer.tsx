@@ -22,7 +22,7 @@ interface ComplexityInfo {
   };
 }
 
-function ArrayVisualizer() {
+function SortingVisualizer() {
   const [array, setArray] = useState([30, 80, 50, 20, 90]);
   const [isSorting, setIsSorting] = useState(false);
   const [comparing, setComparing] = useState<number[]>([]);
@@ -1005,4 +1005,4 @@ function ArrayVisualizer() {
   );
 }
 
-export default ArrayVisualizer;
+export default SortingVisualizer;
