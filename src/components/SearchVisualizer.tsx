@@ -55,7 +55,7 @@ function SearchVisualizer() {
   const [currentAlgorithm, setCurrentAlgorithm] = useState<SearchComplexityInfo | null>(null);
   const [currentLanguage, setCurrentLanguage] = useState<'javascript' | 'python'>('javascript');
   const [currentLine, setCurrentLine] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<'how' | 'when' | 'where' | 'why'>('how');
+  const [activeTab, setActiveTab] = useState<'complexity' | 'how' | 'when' | 'where' | 'why'>('complexity');
   const [arraySize, setArraySize] = useState(10);
   const [animationSpeed, setAnimationSpeed] = useState(1);
   const [isPaused, setIsPaused] = useState(false);
@@ -988,52 +988,24 @@ function SearchVisualizer() {
 
         {/* Right Side - Info Panels */}
         <div className="w-full lg:w-[40%] space-y-6">
-          {/* Complexity Table */}
+          {/* Unified Info Panel - Complexity + How/When/Where/Why */}
           {showComplexity && currentAlgorithm && (
             <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden shadow-xl">
-              <div className="p-4 border-b border-gray-700 bg-gray-750">
-                <h3 className="text-lg font-bold">{currentAlgorithm.name}</h3>
+              {/* Algorithm Name Header */}
+              <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 px-4 py-2 border-b border-gray-700">
+                <h3 className="font-bold text-white">{currentAlgorithm.name}</h3>
               </div>
 
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-750 border-b border-gray-700">
-                    <th className="text-left py-3 px-4 text-gray-300 font-semibold text-xs"></th>
-                    <th className="text-center py-3 px-4 text-gray-300 font-semibold text-xs">Time Complexity</th>
-                    <th className="text-center py-3 px-4 text-gray-300 font-semibold text-xs">Space Complexity</th>
-                  </tr>
-                </thead>
-                <tbody className="text-xs">
-                  <tr className="border-b border-gray-700/50">
-                    <td className="py-3 px-4 text-gray-400">Best</td>
-                    <td className="text-center py-3 px-4 font-mono text-green-400">{currentAlgorithm.timeComplexity.best}</td>
-                    <td className="text-center py-3 px-4 font-mono text-blue-400 row-span-3">{currentAlgorithm.spaceComplexity}</td>
-                  </tr>
-                  <tr className="border-b border-gray-700/50">
-                    <td className="py-3 px-4 text-gray-400">Average</td>
-                    <td className="text-center py-3 px-4 font-mono text-yellow-400">{currentAlgorithm.timeComplexity.average}</td>
-                  </tr>
-                  <tr>
-                    <td className="py-3 px-4 text-gray-400">Worst</td>
-                    <td className="text-center py-3 px-4 font-mono text-red-400">{currentAlgorithm.timeComplexity.worst}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* How/When/Where/Why Tabs */}
-          {showComplexity && currentAlgorithm && (
-            <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden shadow-xl order-last lg:order-none">
-              <div className="flex border-b border-gray-700">
-                {(['how', 'when', 'where', 'why'] as const).map((tab) => (
+              {/* Tabs */}
+              <div className="flex border-b border-gray-700 bg-gray-750">
+                {(['complexity', 'how', 'when', 'where', 'why'] as const).map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`flex-1 px-4 py-3 font-semibold capitalize transition text-sm ${
+                    className={`flex-1 px-2 py-2 font-semibold capitalize transition text-xs ${
                       activeTab === tab
-                        ? 'bg-gray-750 text-white border-b-2 border-blue-500'
-                        : 'text-gray-400 hover:text-gray-300 hover:bg-gray-750/50'
+                        ? 'bg-purple-600 text-white border-b-2 border-purple-400'
+                        : 'text-gray-400 hover:text-gray-300 hover:bg-gray-700'
                     }`}
                   >
                     {tab}
@@ -1041,8 +1013,40 @@ function SearchVisualizer() {
                 ))}
               </div>
 
-              <div className="p-5 text-gray-300 text-sm leading-relaxed">
-                <p>{currentAlgorithm.explanations[activeTab]}</p>
+              {/* Tab Content - Fixed Height */}
+              <div className="h-32 overflow-y-auto">
+                {activeTab === 'complexity' ? (
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-gray-750 border-b border-gray-700">
+                        <th className="text-left py-2 px-4 text-gray-300 font-semibold text-xs"></th>
+                        <th className="text-center py-2 px-4 text-gray-300 font-semibold text-xs">Time</th>
+                        <th className="text-center py-2 px-4 text-gray-300 font-semibold text-xs">Space</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-xs">
+                      <tr className="border-b border-gray-700/50">
+                        <td className="py-2 px-4 text-gray-400">Best</td>
+                        <td className="text-center py-2 px-4 font-mono text-green-400">{currentAlgorithm.timeComplexity.best}</td>
+                        <td className="text-center py-2 px-4 font-mono text-blue-400">{currentAlgorithm.spaceComplexity}</td>
+                      </tr>
+                      <tr className="border-b border-gray-700/50">
+                        <td className="py-2 px-4 text-gray-400">Average</td>
+                        <td className="text-center py-2 px-4 font-mono text-yellow-400">{currentAlgorithm.timeComplexity.average}</td>
+                        <td className="text-center py-2 px-4 font-mono text-blue-400">{currentAlgorithm.spaceComplexity}</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2 px-4 text-gray-400">Worst</td>
+                        <td className="text-center py-2 px-4 font-mono text-red-400">{currentAlgorithm.timeComplexity.worst}</td>
+                        <td className="text-center py-2 px-4 font-mono text-blue-400">{currentAlgorithm.spaceComplexity}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="p-4 text-gray-300 text-sm leading-relaxed">
+                    <p>{currentAlgorithm.explanations[activeTab]}</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -1098,7 +1102,7 @@ function SearchVisualizer() {
               </div>
 
               {/* Code */}
-              <div className="overflow-auto p-3 bg-gray-950 max-h-72">
+              <div className="overflow-auto p-3 bg-gray-950 max-h-96">
                 <pre className="text-xs font-mono leading-relaxed">
                   {getCodeForAlgorithm()[currentLanguage].split('\n').map((line, index) => {
                     const lineNumber = index + 1;
