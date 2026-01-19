@@ -933,7 +933,7 @@ function SortingVisualizer() {
           {showXRay && (
             <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-xl overflow-hidden">
               {/* Header */}
-              <div className="flex items-center justify-between p-3 border-b border-gray-700 bg-gray-750">
+              <div className="flex items-center justify-between p-3 border-b border-gray-700 bg-gradient-to-r from-purple-600/20 to-pink-600/20">
                 <h3 className="text-sm font-bold">X-Ray Code Viewer</h3>
                 <div className="flex gap-2">
                   <button
