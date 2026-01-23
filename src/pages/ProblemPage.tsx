@@ -198,52 +198,52 @@ function ProblemPage() {
                 {/* Left Panel - Problem Description */}
                 <div className="w-1/2 border-r border-[#2a2a2a] overflow-auto">
                   <div className="p-6 font-mono text-sm">
-                    {/* Problem Header */}
+                    {/* Problem Header with Timer */}
                     <div className="mb-6">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h1 className="text-2xl font-bold text-[#4af626]">
-                          {problem.title}
-                        </h1>
-                        <span className={`text-sm ${getDifficultyColor(problem.difficulty)}`}>
-                          {problem.difficulty}
-                        </span>
+                      <div className="flex items-center justify-between gap-4 mb-2">
+                        {/* Left side: Title + Difficulty */}
+                        <div className="flex items-center gap-3">
+                          <h1 className="text-2xl font-bold text-[#4af626]">
+                            {problem.title}
+                          </h1>
+                          <span className={`text-sm ${getDifficultyColor(problem.difficulty)}`}>
+                            {problem.difficulty}
+                          </span>
+                        </div>
+
+                        {/* Right side: Timer */}
+                        <div className="flex items-center gap-3 px-3 py-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded">                         
+                          <span className={`text-xl font-bold font-mono ${getTimerColor()}`}>
+                            {formatTime(timeRemaining)}
+                          </span>
+                          <div className="flex gap-1">
+                            {!timerStarted ? (
+                              <button
+                                onClick={startTimer}
+                                className="px-2 py-1 bg-[#4af626] text-black rounded hover:bg-[#3de515] transition text-xs font-semibold"
+                              >
+                                Start
+                              </button>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={isTimerRunning ? pauseTimer : startTimer}
+                                  className="px-2 py-1 border border-[#4af626] text-[#4af626] rounded hover:bg-[rgba(74,246,38,0.1)] transition text-xs"
+                                >
+                                  {isTimerRunning ? 'Pause' : 'Resume'}
+                                </button>
+                                <button
+                                  onClick={resetTimer}
+                                  className="px-2 py-1 border border-gray-600 text-gray-400 rounded hover:border-gray-400 transition text-xs"
+                                >
+                                  Reset
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
                       </div>
                       <p className="text-xs text-gray-600">Category: {problem.category}</p>
-                    </div>
-
-                    {/* Timer Section */}
-                    <div className="mb-6 p-4 bg-[#1a1a1a] border border-[#2a2a2a] rounded">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-gray-400 text-xs">20-Minute Challenge</span>
-                        <span className={`text-2xl font-bold font-mono ${getTimerColor()}`}>
-                          {formatTime(timeRemaining)}
-                        </span>
-                      </div>
-                      <div className="flex gap-2">
-                        {!timerStarted ? (
-                          <button
-                            onClick={startTimer}
-                            className="flex-1 px-3 py-2 bg-[#4af626] text-black rounded hover:bg-[#3de515] transition text-xs font-semibold"
-                          >
-                            Start Timer
-                          </button>
-                        ) : (
-                          <>
-                            <button
-                              onClick={isTimerRunning ? pauseTimer : startTimer}
-                              className="flex-1 px-3 py-2 border border-[#4af626] text-[#4af626] rounded hover:bg-[rgba(74,246,38,0.1)] transition text-xs"
-                            >
-                              {isTimerRunning ? 'Pause' : 'Resume'}
-                            </button>
-                            <button
-                              onClick={resetTimer}
-                              className="px-3 py-2 border border-gray-600 text-gray-400 rounded hover:border-gray-400 transition text-xs"
-                            >
-                              Reset
-                            </button>
-                          </>
-                        )}
-                      </div>
                     </div>
 
                     {/* Problem Description */}
