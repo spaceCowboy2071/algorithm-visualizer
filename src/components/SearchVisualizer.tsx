@@ -53,7 +53,7 @@ function SearchVisualizer() {
   // UI State
   const [selectedAlgorithm, setSelectedAlgorithm] = useState<string | null>(null);
   const [currentAlgorithm, setCurrentAlgorithm] = useState<SearchComplexityInfo | null>(null);
-  const [currentLanguage, setCurrentLanguage] = useState<'javascript' | 'python'>('javascript');
+  const [currentLanguage, setCurrentLanguage] = useState<'javascript' | 'python'>('python');
   const [currentLine, setCurrentLine] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<'complexity' | 'how' | 'when' | 'where' | 'why'>('complexity');
   const [arraySize, setArraySize] = useState(10);

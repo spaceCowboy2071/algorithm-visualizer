@@ -28,7 +28,7 @@ function SortingVisualizer() {
   const [comparing, setComparing] = useState<number[]>([]);
   const [showComplexity, setShowComplexity] = useState(false);
   const [currentAlgorithm, setCurrentAlgorithm] = useState<ComplexityInfo | null>(null);
-  const [currentLanguage, setCurrentLanguage] = useState<'javascript' | 'python'>('javascript');
+  const [currentLanguage, setCurrentLanguage] = useState<'javascript' | 'python'>('python');
   const [currentLine, setCurrentLine] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<'complexity' | 'how' | 'when' | 'where' | 'why'>('complexity');
   const [selectedAlgorithm, setSelectedAlgorithm] = useState<string | null>(null);
