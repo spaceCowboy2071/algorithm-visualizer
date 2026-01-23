@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import { getProblemById, type Problem } from '../data/problemsData';
@@ -7,26 +7,36 @@ function ProblemPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const problemId = id || '10';
-  
+
   // Timer state (20 minutes = 1200 seconds)
   const [timeRemaining, setTimeRemaining] = useState(1200);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [timerStarted, setTimerStarted] = useState(false);
-  
+
   // Code editor state
   const [language, setLanguage] = useState<'javascript' | 'python'>('javascript');
   const [code, setCode] = useState('');
-  
+
   // Notes state
   const [notes, setNotes] = useState('');
-  
+
+  // Notes modal state
+  const [isNotesOpen, setIsNotesOpen] = useState(false);
+  const [isNotesFullscreen, setIsNotesFullscreen] = useState(false);
+  const [notesPosition, setNotesPosition] = useState({ x: 0, y: 0 });
+  const [notesSize, setNotesSize] = useState({ width: 0, height: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const notesModalRef = useRef<HTMLDivElement>(null);
+
   // Progress state
   const [solvedIn20Min, setSolvedIn20Min] = useState(false);
   const [completed, setCompleted] = useState(false);
-  
+
   // Test output state
   const [testOutput, setTestOutput] = useState('');
-  
+
   const timerIntervalRef = useRef<number | null>(null);
   
   // Load problem data
@@ -107,6 +117,36 @@ function ProblemPage() {
     };
   }, [isTimerRunning, timeRemaining]);
 
+  // Notes modal mouse handlers (must be before early return)
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (isDragging && !isNotesFullscreen) {
+      const newX = Math.max(0, Math.min(e.clientX - dragOffset.x, window.innerWidth - notesSize.width));
+      const newY = Math.max(0, Math.min(e.clientY - dragOffset.y, window.innerHeight - notesSize.height));
+      setNotesPosition({ x: newX, y: newY });
+    }
+    if (isResizing && !isNotesFullscreen) {
+      const newWidth = Math.max(300, e.clientX - notesPosition.x);
+      const newHeight = Math.max(200, e.clientY - notesPosition.y);
+      setNotesSize({ width: newWidth, height: newHeight });
+    }
+  }, [isDragging, isResizing, dragOffset, notesPosition, notesSize, isNotesFullscreen]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+    setIsResizing(false);
+  }, []);
+
+  useEffect(() => {
+    if (isDragging || isResizing) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, isResizing, handleMouseMove, handleMouseUp]);
+
   // If problem is still loading, show loading state
   if (isLoading || !problem) {
     return (
@@ -168,6 +208,45 @@ function ProblemPage() {
     }
   };
 
+  // Notes modal functions
+  const openNotesModal = () => {
+    const width = window.innerWidth * 0.6;
+    const height = window.innerHeight * 0.6;
+    setNotesSize({ width, height });
+    setNotesPosition({
+      x: (window.innerWidth - width) / 2,
+      y: (window.innerHeight - height) / 2
+    });
+    setIsNotesOpen(true);
+    setIsNotesFullscreen(false);
+  };
+
+  const closeNotesModal = () => {
+    setIsNotesOpen(false);
+  };
+
+  const toggleNotesFullscreen = () => {
+    setIsNotesFullscreen(!isNotesFullscreen);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('.notes-header')) {
+      setIsDragging(true);
+      const rect = notesModalRef.current?.getBoundingClientRect();
+      if (rect) {
+        setDragOffset({
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top
+        });
+      }
+    }
+  };
+
+  const handleResizeMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsResizing(true);
+  };
+
   return (
     <div 
       className="min-h-screen flex flex-col"
@@ -211,36 +290,49 @@ function ProblemPage() {
                           </span>
                         </div>
 
-                        {/* Right side: Timer */}
-                        <div className="flex items-center gap-3 px-3 py-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded">                         
-                          <span className={`text-xl font-bold font-mono ${getTimerColor()}`}>
-                            {formatTime(timeRemaining)}
-                          </span>
-                          <div className="flex gap-1">
-                            {!timerStarted ? (
-                              <button
-                                onClick={startTimer}
-                                className="px-2 py-1 bg-[#4af626] text-black rounded hover:bg-[#3de515] transition text-xs font-semibold"
-                              >
-                                Start
-                              </button>
-                            ) : (
-                              <>
+                        {/* Right side: Timer + Notes Icon */}
+                        <div className="flex flex-col items-end gap-2">
+                          <div className="flex items-center gap-3 px-3 py-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded">
+                            <span className={`text-xl font-bold font-mono ${getTimerColor()}`}>
+                              {formatTime(timeRemaining)}
+                            </span>
+                            <div className="flex gap-1">
+                              {!timerStarted ? (
                                 <button
-                                  onClick={isTimerRunning ? pauseTimer : startTimer}
-                                  className="px-2 py-1 border border-[#4af626] text-[#4af626] rounded hover:bg-[rgba(74,246,38,0.1)] transition text-xs"
+                                  onClick={startTimer}
+                                  className="px-2 py-1 bg-[#4af626] text-black rounded hover:bg-[#3de515] transition text-xs font-semibold"
                                 >
-                                  {isTimerRunning ? 'Pause' : 'Resume'}
+                                  Start
                                 </button>
-                                <button
-                                  onClick={resetTimer}
-                                  className="px-2 py-1 border border-gray-600 text-gray-400 rounded hover:border-gray-400 transition text-xs"
-                                >
-                                  Reset
-                                </button>
-                              </>
-                            )}
+                              ) : (
+                                <>
+                                  <button
+                                    onClick={isTimerRunning ? pauseTimer : startTimer}
+                                    className="px-2 py-1 border border-[#4af626] text-[#4af626] rounded hover:bg-[rgba(74,246,38,0.1)] transition text-xs"
+                                  >
+                                    {isTimerRunning ? 'Pause' : 'Resume'}
+                                  </button>
+                                  <button
+                                    onClick={resetTimer}
+                                    className="px-2 py-1 border border-gray-600 text-gray-400 rounded hover:border-gray-400 transition text-xs"
+                                  >
+                                    Reset
+                                  </button>
+                                </>
+                              )}
+                            </div>
                           </div>
+                          {/* Notes Icon Button */}
+                          <button
+                            onClick={openNotesModal}
+                            className="flex items-center gap-1.5 px-2 py-1 bg-[#1a1a1a] border border-[#2a2a2a] rounded hover:border-[#4af626] hover:text-[#4af626] transition text-gray-400 text-xs"
+                            title="Open Personal Notes"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            <span>Notes</span>
+                          </button>
                         </div>
                       </div>
                       <p className="text-xs text-gray-600">Category: {problem.category}</p>
@@ -315,16 +407,6 @@ function ProblemPage() {
                       </div>
                     </div>
 
-                    {/* Notes Section */}
-                    <div>
-                      <h2 className="text-[#4af626] text-sm font-bold mb-2">Personal Notes</h2>
-                      <textarea
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Add your notes, insights, or mistakes here..."
-                        className="w-full h-32 p-3 bg-[#1a1a1a] border border-[#2a2a2a] rounded text-gray-300 text-xs font-mono placeholder-gray-600 focus:outline-none focus:border-[#4af626] resize-none"
-                      />
-                    </div>
                   </div>
                 </div>
 
@@ -405,17 +487,113 @@ function ProblemPage() {
       </div>
 
       {/* Monitor Stand */}
-      <div 
+      <div
         className="h-20 flex justify-center items-start"
         style={{ background: 'linear-gradient(180deg, #3d3d3d 0%, #2a2a2a 100%)' }}
       >
-        <div 
+        <div
           className="w-16 h-20 rounded-b shadow-md"
           style={{
             background: 'linear-gradient(180deg, #000000 0%, #2a2a2a 20%, #d4d4d4 60%, #a8a8a8 100%)'
           }}
         ></div>
       </div>
+
+      {/* Notes Modal */}
+      {isNotesOpen && (
+        <div className="fixed inset-0 z-50 pointer-events-none">
+          {/* Backdrop - only visible when not fullscreen */}
+          {!isNotesFullscreen && (
+            <div
+              className="absolute inset-0 bg-black/30 pointer-events-auto"
+              onClick={closeNotesModal}
+            />
+          )}
+
+          {/* Modal */}
+          <div
+            ref={notesModalRef}
+            className={`pointer-events-auto flex flex-col bg-[#0d0d0d] border-2 border-[#2a2a2a] rounded-lg shadow-2xl overflow-hidden ${
+              isDragging ? 'cursor-grabbing' : ''
+            }`}
+            style={isNotesFullscreen ? {
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              borderRadius: 0
+            } : {
+              position: 'fixed',
+              top: notesPosition.y,
+              left: notesPosition.x,
+              width: notesSize.width,
+              height: notesSize.height
+            }}
+            onMouseDown={handleMouseDown}
+          >
+            {/* Modal Header */}
+            <div className="notes-header flex items-center justify-between px-4 py-3 bg-[#1a1a1a] border-b border-[#2a2a2a] cursor-grab select-none">
+              <div className="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-[#4af626]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <span className="text-[#4af626] text-sm font-bold font-mono">Personal Notes</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {/* Fullscreen Toggle */}
+                <button
+                  onClick={toggleNotesFullscreen}
+                  className="p-1.5 text-gray-400 hover:text-[#4af626] transition rounded hover:bg-[#2a2a2a]"
+                  title={isNotesFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+                >
+                  {isNotesFullscreen ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" />
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+                    </svg>
+                  )}
+                </button>
+                {/* Close Button */}
+                <button
+                  onClick={closeNotesModal}
+                  className="p-1.5 text-gray-400 hover:text-red-500 transition rounded hover:bg-[#2a2a2a]"
+                  title="Close"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 p-4 overflow-hidden">
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Add your notes, insights, or mistakes here..."
+                className="w-full h-full p-3 bg-[#1a1a1a] border border-[#2a2a2a] rounded text-gray-300 text-sm font-mono placeholder-gray-600 focus:outline-none focus:border-[#4af626] resize-none"
+              />
+            </div>
+
+            {/* Resize Handle - only when not fullscreen */}
+            {!isNotesFullscreen && (
+              <div
+                className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
+                onMouseDown={handleResizeMouseDown}
+              >
+                <svg className="w-4 h-4 text-gray-600" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M22 22H20V20H22V22ZM22 18H20V16H22V18ZM18 22H16V20H18V22ZM22 14H20V12H22V14ZM18 18H16V16H18V18ZM14 22H12V20H14V22Z" />
+                </svg>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
