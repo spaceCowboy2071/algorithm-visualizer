@@ -14,7 +14,7 @@ function ProblemPage() {
   const [timerStarted, setTimerStarted] = useState(false);
 
   // Code editor state
-  const [language, setLanguage] = useState<'javascript' | 'python'>('javascript');
+  const [language, setLanguage] = useState<'javascript' | 'python'>('python');
   const [code, setCode] = useState('');
 
   // Notes state
