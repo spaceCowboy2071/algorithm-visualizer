@@ -26,8 +26,9 @@ function ProblemPage() {
   const [notesPosition, setNotesPosition] = useState({ x: 0, y: 0 });
   const [notesSize, setNotesSize] = useState({ width: 0, height: 0 });
   const [isDragging, setIsDragging] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
+  const [resizeDirection, setResizeDirection] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0, posX: 0, posY: 0 });
   const notesModalRef = useRef<HTMLDivElement>(null);
 
   // Progress state
@@ -124,20 +125,53 @@ function ProblemPage() {
       const newY = Math.max(0, Math.min(e.clientY - dragOffset.y, window.innerHeight - notesSize.height));
       setNotesPosition({ x: newX, y: newY });
     }
-    if (isResizing && !isNotesFullscreen) {
-      const newWidth = Math.max(300, e.clientX - notesPosition.x);
-      const newHeight = Math.max(200, e.clientY - notesPosition.y);
+    if (resizeDirection && !isNotesFullscreen) {
+      const deltaX = e.clientX - resizeStart.x;
+      const deltaY = e.clientY - resizeStart.y;
+      const minWidth = 300;
+      const minHeight = 200;
+
+      let newWidth = resizeStart.width;
+      let newHeight = resizeStart.height;
+      let newX = resizeStart.posX;
+      let newY = resizeStart.posY;
+
+      // Handle horizontal resizing
+      if (resizeDirection.includes('e')) {
+        newWidth = Math.max(minWidth, resizeStart.width + deltaX);
+      }
+      if (resizeDirection.includes('w')) {
+        const possibleWidth = resizeStart.width - deltaX;
+        if (possibleWidth >= minWidth) {
+          newWidth = possibleWidth;
+          newX = resizeStart.posX + deltaX;
+        }
+      }
+
+      // Handle vertical resizing
+      if (resizeDirection.includes('s')) {
+        newHeight = Math.max(minHeight, resizeStart.height + deltaY);
+      }
+      if (resizeDirection.includes('n')) {
+        const possibleHeight = resizeStart.height - deltaY;
+        if (possibleHeight >= minHeight) {
+          newHeight = possibleHeight;
+          newY = resizeStart.posY + deltaY;
+        }
+      }
+
       setNotesSize({ width: newWidth, height: newHeight });
+      setNotesPosition({ x: newX, y: newY });
     }
-  }, [isDragging, isResizing, dragOffset, notesPosition, notesSize, isNotesFullscreen]);
+  }, [isDragging, resizeDirection, dragOffset, notesSize, isNotesFullscreen, resizeStart]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
-    setIsResizing(false);
+    setResizeDirection(null);
   }, []);
 
   useEffect(() => {
-    if (isDragging || isResizing) {
+    if (isDragging || resizeDirection) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
       return () => {
@@ -145,7 +179,7 @@ function ProblemPage() {
         window.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, isResizing, handleMouseMove, handleMouseUp]);
+  }, [isDragging, resizeDirection, handleMouseMove, handleMouseUp]);
 
   // If problem is still loading, show loading state
   if (isLoading || !problem) {
@@ -242,9 +276,17 @@ function ProblemPage() {
     }
   };
 
-  const handleResizeMouseDown = (e: React.MouseEvent) => {
+  const handleResizeMouseDown = (e: React.MouseEvent, direction: string) => {
     e.stopPropagation();
-    setIsResizing(true);
+    setResizeDirection(direction);
+    setResizeStart({
+      x: e.clientX,
+      y: e.clientY,
+      width: notesSize.width,
+      height: notesSize.height,
+      posX: notesPosition.x,
+      posY: notesPosition.y
+    });
   };
 
   return (
@@ -572,16 +614,44 @@ function ProblemPage() {
               />
             </div>
 
-            {/* Resize Handle - only when not fullscreen */}
+            {/* Resize Handles - only when not fullscreen */}
             {!isNotesFullscreen && (
-              <div
-                className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
-                onMouseDown={handleResizeMouseDown}
-              >
-                <svg className="w-4 h-4 text-gray-600" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M22 22H20V20H22V22ZM22 18H20V16H22V18ZM18 22H16V20H18V22ZM22 14H20V12H22V14ZM18 18H16V16H18V18ZM14 22H12V20H14V22Z" />
-                </svg>
-              </div>
+              <>
+                {/* Corner handles */}
+                <div
+                  className="absolute top-0 left-0 w-3 h-3 cursor-nw-resize"
+                  onMouseDown={(e) => handleResizeMouseDown(e, 'nw')}
+                />
+                <div
+                  className="absolute top-0 right-0 w-3 h-3 cursor-ne-resize"
+                  onMouseDown={(e) => handleResizeMouseDown(e, 'ne')}
+                />
+                <div
+                  className="absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize"
+                  onMouseDown={(e) => handleResizeMouseDown(e, 'sw')}
+                />
+                <div
+                  className="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize"
+                  onMouseDown={(e) => handleResizeMouseDown(e, 'se')}
+                />
+                {/* Edge handles */}
+                <div
+                  className="absolute top-0 left-3 right-3 h-1 cursor-n-resize"
+                  onMouseDown={(e) => handleResizeMouseDown(e, 'n')}
+                />
+                <div
+                  className="absolute bottom-0 left-3 right-3 h-1 cursor-s-resize"
+                  onMouseDown={(e) => handleResizeMouseDown(e, 's')}
+                />
+                <div
+                  className="absolute left-0 top-3 bottom-3 w-1 cursor-w-resize"
+                  onMouseDown={(e) => handleResizeMouseDown(e, 'w')}
+                />
+                <div
+                  className="absolute right-0 top-3 bottom-3 w-1 cursor-e-resize"
+                  onMouseDown={(e) => handleResizeMouseDown(e, 'e')}
+                />
+              </>
             )}
           </div>
         </div>
