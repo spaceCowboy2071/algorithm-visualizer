@@ -101,15 +101,23 @@ Each algorithm includes:
 
 ### Phase 1 - Core Features
 
-- [ ] **Implement Searching Algorithms**
-  - [ ] Binary Search
-  - [ ] Linear Search
-  - [ ] Jump Search
-  - [ ] Interpolation Search
+- [x] **Implement Searching Algorithms**
+  - [x] Binary Search
+  - [x] Linear Search
+  - [x] Jump Search
+  - [x] Interpolation Search
+
+- [ ] **Implement Additional Data Structures** within searching/sorting algorithms pages
+  - [ ] Hash Table
+  - [ ] Trees
+  - [ ] Linked List
+  - [ ] Graphs
 
 - [ ] **Add Pseudocode** to X-Ray code viewer for sorting and searching algorithm pages
 
-- [ ] **Implement Monaco Editor** on Blind 75 problem pages
+- [x] **Implement Monaco Editor** on Blind 75 problem pages
+
+- [ ] **Implement Unique Visualizations** for each Blind 75 problem (placed above the Monaco code editor)
 
 - [ ] **Implement Video Feature** on each Blind 75 problem page (narrated solutions)
 
