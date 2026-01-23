@@ -502,14 +502,6 @@ function ProblemPage() {
       {/* Notes Modal */}
       {isNotesOpen && (
         <div className="fixed inset-0 z-50 pointer-events-none">
-          {/* Backdrop - only visible when not fullscreen */}
-          {!isNotesFullscreen && (
-            <div
-              className="absolute inset-0 bg-black/30 pointer-events-auto"
-              onClick={closeNotesModal}
-            />
-          )}
-
           {/* Modal */}
           <div
             ref={notesModalRef}
