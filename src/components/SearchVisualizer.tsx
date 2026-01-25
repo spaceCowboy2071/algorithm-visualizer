@@ -69,6 +69,7 @@ function SearchVisualizer() {
   const pauseRef = useRef(false);
   const cancelRef = useRef(false);
   const stepForwardRef = useRef(false);
+  const animationSpeedRef = useRef(1);
 
   const showXRay = true;
 
@@ -360,7 +361,10 @@ function SearchVisualizer() {
       throw new Error('CANCELLED');
     }
 
-    const adjustedMs = ms / animationSpeed;
+    // Shift speed down by 0.25 so displayed 1x behaves like previous 0.75x
+    // Use ref to get current speed value (allows changing speed during playback)
+    const effectiveSpeed = Math.max(animationSpeedRef.current - 0.25, 0.05);
+    const adjustedMs = ms / effectiveSpeed;
     await new Promise(resolve => setTimeout(resolve, adjustedMs));
 
     while (pauseRef.current && !cancelRef.current) {
@@ -978,7 +982,11 @@ function SearchVisualizer() {
                 max="2"
                 step="0.25"
                 value={animationSpeed}
-                onChange={(e) => setAnimationSpeed(Number(e.target.value))}
+                onChange={(e) => {
+                  const newSpeed = Number(e.target.value);
+                  setAnimationSpeed(newSpeed);
+                  animationSpeedRef.current = newSpeed;
+                }}
                 className="w-32 sm:w-48 lg:w-64 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
               />
               <span className="text-xs sm:text-sm text-gray-400 font-mono w-8 sm:w-12">{animationSpeed.toFixed(2)}x</span>
