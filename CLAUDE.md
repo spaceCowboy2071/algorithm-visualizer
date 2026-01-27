@@ -150,6 +150,11 @@ Each algorithm includes:
   - [ ] Hash Tables (/hash-tables)
   - [ ] Graphs (/graphs)
 
+- [ ] **Landing Page UI/UX Update** - Add visual separation between page categories
+  - [ ] Create distinct section/graphic for Data Structures (Arrays, Linked Lists, Trees, Graphs, etc.)
+  - [ ] Create distinct section/graphic for Blind 75 Challenge
+  - [ ] Consider section headers, dividers, or card groupings to improve navigation clarity
+
 - [ ] **Add Pseudocode** to X-Ray code viewer for sorting and searching algorithm pages
 
 - [x] **Implement Monaco Editor** on Blind 75 problem pages
