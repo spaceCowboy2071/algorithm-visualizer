@@ -33,36 +33,58 @@ function Landing() {
                 {/* Content Area - Navigation Buttons */}
                 <div className="flex-1 flex flex-col min-h-0">
                   <nav className="flex flex-col gap-6 mb-auto">
-                    {/* Sorting Algorithms */}
-                    <Link 
-                      to="/sorting"
+                    {/* Arrays - Sorting & Searching */}
+                    <Link
+                      to="/arrays"
                       className="group border-l-2 border-transparent hover:border-[#4af626] hover:bg-[rgba(74,246,38,0.05)] transition-all pl-4 py-3"
                     >
                       <div className="text-[#4af626]">
                         <span className="font-bold">$ </span>
-                        <span className="text-base md:text-lg">sorting-algorithms</span>
+                        <span className="text-base md:text-lg">arrays</span>
                       </div>
                       <div className="text-gray-600 text-sm ml-6 mt-1">
-                        # Visualize Bubble, Quick, and Merge Sort
+                        # Sorting & Searching algorithms (Bubble, Quick, Merge, Binary, Linear)
                       </div>
                     </Link>
 
-                    {/* Searching Algorithms */}
-                    <Link 
-                      to="/searching"
-                      className="group border-l-2 border-transparent hover:border-[#4af626] hover:bg-[rgba(74,246,38,0.05)] transition-all pl-4 py-3"
-                    >
+                    {/* Linked Lists - Coming Soon */}
+                    <div className="border-l-2 border-transparent opacity-50 pl-4 py-3 cursor-not-allowed">
                       <div className="text-[#4af626]">
                         <span className="font-bold">$ </span>
-                        <span className="text-base md:text-lg">searching-algorithms</span>
+                        <span className="text-base md:text-lg">linked-lists</span>
+                        <span className="text-gray-500 text-xs ml-2">[coming soon]</span>
                       </div>
                       <div className="text-gray-600 text-sm ml-6 mt-1">
-                        # Binary Search and Linear Search visualizations
+                        # Insert, Delete, Reverse, Merge operations
                       </div>
-                    </Link>
+                    </div>
+
+                    {/* Trees - Coming Soon */}
+                    <div className="border-l-2 border-transparent opacity-50 pl-4 py-3 cursor-not-allowed">
+                      <div className="text-[#4af626]">
+                        <span className="font-bold">$ </span>
+                        <span className="text-base md:text-lg">trees</span>
+                        <span className="text-gray-500 text-xs ml-2">[coming soon]</span>
+                      </div>
+                      <div className="text-gray-600 text-sm ml-6 mt-1">
+                        # BST operations, Inorder, Preorder, Postorder traversals
+                      </div>
+                    </div>
+
+                    {/* Graphs - Coming Soon */}
+                    <div className="border-l-2 border-transparent opacity-50 pl-4 py-3 cursor-not-allowed">
+                      <div className="text-[#4af626]">
+                        <span className="font-bold">$ </span>
+                        <span className="text-base md:text-lg">graphs</span>
+                        <span className="text-gray-500 text-xs ml-2">[coming soon]</span>
+                      </div>
+                      <div className="text-gray-600 text-sm ml-6 mt-1">
+                        # BFS, DFS, Dijkstra's, Topological Sort
+                      </div>
+                    </div>
 
                     {/* Blind 75 Challenge */}
-                    <Link 
+                    <Link
                       to="/blind75"
                       className="group border-l-2 border-transparent hover:border-[#4af626] hover:bg-[rgba(74,246,38,0.05)] transition-all pl-4 py-3"
                     >
