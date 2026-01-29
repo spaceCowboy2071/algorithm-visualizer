@@ -414,6 +414,213 @@ export const INTERPOLATION_SEARCH_INFO: ComplexityInfo = {
 };
 
 // ============================================
+// LINKED LIST ALGORITHMS
+// ============================================
+
+export const LINKED_LIST_SEARCH_INFO: ComplexityInfo = {
+  name: "Search",
+  timeComplexity: {
+    best: "O(1)",
+    average: "O(n)",
+    worst: "O(n)"
+  },
+  spaceComplexity: "O(1)",
+  explanations: {
+    how: "Search traverses the linked list from the head, comparing each node's value with the target. It follows the 'next' pointer of each node until it finds a match or reaches the end (null).",
+    when: "Use linked list search when you need to find a specific value in an unsorted linked list. Unlike arrays, linked lists don't support random access, so sequential traversal is the only option.",
+    where: "Linked list search is used in implementations of stacks, queues, and other data structures built on linked lists. It's common in memory management, undo systems, and anywhere dynamic data structures are needed.",
+    why: "Choose linked list search when: (1) your data is already in a linked list, (2) you need to find a single occurrence, (3) the list is unsorted and sorting isn't worth the overhead."
+  },
+  code: {
+    javascript: `function search(head, target) {
+  let current = head;
+
+  while (current !== null) {
+    if (current.value === target) {
+      return current;
+    }
+    current = current.next;
+  }
+
+  return null;
+}`,
+    python: `def search(head, target):
+    current = head
+
+    while current is not None:
+        if current.value == target:
+            return current
+        current = current.next
+
+    return None`
+  }
+};
+
+export const LINKED_LIST_INSERT_HEAD_INFO: ComplexityInfo = {
+  name: "Insert at Head",
+  timeComplexity: {
+    best: "O(1)",
+    average: "O(1)",
+    worst: "O(1)"
+  },
+  spaceComplexity: "O(1)",
+  explanations: {
+    how: "Insert at Head creates a new node with the given value, sets its 'next' pointer to the current head, then updates the head reference to point to the new node. This is a constant-time operation.",
+    when: "Use Insert at Head when you need fast insertion and don't care about maintaining order. It's the most efficient way to add elements to a linked list.",
+    where: "Insert at Head is used in stack implementations (push operation), building lists in reverse order, and any scenario where newest elements should be at the front.",
+    why: "Choose Insert at Head when: (1) you need O(1) insertion, (2) order doesn't matter or you want LIFO behavior, (3) you're building a list that will be reversed later."
+  },
+  code: {
+    javascript: `function insertAtHead(head, value) {
+  const newNode = { value, next: head };
+  return newNode;
+}`,
+    python: `def insert_at_head(head, value):
+    new_node = Node(value)
+    new_node.next = head
+    return new_node`
+  }
+};
+
+export const LINKED_LIST_INSERT_TAIL_INFO: ComplexityInfo = {
+  name: "Insert at Tail",
+  timeComplexity: {
+    best: "O(n)",
+    average: "O(n)",
+    worst: "O(n)"
+  },
+  spaceComplexity: "O(1)",
+  explanations: {
+    how: "Insert at Tail traverses the entire list to find the last node (where next is null), then creates a new node and links it. If the list is empty, the new node becomes the head.",
+    when: "Use Insert at Tail when you need to maintain insertion order (FIFO behavior). It's slower than Insert at Head but preserves the natural order of elements.",
+    where: "Insert at Tail is used in queue implementations (enqueue operation), maintaining chronological order, and building lists that should be in insertion order.",
+    why: "Choose Insert at Tail when: (1) order matters and should match insertion order, (2) you're implementing a queue, (3) you don't have a tail pointer and occasional O(n) insertion is acceptable."
+  },
+  code: {
+    javascript: `function insertAtTail(head, value) {
+  const newNode = { value, next: null };
+
+  if (head === null) {
+    return newNode;
+  }
+
+  let current = head;
+  while (current.next !== null) {
+    current = current.next;
+  }
+  current.next = newNode;
+
+  return head;
+}`,
+    python: `def insert_at_tail(head, value):
+    new_node = Node(value)
+
+    if head is None:
+        return new_node
+
+    current = head
+    while current.next is not None:
+        current = current.next
+    current.next = new_node
+
+    return head`
+  }
+};
+
+export const LINKED_LIST_DELETE_INFO: ComplexityInfo = {
+  name: "Delete",
+  timeComplexity: {
+    best: "O(1)",
+    average: "O(n)",
+    worst: "O(n)"
+  },
+  spaceComplexity: "O(1)",
+  explanations: {
+    how: "Delete searches for the node with the target value while keeping track of the previous node. When found, it updates the previous node's 'next' pointer to skip over the deleted node. Special handling is needed if deleting the head.",
+    when: "Use Delete when you need to remove a specific value from the list. The operation requires traversal to find the node, then a simple pointer update to remove it.",
+    where: "Delete is used in any application that needs dynamic removal: task managers, memory deallocation, removing items from queues or stacks, and maintaining collections that change over time.",
+    why: "Choose linked list Delete when: (1) you need to remove elements by value, (2) you want O(1) removal once the node is found (unlike arrays which require shifting), (3) elements are frequently added and removed."
+  },
+  code: {
+    javascript: `function deleteNode(head, value) {
+  if (head === null) return null;
+
+  if (head.value === value) {
+    return head.next;
+  }
+
+  let current = head;
+  while (current.next !== null) {
+    if (current.next.value === value) {
+      current.next = current.next.next;
+      return head;
+    }
+    current = current.next;
+  }
+
+  return head;
+}`,
+    python: `def delete_node(head, value):
+    if head is None:
+        return None
+
+    if head.value == value:
+        return head.next
+
+    current = head
+    while current.next is not None:
+        if current.next.value == value:
+            current.next = current.next.next
+            return head
+        current = current.next
+
+    return head`
+  }
+};
+
+export const LINKED_LIST_REVERSE_INFO: ComplexityInfo = {
+  name: "Reverse",
+  timeComplexity: {
+    best: "O(n)",
+    average: "O(n)",
+    worst: "O(n)"
+  },
+  spaceComplexity: "O(1)",
+  explanations: {
+    how: "Reverse iterates through the list, changing each node's 'next' pointer to point to the previous node instead of the next. It uses three pointers: previous, current, and next to track positions during the reversal.",
+    when: "Use Reverse when you need to invert the order of elements. Common in algorithms that build lists in reverse order, palindrome checking, and certain mathematical operations.",
+    where: "Reverse is used in number manipulation (reversing digits), string reversal with linked lists, undo/redo systems, and as a building block in more complex algorithms.",
+    why: "Choose linked list Reverse when: (1) you need to invert element order, (2) you want in-place reversal with O(1) space, (3) you're implementing algorithms that process elements in reverse order."
+  },
+  code: {
+    javascript: `function reverse(head) {
+  let prev = null;
+  let current = head;
+
+  while (current !== null) {
+    const next = current.next;
+    current.next = prev;
+    prev = current;
+    current = next;
+  }
+
+  return prev;
+}`,
+    python: `def reverse(head):
+    prev = None
+    current = head
+
+    while current is not None:
+        next_node = current.next
+        current.next = prev
+        prev = current
+        current = next_node
+
+    return prev`
+  }
+};
+
+// ============================================
 // ALGORITHM REGISTRY
 // ============================================
 
@@ -430,12 +637,34 @@ export const SEARCHING_ALGORITHMS: Record<string, ComplexityInfo> = {
   'Interpolation Search': INTERPOLATION_SEARCH_INFO,
 };
 
+export const LINKED_LIST_ALGORITHMS: Record<string, ComplexityInfo> = {
+  'Search': LINKED_LIST_SEARCH_INFO,
+  'Insert at Head': LINKED_LIST_INSERT_HEAD_INFO,
+  'Insert at Tail': LINKED_LIST_INSERT_TAIL_INFO,
+  'Delete': LINKED_LIST_DELETE_INFO,
+  'Reverse': LINKED_LIST_REVERSE_INFO,
+};
+
 export const getAlgorithmInfo = (mode: AlgorithmMode, name: string): ComplexityInfo | null => {
-  const algorithms = mode === 'sorting' ? SORTING_ALGORITHMS : SEARCHING_ALGORITHMS;
+  let algorithms: Record<string, ComplexityInfo>;
+  if (mode === 'sorting') {
+    algorithms = SORTING_ALGORITHMS;
+  } else if (mode === 'searching') {
+    algorithms = SEARCHING_ALGORITHMS;
+  } else {
+    algorithms = LINKED_LIST_ALGORITHMS;
+  }
   return algorithms[name] || null;
 };
 
 export const getAlgorithmNames = (mode: AlgorithmMode): string[] => {
-  const algorithms = mode === 'sorting' ? SORTING_ALGORITHMS : SEARCHING_ALGORITHMS;
+  let algorithms: Record<string, ComplexityInfo>;
+  if (mode === 'sorting') {
+    algorithms = SORTING_ALGORITHMS;
+  } else if (mode === 'searching') {
+    algorithms = SEARCHING_ALGORITHMS;
+  } else {
+    algorithms = LINKED_LIST_ALGORITHMS;
+  }
   return Object.keys(algorithms);
 };

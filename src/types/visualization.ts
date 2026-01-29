@@ -1,5 +1,5 @@
 // Algorithm mode discriminator
-export type AlgorithmMode = 'sorting' | 'searching';
+export type AlgorithmMode = 'sorting' | 'searching' | 'linked-list';
 
 // Unified complexity info (shared by both sorting and searching)
 export interface ComplexityInfo {
@@ -48,8 +48,26 @@ export interface SearchHistoryState extends SortingHistoryState {
   searchResult: 'found' | 'not-found' | null;
 }
 
+// Linked list node representation
+export interface LinkedListNode {
+  id: string;
+  value: number;
+}
+
+// History snapshot for linked list operations
+export interface LinkedListHistoryState {
+  nodes: LinkedListNode[];
+  currentNodeId: string | null;
+  comparingNodeIds: string[];
+  visitedNodeIds: string[];
+  foundNodeId: string | null;
+  currentLine: number | null;
+  message: string;
+  operationResult: 'success' | 'not-found' | null;
+}
+
 // Union type for history
-export type HistoryState = SortingHistoryState | SearchHistoryState;
+export type HistoryState = SortingHistoryState | SearchHistoryState | LinkedListHistoryState;
 
 // Control refs interface
 export interface VisualizationControlRefs {
