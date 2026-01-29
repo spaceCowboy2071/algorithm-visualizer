@@ -159,6 +159,13 @@ Each algorithm includes:
 
 - [x] **Implement Monaco Editor** on Blind 75 problem pages
 
+- [ ] **Implement Judge0 API** for Blind 75 solution checking (RapidAPI free tier)
+  - [ ] Create Vercel serverless function to proxy Judge0 API calls
+  - [ ] Add test cases data for each Blind 75 problem
+  - [ ] Build "Run Code" and "Submit" UI buttons
+  - [ ] Display test results (passed/failed, expected vs actual output)
+  - [ ] Handle edge cases (TLE, runtime errors, compilation errors)
+
 - [ ] **Implement Unique Visualizations** for each Blind 75 problem (placed above the Monaco code editor)
 
 - [ ] **Implement Video Feature** on each Blind 75 problem page (narrated solutions)
