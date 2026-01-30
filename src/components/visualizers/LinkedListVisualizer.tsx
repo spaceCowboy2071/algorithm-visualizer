@@ -549,9 +549,9 @@ function LinkedListVisualizer() {
       </div>
 
       {/* Main Content Area */}
-      <div className="p-6 flex flex-col lg:flex-row gap-6">
+      <div className="p-4 sm:p-6 flex flex-col xl:flex-row gap-6">
         {/* Left Side - Visualization and Controls */}
-        <div className="w-full lg:w-[60%] space-y-6">
+        <div className="w-full xl:w-[60%] space-y-6">
           {/* Linked List Visualization */}
           <div className="bg-gradient-to-br from-gray-800 via-gray-850 to-gray-900 border border-gray-700 rounded-xl shadow-2xl p-4 sm:p-6 lg:p-8 relative overflow-hidden">
             {/* Shine overlay */}
@@ -610,7 +610,7 @@ function LinkedListVisualizer() {
         </div>
 
         {/* Right Side - Info Panels */}
-        <div className="w-full lg:w-[40%] space-y-6">
+        <div className="w-full xl:w-[40%] space-y-6">
           {/* Algorithm Info Panel */}
           {currentAlgorithm && <AlgorithmInfoPanel algorithm={currentAlgorithm} />}
 
