@@ -8,6 +8,21 @@ interface LinkedListNodesProps {
   foundNodeId: string | null;
 }
 
+// Dynamic sizing based on node count
+const getNodeSizeClass = (nodeCount: number): { node: string; text: string; arrow: string; gap: string } => {
+  if (nodeCount <= 4) {
+    return { node: 'w-16 h-16 sm:w-20 sm:h-20', text: 'text-xl sm:text-2xl', arrow: 'w-10 h-10', gap: 'gap-2' };
+  }
+  if (nodeCount <= 6) {
+    return { node: 'w-14 h-14 sm:w-16 sm:h-16', text: 'text-lg sm:text-xl', arrow: 'w-8 h-8', gap: 'gap-1' };
+  }
+  if (nodeCount <= 8) {
+    return { node: 'w-12 h-12 sm:w-14 sm:h-14', text: 'text-base sm:text-lg', arrow: 'w-6 h-6', gap: 'gap-0.5' };
+  }
+  // 9+ nodes - smallest size
+  return { node: 'w-10 h-10 sm:w-12 sm:h-12', text: 'text-sm sm:text-base', arrow: 'w-5 h-5', gap: 'gap-0.5' };
+};
+
 function LinkedListNodes({
   nodes,
   currentNodeId,
@@ -15,6 +30,8 @@ function LinkedListNodes({
   visitedNodeIds,
   foundNodeId,
 }: LinkedListNodesProps) {
+  const sizes = getNodeSizeClass(nodes.length);
+
   const getNodeStyle = (nodeId: string): React.CSSProperties => {
     // Priority: found > current/comparing > visited > default
     if (foundNodeId === nodeId) {
@@ -65,12 +82,12 @@ function LinkedListNodes({
   }
 
   return (
-    <div className="h-48 sm:h-56 lg:h-64 flex items-center justify-center overflow-x-auto py-4">
-      <div className="flex items-center gap-1 sm:gap-2 px-4">
+    <div className="h-48 sm:h-56 lg:h-64 flex items-center justify-center py-4">
+      <div className={`flex items-center ${sizes.gap} px-2 sm:px-4`}>
         {/* HEAD label */}
-        <div className="flex flex-col items-center mr-2">
-          <span className="text-xs sm:text-sm text-purple-400 font-bold mb-1">HEAD</span>
-          <svg className="w-6 h-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="flex flex-col items-center mr-1 sm:mr-2">
+          <span className="text-xs text-purple-400 font-bold mb-1">HEAD</span>
+          <svg className={`${sizes.arrow} text-purple-400`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
           </svg>
         </div>
@@ -92,10 +109,10 @@ function LinkedListNodes({
 
               {/* Node box */}
               <div
-                className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-lg border-2 flex items-center justify-center transition-all duration-300"
+                className={`${sizes.node} rounded-lg border-2 flex items-center justify-center transition-all duration-300`}
                 style={getNodeStyle(node.id)}
               >
-                <span className="text-white text-lg sm:text-xl lg:text-2xl font-bold">
+                <span className={`text-white ${sizes.text} font-bold`}>
                   {node.value}
                 </span>
               </div>
@@ -105,9 +122,9 @@ function LinkedListNodes({
             </div>
 
             {/* Arrow to next node or null */}
-            <div className="flex items-center mx-1 sm:mx-2">
+            <div className="flex items-center mx-0.5 sm:mx-1">
               <svg
-                className="w-8 h-8 sm:w-10 sm:h-10 transition-colors duration-300"
+                className={`${sizes.arrow} transition-colors duration-300`}
                 style={{ color: getArrowColor(node.id) }}
                 fill="none"
                 viewBox="0 0 24 24"
@@ -126,8 +143,8 @@ function LinkedListNodes({
             {index === nodes.length - 1 && (
               <div className="flex flex-col items-center">
                 <span className="text-xs text-transparent mb-1">-</span>
-                <div className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-lg border-2 border-dashed border-gray-600 flex items-center justify-center bg-gray-800/50">
-                  <span className="text-gray-500 text-sm sm:text-base font-mono">null</span>
+                <div className={`${sizes.node} rounded-lg border-2 border-dashed border-gray-600 flex items-center justify-center bg-gray-800/50`}>
+                  <span className={`text-gray-500 ${nodes.length > 6 ? 'text-xs' : 'text-sm'} font-mono`}>null</span>
                 </div>
                 <span className="text-xs text-transparent mt-1">-</span>
               </div>
