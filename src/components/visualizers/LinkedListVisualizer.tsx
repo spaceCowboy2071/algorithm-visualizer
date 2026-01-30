@@ -553,7 +553,7 @@ function LinkedListVisualizer() {
         {/* Left Side - Visualization and Controls */}
         <div className="w-full lg:w-[60%] space-y-6">
           {/* Linked List Visualization */}
-          <div className="bg-gradient-to-br from-gray-800 via-gray-850 to-gray-900 border border-gray-700 rounded-xl shadow-2xl p-8 relative">
+          <div className="bg-gradient-to-br from-gray-800 via-gray-850 to-gray-900 border border-gray-700 rounded-xl shadow-2xl p-4 sm:p-6 lg:p-8 relative overflow-hidden">
             {/* Shine overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent pointer-events-none rounded-xl"></div>
 

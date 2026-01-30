@@ -82,8 +82,8 @@ function LinkedListNodes({
   }
 
   return (
-    <div className="h-48 sm:h-56 lg:h-64 flex items-center justify-center py-4">
-      <div className={`flex items-center ${sizes.gap} px-2 sm:px-4`}>
+    <div className="h-48 sm:h-56 lg:h-64 flex items-center justify-start overflow-x-auto py-4 px-2">
+      <div className={`flex items-center ${sizes.gap} px-2 sm:px-4 mx-auto`}>
         {/* HEAD label */}
         <div className="flex flex-col items-center mr-1 sm:mr-2">
           <span className="text-xs text-purple-400 font-bold mb-1">HEAD</span>
