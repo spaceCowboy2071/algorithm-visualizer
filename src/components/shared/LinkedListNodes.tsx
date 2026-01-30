@@ -1,3 +1,4 @@
+import { useRef, useState, useEffect } from 'react';
 import type { LinkedListNode } from '../../types/visualization';
 
 interface LinkedListNodesProps {
@@ -8,20 +9,12 @@ interface LinkedListNodesProps {
   foundNodeId: string | null;
 }
 
-// Dynamic sizing based on node count
-const getNodeSizeClass = (nodeCount: number): { node: string; text: string; arrow: string; gap: string } => {
-  if (nodeCount <= 4) {
-    return { node: 'w-16 h-16 sm:w-20 sm:h-20', text: 'text-xl sm:text-2xl', arrow: 'w-10 h-10', gap: 'gap-2' };
-  }
-  if (nodeCount <= 6) {
-    return { node: 'w-14 h-14 sm:w-16 sm:h-16', text: 'text-lg sm:text-xl', arrow: 'w-8 h-8', gap: 'gap-1' };
-  }
-  if (nodeCount <= 8) {
-    return { node: 'w-12 h-12 sm:w-14 sm:h-14', text: 'text-base sm:text-lg', arrow: 'w-6 h-6', gap: 'gap-0.5' };
-  }
-  // 9+ nodes - smallest size
-  return { node: 'w-10 h-10 sm:w-12 sm:h-12', text: 'text-sm sm:text-base', arrow: 'w-5 h-5', gap: 'gap-0.5' };
-};
+interface DynamicSizes {
+  nodeSize: number;
+  fontSize: number;
+  arrowSize: number;
+  gap: number;
+}
 
 function LinkedListNodes({
   nodes,
@@ -30,12 +23,74 @@ function LinkedListNodes({
   visitedNodeIds,
   foundNodeId,
 }: LinkedListNodesProps) {
-  const sizes = getNodeSizeClass(nodes.length);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [sizes, setSizes] = useState<DynamicSizes>({
+    nodeSize: 64,
+    fontSize: 20,
+    arrowSize: 32,
+    gap: 4,
+  });
+
+  // Calculate sizes based on container width and node count
+  useEffect(() => {
+    const calculateSizes = () => {
+      if (!containerRef.current || nodes.length === 0) return;
+
+      const containerWidth = containerRef.current.offsetWidth;
+      const padding = 32; // Container padding
+      const headLabelWidth = 50; // HEAD label + arrow
+      const availableWidth = containerWidth - padding - headLabelWidth;
+
+      // Each "unit" = node + arrow (except last node has null box instead)
+      // Total elements: nodes.length nodes + nodes.length arrows + 1 null box
+      const nodeCount = nodes.length;
+      const arrowCount = nodes.length;
+      const nullBoxCount = 1;
+
+      // We want: (nodeCount + nullBoxCount) * nodeSize + arrowCount * arrowSize + gaps <= availableWidth
+      // Assuming arrowSize = nodeSize * 0.5 and gap = nodeSize * 0.1
+      // (nodeCount + 1) * nodeSize + nodeCount * 0.5 * nodeSize + (nodeCount * 2) * 0.1 * nodeSize <= availableWidth
+      // nodeSize * ((nodeCount + 1) + nodeCount * 0.5 + nodeCount * 0.2) <= availableWidth
+      // nodeSize * (nodeCount + 1 + nodeCount * 0.7) <= availableWidth
+      // nodeSize <= availableWidth / (nodeCount * 1.7 + 1)
+
+      const maxNodeSize = availableWidth / (nodeCount * 1.8 + 1.5);
+
+      // Clamp between min and max sizes
+      const minNodeSize = 32;
+      const maxAllowedSize = 80;
+      const nodeSize = Math.max(minNodeSize, Math.min(maxAllowedSize, maxNodeSize));
+
+      // Scale other elements proportionally
+      const fontSize = Math.max(10, nodeSize * 0.3);
+      const arrowSize = Math.max(16, nodeSize * 0.5);
+      const gap = Math.max(2, nodeSize * 0.08);
+
+      setSizes({ nodeSize, fontSize, arrowSize, gap });
+    };
+
+    calculateSizes();
+
+    // Recalculate on window resize
+    window.addEventListener('resize', calculateSizes);
+    return () => window.removeEventListener('resize', calculateSizes);
+  }, [nodes.length]);
 
   const getNodeStyle = (nodeId: string): React.CSSProperties => {
-    // Priority: found > current/comparing > visited > default
+    const baseStyle: React.CSSProperties = {
+      width: sizes.nodeSize,
+      height: sizes.nodeSize,
+      borderRadius: 8,
+      borderWidth: 2,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      transition: 'all 0.3s',
+    };
+
     if (foundNodeId === nodeId) {
       return {
+        ...baseStyle,
         background: 'linear-gradient(180deg, #10b981 0%, #059669 100%)',
         boxShadow: '0 4px 20px rgba(16, 185, 129, 0.6)',
         borderColor: '#10b981',
@@ -43,6 +98,7 @@ function LinkedListNodes({
     }
     if (currentNodeId === nodeId || comparingNodeIds.includes(nodeId)) {
       return {
+        ...baseStyle,
         background: 'linear-gradient(180deg, #eab308 0%, #ca8a04 100%)',
         boxShadow: '0 4px 20px rgba(234, 179, 8, 0.6)',
         borderColor: '#eab308',
@@ -50,6 +106,7 @@ function LinkedListNodes({
     }
     if (visitedNodeIds.includes(nodeId)) {
       return {
+        ...baseStyle,
         background: 'linear-gradient(180deg, #6b7280 0%, #4b5563 100%)',
         boxShadow: 'none',
         borderColor: '#6b7280',
@@ -57,6 +114,7 @@ function LinkedListNodes({
       };
     }
     return {
+      ...baseStyle,
       background: 'linear-gradient(180deg, #5b9dff 0%, #3b7de8 100%)',
       boxShadow: '0 4px 20px rgba(91, 157, 255, 0.5)',
       borderColor: '#5b9dff',
@@ -72,7 +130,10 @@ function LinkedListNodes({
 
   if (nodes.length === 0) {
     return (
-      <div className="h-48 sm:h-56 lg:h-64 flex items-center justify-center text-gray-500">
+      <div
+        ref={containerRef}
+        className="h-48 sm:h-56 lg:h-64 flex items-center justify-center text-gray-500"
+      >
         <div className="text-center">
           <div className="text-4xl mb-2">null</div>
           <div className="text-sm">Empty list - Generate a linked list to start</div>
@@ -82,71 +143,116 @@ function LinkedListNodes({
   }
 
   return (
-    <div className="h-48 sm:h-56 lg:h-64 flex items-center justify-start overflow-x-auto py-4 px-2">
-      <div className={`flex items-center ${sizes.gap} px-2 sm:px-4 mx-auto`}>
+    <div
+      ref={containerRef}
+      className="h-48 sm:h-56 lg:h-64 flex items-center justify-center py-4 px-4"
+    >
+      <div
+        className="flex items-center justify-center"
+        style={{ gap: sizes.gap }}
+      >
         {/* HEAD label */}
-        <div className="flex flex-col items-center mr-1 sm:mr-2">
-          <span className="text-xs text-purple-400 font-bold mb-1">HEAD</span>
-          <svg className={`${sizes.arrow} text-purple-400`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="flex flex-col items-center" style={{ marginRight: sizes.gap }}>
+          <span
+            className="text-purple-400 font-bold mb-1"
+            style={{ fontSize: Math.max(10, sizes.fontSize * 0.6) }}
+          >
+            HEAD
+          </span>
+          <svg
+            style={{ width: sizes.arrowSize, height: sizes.arrowSize }}
+            className="text-purple-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
           </svg>
         </div>
 
         {nodes.map((node, index) => (
-          <div key={node.id} className="flex items-center">
+          <div key={node.id} className="flex items-center" style={{ gap: sizes.gap }}>
             {/* Node */}
             <div className="flex flex-col items-center">
               {/* Current pointer indicator */}
-              {currentNodeId === node.id && (
-                <span className="text-xs text-yellow-400 font-bold mb-1 animate-pulse">current</span>
-              )}
-              {foundNodeId === node.id && currentNodeId !== node.id && (
-                <span className="text-xs text-green-400 font-bold mb-1">found!</span>
-              )}
-              {currentNodeId !== node.id && foundNodeId !== node.id && (
-                <span className="text-xs text-transparent mb-1">-</span>
-              )}
+              <span
+                className={`font-bold mb-1 ${
+                  currentNodeId === node.id
+                    ? 'text-yellow-400 animate-pulse'
+                    : foundNodeId === node.id && currentNodeId !== node.id
+                    ? 'text-green-400'
+                    : 'text-transparent'
+                }`}
+                style={{ fontSize: Math.max(8, sizes.fontSize * 0.5) }}
+              >
+                {currentNodeId === node.id ? 'current' : foundNodeId === node.id ? 'found!' : '-'}
+              </span>
 
               {/* Node box */}
-              <div
-                className={`${sizes.node} rounded-lg border-2 flex items-center justify-center transition-all duration-300`}
-                style={getNodeStyle(node.id)}
-              >
-                <span className={`text-white ${sizes.text} font-bold`}>
+              <div style={getNodeStyle(node.id)}>
+                <span
+                  className="text-white font-bold"
+                  style={{ fontSize: sizes.fontSize }}
+                >
                   {node.value}
                 </span>
               </div>
 
               {/* Index label */}
-              <span className="text-xs text-gray-500 mt-1 font-mono">[{index}]</span>
+              <span
+                className="text-gray-500 font-mono mt-1"
+                style={{ fontSize: Math.max(8, sizes.fontSize * 0.5) }}
+              >
+                [{index}]
+              </span>
             </div>
 
             {/* Arrow to next node or null */}
-            <div className="flex items-center mx-0.5 sm:mx-1">
-              <svg
-                className={`${sizes.arrow} transition-colors duration-300`}
-                style={{ color: getArrowColor(node.id) }}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 8l4 4m0 0l-4 4m4-4H3"
-                />
-              </svg>
-            </div>
+            <svg
+              style={{
+                width: sizes.arrowSize,
+                height: sizes.arrowSize,
+                color: getArrowColor(node.id),
+                transition: 'color 0.3s',
+              }}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 8l4 4m0 0l-4 4m4-4H3"
+              />
+            </svg>
 
             {/* Null terminator after last node */}
             {index === nodes.length - 1 && (
               <div className="flex flex-col items-center">
-                <span className="text-xs text-transparent mb-1">-</span>
-                <div className={`${sizes.node} rounded-lg border-2 border-dashed border-gray-600 flex items-center justify-center bg-gray-800/50`}>
-                  <span className={`text-gray-500 ${nodes.length > 6 ? 'text-xs' : 'text-sm'} font-mono`}>null</span>
+                <span
+                  className="text-transparent mb-1"
+                  style={{ fontSize: Math.max(8, sizes.fontSize * 0.5) }}
+                >
+                  -
+                </span>
+                <div
+                  className="rounded-lg border-2 border-dashed border-gray-600 flex items-center justify-center bg-gray-800/50"
+                  style={{ width: sizes.nodeSize, height: sizes.nodeSize }}
+                >
+                  <span
+                    className="text-gray-500 font-mono"
+                    style={{ fontSize: Math.max(8, sizes.fontSize * 0.6) }}
+                  >
+                    null
+                  </span>
                 </div>
-                <span className="text-xs text-transparent mt-1">-</span>
+                <span
+                  className="text-transparent mt-1"
+                  style={{ fontSize: Math.max(8, sizes.fontSize * 0.5) }}
+                >
+                  -
+                </span>
               </div>
             )}
           </div>
