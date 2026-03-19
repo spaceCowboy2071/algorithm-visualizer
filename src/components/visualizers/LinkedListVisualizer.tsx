@@ -64,19 +64,6 @@ function LinkedListVisualizer() {
     onBeforeSleep: () => saveToHistory(createSnapshot()),
   });
 
-  // Generate random linked list
-  const generateRandomList = useCallback(() => {
-    const newNodes: LinkedListNode[] = [];
-    for (let i = 0; i < listSize; i++) {
-      newNodes.push({
-        id: generateNodeId(),
-        value: Math.floor(Math.random() * 99) + 1,
-      });
-    }
-    setNodes(newNodes);
-    resetVisualizationState();
-  }, [listSize]);
-
   // Reset visualization state
   const resetVisualizationState = useCallback(() => {
     setCurrentNodeId(null);
@@ -88,6 +75,19 @@ function LinkedListVisualizer() {
     setOperationResult(null);
     clearHistory();
   }, [clearHistory]);
+
+  // Generate random linked list
+  const generateRandomList = useCallback(() => {
+    const newNodes: LinkedListNode[] = [];
+    for (let i = 0; i < listSize; i++) {
+      newNodes.push({
+        id: generateNodeId(),
+        value: Math.floor(Math.random() * 99) + 1,
+      });
+    }
+    setNodes(newNodes);
+    resetVisualizationState();
+  }, [listSize, resetVisualizationState]);
 
   // Handle operation selection
   const handleOperationChange = (operationName: string) => {

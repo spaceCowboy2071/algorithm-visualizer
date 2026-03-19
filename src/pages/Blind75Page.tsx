@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 interface Problem {
@@ -123,21 +123,16 @@ const CATEGORIES = [
 
 function Blind75Page() {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
-  const [problemStates, setProblemStates] = useState<Record<number, boolean>>({});
-
-  // Load saved progress from localStorage on mount
-  useEffect(() => {
+  const [problemStates, setProblemStates] = useState<Record<number, boolean>>(() => {
     const savedProgress: Record<number, boolean> = {};
-    
     PROBLEMS.forEach(problem => {
       const saved = localStorage.getItem(`blind75_problem_${problem.id}_solved`);
       if (saved === 'true') {
         savedProgress[problem.id] = true;
       }
     });
-    
-    setProblemStates(savedProgress);
-  }, []);
+    return savedProgress;
+  });
 
   const toggleCategory = (category: string) => {
     setExpandedCategories(prev => 

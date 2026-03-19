@@ -44,10 +44,8 @@ function LinkedListNodes({
       // Each "unit" = node + arrow (except last node has null box instead)
       // Total elements: nodes.length nodes + nodes.length arrows + 1 null box
       const nodeCount = nodes.length;
-      const arrowCount = nodes.length;
-      const nullBoxCount = 1;
 
-      // We want: (nodeCount + nullBoxCount) * nodeSize + arrowCount * arrowSize + gaps <= availableWidth
+      // We want: (nodeCount + 1) * nodeSize + nodeCount * arrowSize + gaps <= availableWidth
       // Assuming arrowSize = nodeSize * 0.5 and gap = nodeSize * 0.1
       // (nodeCount + 1) * nodeSize + nodeCount * 0.5 * nodeSize + (nodeCount * 2) * 0.1 * nodeSize <= availableWidth
       // nodeSize * ((nodeCount + 1) + nodeCount * 0.5 + nodeCount * 0.2) <= availableWidth

@@ -45,38 +45,31 @@ function ProblemPage() {
   const [isLoading, setIsLoading] = useState(true);
   
   // Load problem on mount
-  useEffect(() => {
-    const loadedProblem = getProblemById(Number(problemId));
-    if (!loadedProblem) {
-      navigate('/blind75');
-      return;
-    }
+  const loadedProblem = getProblemById(Number(problemId));
+  if (loadedProblem && loadedProblem !== problem) {
     setProblem(loadedProblem);
     setIsLoading(false);
-  }, [problemId, navigate]);
+  } else if (!loadedProblem && !problem) {
+    navigate('/blind75');
+  }
 
-  // Load problem-specific data when problem changes
-  useEffect(() => {
-    if (!problem) return;
-    
-    // Load saved data from localStorage
+  // Sync localStorage to state when problem or language changes
+  // Uses the "store previous rendering info in state" pattern supported by React
+  const [prevSyncKey, setPrevSyncKey] = useState('');
+  const syncKey = `${problemId}_${language}`;
+  if (problem && syncKey !== prevSyncKey) {
+    setPrevSyncKey(syncKey);
+
     const savedCode = localStorage.getItem(`problem_${problemId}_code_${language}`);
     const savedNotes = localStorage.getItem(`problem_${problemId}_notes`);
     const savedCompleted = localStorage.getItem(`problem_${problemId}_completed`);
     const savedSolvedIn20 = localStorage.getItem(`problem_${problemId}_solved_in_20`);
-    
-    if (savedCode) {
-      setCode(savedCode);
-    } else {
-      setCode(problem.starterCode[language]);
-    }
-    
-    if (savedNotes) setNotes(savedNotes);
-    else setNotes('');
-    
+
+    setCode(savedCode ?? problem.starterCode[language]);
+    setNotes(savedNotes ?? '');
     setCompleted(savedCompleted === 'true');
     setSolvedIn20Min(savedSolvedIn20 === 'true');
-  }, [problem, problemId, language]);
+  }
 
   // Save code to localStorage whenever it changes
   useEffect(() => {
