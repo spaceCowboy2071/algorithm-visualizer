@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product of Array Except Self — Prefix/Suffix Visual Walkthrough</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--surface2:#1c2333;--border:#30363d;--text:#e6edf3;--text-dim:#8b949e;--accent:#58a6ff;--green:#2ea043;--green-glow:#3fb950;--orange:#f0883e;--red:#f78166;--purple:#d2a8ff;--cyan:#79c0ff;--yellow:#e3b341;--code-bg:#0d1117;--highlight:rgba(88,166,255,0.1);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.6;overflow-x:hidden;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+header{text-align:center;padding:3rem 0 2rem;position:relative;}
+header::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(227,179,65,0.08) 0%,transparent 70%);pointer-events:none;}
+h1{font-size:2.4rem;font-weight:700;letter-spacing:-0.03em;background:linear-gradient(135deg,var(--yellow),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.25rem;}
+.subtitle{color:var(--text-dim);font-size:0.95rem;}
+.tag{display:inline-block;padding:0.2rem 0.65rem;border-radius:99px;font-size:0.75rem;font-weight:600;margin:0.75rem 0.2rem 0;}
+.tag-pattern{background:rgba(227,179,65,0.15);color:var(--yellow);}
+.tag-medium{background:rgba(240,136,62,0.15);color:var(--orange);}
+.tag-array{background:rgba(88,166,255,0.15);color:var(--accent);}
+section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;margin:1.5rem 0;position:relative;overflow:hidden;}
+section::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--yellow),var(--orange),var(--red));border-radius:12px 12px 0 0;}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:1rem;letter-spacing:-0.02em;}
+h3{font-size:1.1rem;font-weight:600;margin:1.25rem 0 0.5rem;color:var(--accent);}
+p{margin-bottom:0.75rem;font-size:0.95rem;}
+.dim{color:var(--text-dim);}
+code{font-family:'JetBrains Mono',monospace;font-size:0.85em;background:var(--surface2);padding:0.1rem 0.4rem;border-radius:4px;}
+.callout{background:rgba(240,136,62,0.08);border-left:3px solid var(--orange);padding:0.75rem 1rem;border-radius:0 8px 8px 0;margin:1rem 0;font-size:0.9rem;}
+.callout strong{color:var(--orange);}
+.callout-yellow{background:rgba(227,179,65,0.08);border-left-color:var(--yellow);}
+.callout-yellow strong{color:var(--yellow);}
+.callout-green{background:rgba(46,160,67,0.08);border-left-color:var(--green);}
+.callout-green strong{color:var(--green-glow);}
+
+/* Array cells */
+.array-row{display:flex;gap:4px;justify-content:center;align-items:center;margin:0.75rem 0;flex-wrap:wrap;}
+.arr-label{font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--text-dim);font-weight:600;min-width:80px;text-align:right;margin-right:8px;}
+.arr-cell{width:72px;height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;border-radius:8px;border:2px solid var(--border);background:var(--surface2);transition:all 0.4s ease;position:relative;}
+.arr-cell .val{font-size:1.1rem;font-weight:700;}
+.arr-cell .idx{font-size:0.6rem;color:var(--text-dim);position:absolute;bottom:2px;}
+.arr-cell.input-cell{border-color:var(--accent);color:var(--accent);}
+.arr-cell.prefix-active{border-color:var(--yellow);color:var(--yellow);box-shadow:0 0 14px rgba(227,179,65,0.4);animation:cellPulse 1s ease-in-out infinite;}
+.arr-cell.postfix-active{border-color:var(--purple);color:var(--purple);box-shadow:0 0 14px rgba(210,168,255,0.4);animation:cellPulse 1s ease-in-out infinite;}
+.arr-cell.prefix-done{border-color:var(--yellow);background:rgba(227,179,65,0.1);color:var(--yellow);}
+.arr-cell.postfix-done{border-color:var(--green);background:rgba(46,160,67,0.12);color:var(--green-glow);}
+.arr-cell.final{border-color:var(--green);background:rgba(46,160,67,0.15);color:var(--green-glow);box-shadow:0 0 10px rgba(46,160,67,0.2);}
+@keyframes cellPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
+
+/* Direction arrow */
+.direction-arrow{font-size:1.5rem;margin:0.5rem 0;text-align:center;font-weight:700;}
+.arrow-right{color:var(--yellow);}
+.arrow-left{color:var(--purple);}
+
+/* Running variable display */
+.var-display{display:flex;gap:2rem;justify-content:center;flex-wrap:wrap;margin:1rem 0;}
+.var-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0.6rem 1.25rem;font-family:'JetBrains Mono',monospace;font-size:0.9rem;text-align:center;min-width:140px;transition:all 0.3s;}
+.var-box .var-name{font-size:0.7rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;}
+.var-box .var-val{font-size:1.2rem;font-weight:700;margin-top:0.15rem;}
+.var-box.prefix-var{border-color:var(--yellow);}.var-box.prefix-var .var-val{color:var(--yellow);}
+.var-box.postfix-var{border-color:var(--purple);}.var-box.postfix-var .var-val{color:var(--purple);}
+
+/* Log */
+.status-bar{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;font-family:'JetBrains Mono',monospace;font-size:0.78rem;line-height:1.7;min-height:80px;max-height:220px;overflow-y:auto;margin:0.75rem 0;}
+.log-prefix{color:var(--yellow);}.log-postfix{color:var(--purple);}.log-store{color:var(--cyan);}.log-done{color:var(--green-glow);font-weight:600;}.log-init{color:var(--text-dim);}.log-multiply{color:var(--orange);}
+
+/* Controls */
+.controls{display:flex;gap:0.75rem;justify-content:center;align-items:center;margin:1rem 0;flex-wrap:wrap;}
+button{font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;padding:0.5rem 1.25rem;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;transition:all 0.2s;}
+button:hover{background:rgba(88,166,255,0.1);border-color:var(--accent);color:var(--accent);}
+button:active{transform:scale(0.97);}
+button.primary{background:rgba(227,179,65,0.15);border-color:var(--yellow);color:var(--yellow);}
+button.primary:hover{background:rgba(227,179,65,0.25);}
+button:disabled{opacity:0.3;cursor:not-allowed;}
+.step-counter{font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text-dim);min-width:100px;text-align:center;}
+
+/* Concept diagrams */
+.concept-grid{display:flex;gap:0.5rem;justify-content:center;align-items:center;margin:1rem 0;}
+.concept-cell{width:60px;height:44px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:0.95rem;font-weight:700;border-radius:6px;border:2px solid var(--border);background:var(--surface2);}
+.concept-cell.highlight-prefix{background:rgba(227,179,65,0.15);border-color:var(--yellow);color:var(--yellow);}
+.concept-cell.highlight-self{background:rgba(247,129,102,0.2);border-color:var(--red);color:var(--red);}
+.concept-cell.highlight-postfix{background:rgba(210,168,255,0.15);border-color:var(--purple);color:var(--purple);}
+.concept-label{font-size:0.7rem;color:var(--text-dim);text-align:center;margin-top:0.25rem;font-family:'JetBrains Mono',monospace;}
+
+/* Code */
+.code-block{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;font-family:'JetBrains Mono',monospace;font-size:0.8rem;line-height:1.8;overflow-x:auto;counter-reset:line;margin:1rem 0;}
+.code-line{display:block;padding:0 0.5rem;border-radius:3px;white-space:pre;transition:background 0.3s;}
+.code-line::before{counter-increment:line;content:counter(line);display:inline-block;width:2rem;margin-right:1rem;text-align:right;color:#484f58;font-size:0.72rem;}
+.code-line.highlight{background:var(--highlight);}
+.kw{color:#ff7b72;}.fn{color:#d2a8ff;}.str{color:#a5d6ff;}.num{color:#79c0ff;}.cmt{color:#484f58;font-style:italic;}.var{color:#ffa657;}
+
+.complexity-grid{display:flex;gap:2rem;flex-wrap:wrap;margin:1rem 0;}
+.complexity-item{flex:1;min-width:200px;}
+.complexity-item h3{margin-top:0;}
+
+@media(max-width:700px){h1{font-size:1.8rem;}section{padding:1.25rem;}.arr-cell{width:58px;height:48px;}.arr-cell .val{font-size:0.95rem;}.arr-label{min-width:60px;font-size:0.7rem;}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+<h1>Product of Array Except Self</h1>
+<p class="subtitle">LeetCode #238 — Prefix/Suffix Products Visual Walkthrough</p>
+<div>
+  <span class="tag tag-pattern">Prefix / Suffix Products</span>
+  <span class="tag tag-medium">Medium</span>
+  <span class="tag tag-array">Arrays</span>
+</div>
+</header>
+
+<!-- SECTION 1: THE PROBLEM -->
+<section>
+<h2>1 — What's the Problem?</h2>
+<p>Given an integer array <code>nums</code>, return an array where each element <code>answer[i]</code> is the product of <strong>all elements except</strong> <code>nums[i]</code>.</p>
+<p><strong>Constraint:</strong> O(n) time, <strong>no division allowed</strong>.</p>
+
+<div style="margin:1.5rem 0;">
+  <div class="concept-grid">
+    <div class="concept-cell" style="color:var(--accent);">1</div>
+    <div class="concept-cell" style="color:var(--accent);">2</div>
+    <div class="concept-cell" style="color:var(--accent);">3</div>
+    <div class="concept-cell" style="color:var(--accent);">4</div>
+  </div>
+  <div style="text-align:center;margin:0.5rem 0;font-size:0.85rem;color:var(--text-dim);">↓</div>
+  <div class="concept-grid">
+    <div class="concept-cell" style="color:var(--green-glow);">24</div>
+    <div class="concept-cell" style="color:var(--green-glow);">12</div>
+    <div class="concept-cell" style="color:var(--green-glow);">8</div>
+    <div class="concept-cell" style="color:var(--green-glow);">6</div>
+  </div>
+  <div style="text-align:center;font-size:0.75rem;color:var(--text-dim);margin-top:0.35rem;">2×3×4 &nbsp;&nbsp; 1×3×4 &nbsp;&nbsp; 1×2×4 &nbsp;&nbsp; 1×2×3</div>
+</div>
+</section>
+
+<!-- SECTION 2: THE INSIGHT -->
+<section>
+<h2>2 — The Key Insight: Prefix × Suffix</h2>
+<p>For any position <code>i</code>, the answer is everything <strong>before</strong> it multiplied by everything <strong>after</strong> it.</p>
+
+<div style="display:flex;justify-content:center;gap:0.5rem;align-items:center;margin:1.5rem 0;flex-wrap:wrap;">
+  <div class="concept-cell highlight-prefix">1</div>
+  <div class="concept-cell highlight-prefix">2</div>
+  <div class="concept-cell highlight-self">3</div>
+  <div class="concept-cell highlight-postfix">4</div>
+</div>
+<div style="display:flex;justify-content:center;gap:2rem;font-size:0.8rem;font-family:'JetBrains Mono',monospace;flex-wrap:wrap;">
+  <span style="color:var(--yellow);">prefix = 1×2 = 2</span>
+  <span style="color:var(--red);">skip self</span>
+  <span style="color:var(--purple);">suffix = 4</span>
+</div>
+<div style="text-align:center;font-family:'JetBrains Mono',monospace;font-size:0.9rem;margin-top:0.5rem;">
+  answer[2] = <span style="color:var(--yellow);">2</span> × <span style="color:var(--purple);">4</span> = <span style="color:var(--green-glow);font-weight:700;">8</span>
+</div>
+
+<div class="callout callout-yellow" style="margin-top:1.5rem;">
+<strong>The trick for O(1) extra space:</strong> Don't build separate prefix and suffix arrays. Store prefix products directly in the output array (pass 1, left to right), then multiply in the suffix products using a single running variable (pass 2, right to left).
+</div>
+
+<h3>Two-Pass Algorithm</h3>
+<p><strong>Pass 1 →</strong> Left to right: build running prefix. At each <code>i</code>, store the prefix in <code>res[i]</code>, then update prefix by multiplying <code>nums[i]</code>.</p>
+<p><strong>Pass 2 ←</strong> Right to left: build running postfix. At each <code>i</code>, multiply <code>res[i]</code> by the postfix, then update postfix by multiplying <code>nums[i]</code>.</p>
+<p>Both running variables start at <code>1</code> (the multiplicative identity).</p>
+</section>
+
+<!-- SECTION 3: INTERACTIVE STEP-THROUGH -->
+<section>
+<h2>3 — Step Through It</h2>
+<p class="dim">Watch both passes build the answer array cell by cell.</p>
+
+<div style="display:flex;justify-content:center;gap:1.5rem;margin:0.5rem 0;font-size:0.75rem;font-family:'JetBrains Mono',monospace;flex-wrap:wrap;">
+  <span><span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:rgba(227,179,65,0.15);border:2px solid var(--yellow);vertical-align:middle;margin-right:4px;"></span> <span style="color:var(--yellow);">Prefix pass</span></span>
+  <span><span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:rgba(210,168,255,0.15);border:2px solid var(--purple);vertical-align:middle;margin-right:4px;"></span> <span style="color:var(--purple);">Postfix pass</span></span>
+  <span><span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:rgba(46,160,67,0.15);border:2px solid var(--green);vertical-align:middle;margin-right:4px;"></span> <span style="color:var(--green-glow);">Final answer</span></span>
+</div>
+
+<div id="sim-area">
+  <div class="array-row">
+    <span class="arr-label">nums[]</span>
+    <div class="arr-cell input-cell" id="n0"><span class="val">1</span><span class="idx">0</span></div>
+    <div class="arr-cell input-cell" id="n1"><span class="val">2</span><span class="idx">1</span></div>
+    <div class="arr-cell input-cell" id="n2"><span class="val">3</span><span class="idx">2</span></div>
+    <div class="arr-cell input-cell" id="n3"><span class="val">4</span><span class="idx">3</span></div>
+  </div>
+
+  <div class="direction-arrow" id="direction"></div>
+
+  <div class="array-row">
+    <span class="arr-label">res[]</span>
+    <div class="arr-cell" id="r0"><span class="val">1</span><span class="idx">0</span></div>
+    <div class="arr-cell" id="r1"><span class="val">1</span><span class="idx">1</span></div>
+    <div class="arr-cell" id="r2"><span class="val">1</span><span class="idx">2</span></div>
+    <div class="arr-cell" id="r3"><span class="val">1</span><span class="idx">3</span></div>
+  </div>
+
+  <div class="var-display">
+    <div class="var-box prefix-var" id="prefix-box">
+      <div class="var-name">prefix</div>
+      <div class="var-val" id="prefix-val">1</div>
+    </div>
+    <div class="var-box postfix-var" id="postfix-box">
+      <div class="var-name">postfix</div>
+      <div class="var-val" id="postfix-val">—</div>
+    </div>
+  </div>
+</div>
+
+<div class="status-bar" id="log"></div>
+
+<div class="controls">
+  <button onclick="resetSim()">Reset</button>
+  <button onclick="stepBack()" id="btn-prev">← Back</button>
+  <span class="step-counter" id="step-label">Step 0 / 0</span>
+  <button class="primary" onclick="stepForward()" id="btn-next">Next →</button>
+  <button onclick="togglePlay()" id="btn-play">▶ Auto</button>
+</div>
+</section>
+
+<!-- SECTION 4: FULL CODE -->
+<section>
+<h2>4 — Complete Implementation</h2>
+
+<div class="code-block" id="code-display">
+<span class="code-line" data-line="1"><span class="kw">def</span> <span class="fn">productExceptSelf</span>(self, nums: List[<span class="num">int</span>]) -> List[<span class="num">int</span>]:</span>
+<span class="code-line" data-line="2">    res = [<span class="num">1</span>] * <span class="fn">len</span>(nums)</span>
+<span class="code-line" data-line="3"></span>
+<span class="code-line" data-line="4">    prefix = <span class="num">1</span>                        <span class="cmt"># multiplicative identity</span></span>
+<span class="code-line" data-line="5">    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(nums)):       <span class="cmt"># → left to right</span></span>
+<span class="code-line" data-line="6">        res[i] = prefix               <span class="cmt"># store prefix BEFORE this element</span></span>
+<span class="code-line" data-line="7">        prefix *= nums[i]             <span class="cmt"># update running prefix</span></span>
+<span class="code-line" data-line="8"></span>
+<span class="code-line" data-line="9">    postfix = <span class="num">1</span></span>
+<span class="code-line" data-line="10">    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(nums) - <span class="num">1</span>, -<span class="num">1</span>, -<span class="num">1</span>):  <span class="cmt"># ← right to left</span></span>
+<span class="code-line" data-line="11">        res[i] *= postfix             <span class="cmt"># multiply in postfix</span></span>
+<span class="code-line" data-line="12">        postfix *= nums[i]            <span class="cmt"># update running postfix</span></span>
+<span class="code-line" data-line="13"></span>
+<span class="code-line" data-line="14">    <span class="kw">return</span> res</span>
+</div>
+
+<div class="complexity-grid">
+  <div class="complexity-item">
+    <h3>Time: O(n)</h3>
+    <p class="dim" style="font-size:0.85rem;">Two passes through the array. Each pass is O(n). Total: O(2n) = O(n).</p>
+  </div>
+  <div class="complexity-item">
+    <h3>Space: O(1) extra</h3>
+    <p class="dim" style="font-size:0.85rem;">Output array doesn't count per the problem. Only extra space is the two running variables (prefix, postfix).</p>
+  </div>
+</div>
+
+<div class="callout callout-green">
+<strong>Edge cases handled automatically:</strong> Zeros in the array work fine (no division). Negatives work fine (just multiplication). Single-element edge doesn't apply since constraints say n ≥ 2.
+</div>
+</section>
+
+</div>
+
+<script>
+const NUMS = [1, 2, 3, 4];
+const N = NUMS.length;
+
+function computeSteps() {
+  const steps = [];
+  const res = [1, 1, 1, 1];
+  let prefix = 1;
+  let postfix = 1;
+
+  steps.push({
+    phase: 'init', i: -1,
+    res: [...res], prefix: 1, postfix: null, nums: [...NUMS],
+    log: 'Initialize: res = [1, 1, 1, 1], prefix = 1',
+    lines: [2, 4]
+  });
+
+  // Prefix pass
+  for (let i = 0; i < N; i++) {
+    res[i] = prefix;
+    steps.push({
+      phase: 'prefix-store', i,
+      res: [...res], prefix, postfix: null, nums: [...NUMS],
+      log: `Pass 1 → i=${i}: res[${i}] = prefix = ${prefix}`,
+      lines: [5, 6]
+    });
+
+    prefix *= NUMS[i];
+    steps.push({
+      phase: 'prefix-update', i,
+      res: [...res], prefix, postfix: null, nums: [...NUMS],
+      log: `         prefix *= nums[${i}] (${NUMS[i]}) → prefix = ${prefix}`,
+      lines: [7]
+    });
+  }
+
+  steps.push({
+    phase: 'prefix-done', i: -1,
+    res: [...res], prefix, postfix: 1, nums: [...NUMS],
+    log: `Pass 1 complete. res = [${res.join(', ')}]. Now postfix = 1`,
+    lines: [9]
+  });
+
+  postfix = 1;
+  // Postfix pass
+  for (let i = N - 1; i >= 0; i--) {
+    const before = res[i];
+    res[i] *= postfix;
+    steps.push({
+      phase: 'postfix-multiply', i,
+      res: [...res], prefix, postfix, nums: [...NUMS], before,
+      log: `Pass 2 ← i=${i}: res[${i}] = ${before} × postfix(${postfix}) = ${res[i]}`,
+      lines: [10, 11]
+    });
+
+    postfix *= NUMS[i];
+    steps.push({
+      phase: 'postfix-update', i,
+      res: [...res], prefix, postfix, nums: [...NUMS],
+      log: `          postfix *= nums[${i}] (${NUMS[i]}) → postfix = ${postfix}`,
+      lines: [12]
+    });
+  }
+
+  steps.push({
+    phase: 'done', i: -1,
+    res: [...res], prefix, postfix, nums: [...NUMS],
+    log: `Done! Return res = [${res.join(', ')}]`,
+    lines: [14]
+  });
+
+  return steps;
+}
+
+let steps = computeSteps();
+let current = 0;
+let playInterval = null;
+
+function render() {
+  const step = steps[current];
+
+  // Update res cells
+  for (let i = 0; i < N; i++) {
+    const cell = document.getElementById('r' + i);
+    cell.querySelector('.val').textContent = step.res[i];
+    cell.className = 'arr-cell';
+
+    if (step.phase === 'done') {
+      cell.classList.add('final');
+    } else if (step.i === i && step.phase.startsWith('prefix')) {
+      cell.classList.add('prefix-active');
+    } else if (step.i === i && step.phase.startsWith('postfix')) {
+      cell.classList.add('postfix-active');
+    } else if (step.phase.startsWith('prefix') && i < step.i) {
+      cell.classList.add('prefix-done');
+    } else if (step.phase === 'prefix-done' || (step.phase.startsWith('postfix') && i > step.i)) {
+      cell.classList.add('prefix-done');
+    } else if (step.phase.startsWith('postfix') && i > step.i) {
+      // Already processed in postfix
+    }
+
+    // Mark postfix-completed cells
+    if (step.phase.startsWith('postfix') && step.i >= 0 && i > step.i) {
+      cell.classList.add('postfix-done');
+    }
+    if (step.phase === 'postfix-update' && i >= step.i) {
+      if (i > step.i) cell.classList.add('postfix-done');
+    }
+  }
+
+  // Highlight active nums cell
+  for (let i = 0; i < N; i++) {
+    const nc = document.getElementById('n' + i);
+    nc.className = 'arr-cell input-cell';
+    if (step.i === i) {
+      nc.style.boxShadow = '0 0 12px rgba(88,166,255,0.4)';
+    } else {
+      nc.style.boxShadow = 'none';
+    }
+  }
+
+  // Direction arrow
+  const dir = document.getElementById('direction');
+  if (step.phase.startsWith('prefix')) {
+    dir.innerHTML = '<span class="arrow-right">→ Prefix Pass (left to right)</span>';
+  } else if (step.phase.startsWith('postfix')) {
+    dir.innerHTML = '<span class="arrow-left">← Postfix Pass (right to left)</span>';
+  } else if (step.phase === 'done') {
+    dir.innerHTML = '<span style="color:var(--green-glow);">✓ Complete</span>';
+  } else {
+    dir.innerHTML = '';
+  }
+
+  // Variables
+  document.getElementById('prefix-val').textContent = step.prefix;
+  document.getElementById('postfix-val').textContent = step.postfix !== null ? step.postfix : '—';
+  document.getElementById('postfix-box').style.opacity = step.postfix !== null ? '1' : '0.3';
+
+  // Code highlighting
+  document.querySelectorAll('.code-line').forEach(el => el.classList.remove('highlight'));
+  if (step.lines) {
+    step.lines.forEach(n => {
+      const line = document.querySelector(`.code-line[data-line="${n}"]`);
+      if (line) line.classList.add('highlight');
+    });
+  }
+
+  // Log
+  const logEl = document.getElementById('log');
+  let html = '';
+  for (let i = 0; i <= current; i++) {
+    const s = steps[i];
+    let cls = 'log-init';
+    if (s.phase.includes('prefix-store')) cls = 'log-store';
+    else if (s.phase.includes('prefix')) cls = 'log-prefix';
+    else if (s.phase.includes('postfix-multiply')) cls = 'log-multiply';
+    else if (s.phase.includes('postfix')) cls = 'log-postfix';
+    else if (s.phase === 'done') cls = 'log-done';
+    html += `<div class="${cls}">${s.log}</div>`;
+  }
+  logEl.innerHTML = html;
+  logEl.scrollTop = logEl.scrollHeight;
+
+  // Step counter
+  document.getElementById('step-label').textContent = `Step ${current} / ${steps.length - 1}`;
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current >= steps.length - 1;
+}
+
+function stepForward() {
+  if (current < steps.length - 1) { current++; render(); }
+  else if (playInterval) togglePlay();
+}
+function stepBack() {
+  if (current > 0) { current--; render(); }
+}
+function resetSim() {
+  if (playInterval) togglePlay();
+  current = 0;
+  render();
+}
+function togglePlay() {
+  if (playInterval) {
+    clearInterval(playInterval);
+    playInterval = null;
+    document.getElementById('btn-play').textContent = '▶ Auto';
+  } else {
+    document.getElementById('btn-play').textContent = '⏸ Pause';
+    playInterval = setInterval(() => {
+      if (current >= steps.length - 1) { togglePlay(); return; }
+      stepForward();
+    }, 1000);
+  }
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); stepForward(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); stepBack(); }
+  if (e.key === 'r') resetSim();
+});
+
+render();
+</script>
+</body>
+</html>

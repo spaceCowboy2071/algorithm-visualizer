@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clone Graph — DFS & BFS Visual Walkthrough</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0d1117;--surface:#161b22;--surface2:#1c2333;--border:#30363d;
+  --text:#e6edf3;--text-dim:#8b949e;--accent:#58a6ff;
+  --green:#2ea043;--green-glow:#3fb950;--orange:#f0883e;--red:#f78166;
+  --purple:#d2a8ff;--cyan:#79c0ff;--yellow:#e3b341;
+  --code-bg:#0d1117;--highlight:rgba(88,166,255,0.1);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.6;overflow-x:hidden;}
+.container{max-width:1200px;margin:0 auto;padding:2rem 1.5rem;}
+header{text-align:center;padding:3rem 0 2rem;position:relative;}
+header::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(88,166,255,0.08) 0%,transparent 70%);pointer-events:none;}
+h1{font-size:2.5rem;font-weight:700;letter-spacing:-0.03em;background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.25rem;}
+.subtitle{color:var(--text-dim);font-size:0.95rem;}
+.tag{display:inline-block;padding:0.2rem 0.65rem;border-radius:99px;font-size:0.75rem;font-weight:600;margin:0.75rem 0.2rem 0;}
+.tag-pattern{background:rgba(88,166,255,0.15);color:var(--accent);}
+.tag-medium{background:rgba(240,136,62,0.15);color:var(--orange);}
+.tag-graph{background:rgba(210,168,255,0.15);color:var(--purple);}
+section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;margin:1.5rem 0;position:relative;overflow:hidden;}
+section::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--purple),var(--green-glow));border-radius:12px 12px 0 0;}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:1rem;letter-spacing:-0.02em;}
+h3{font-size:1.1rem;font-weight:600;margin:1.25rem 0 0.5rem;color:var(--accent);}
+p{margin-bottom:0.75rem;font-size:0.95rem;}
+.dim{color:var(--text-dim);}
+.callout{background:rgba(240,136,62,0.08);border-left:3px solid var(--orange);padding:0.75rem 1rem;border-radius:0 8px 8px 0;margin:1rem 0;font-size:0.9rem;}
+.callout strong{color:var(--orange);}
+.callout-blue{background:rgba(88,166,255,0.08);border-left:3px solid var(--accent);}
+.callout-blue strong{color:var(--accent);}
+.callout-green{background:rgba(46,160,67,0.08);border-left:3px solid var(--green);}
+.callout-green strong{color:var(--green-glow);}
+
+/* Comparison layout */
+.compare-row{display:flex;gap:1.5rem;flex-wrap:wrap;margin:1.5rem 0;}
+.compare-card{flex:1;min-width:280px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1.25rem;position:relative;}
+.compare-card h3{margin-top:0;}
+.compare-card .badge{position:absolute;top:12px;right:12px;font-size:0.7rem;padding:0.15rem 0.5rem;border-radius:99px;font-weight:600;}
+.badge-bfs{background:rgba(46,160,67,0.15);color:var(--green-glow);}
+.badge-dfs{background:rgba(210,168,255,0.15);color:var(--purple);}
+
+/* Graph Canvas */
+.graph-area{position:relative;width:100%;max-width:520px;height:340px;margin:0 auto;background:var(--surface2);border:1px solid var(--border);border-radius:10px;}
+.graph-node{position:absolute;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;border:2px solid var(--border);background:var(--surface);transition:all 0.4s ease;z-index:2;}
+.graph-node.original{border-color:var(--accent);color:var(--accent);}
+.graph-node.cloned{border-color:var(--green);color:var(--green-glow);box-shadow:0 0 12px rgba(46,160,67,0.3);}
+.graph-node.active{border-color:var(--red);color:var(--red);box-shadow:0 0 16px rgba(247,129,102,0.5);animation:nodePulse 1s ease-in-out infinite;}
+.graph-node.in-stack{border-color:var(--purple);color:var(--purple);box-shadow:0 0 10px rgba(210,168,255,0.3);}
+.graph-node.visited{border-color:var(--orange);color:var(--orange);}
+.graph-label{position:absolute;font-size:0.65rem;color:var(--text-dim);font-family:'JetBrains Mono',monospace;z-index:1;}
+@keyframes nodePulse{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
+
+/* SVG edges */
+.graph-area svg{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;}
+.edge{stroke:var(--border);stroke-width:1.5;fill:none;}
+.edge.active-edge{stroke:var(--red);stroke-width:2.5;}
+.edge.cloned-edge{stroke:var(--green);stroke-width:2;opacity:0.6;}
+
+/* Sim panels */
+.sim-container{display:flex;gap:1.5rem;flex-wrap:wrap;justify-content:center;align-items:flex-start;margin:1.5rem 0;}
+.sim-panel{flex:1;min-width:280px;}
+.data-display{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;margin:0.5rem 0;font-family:'JetBrains Mono',monospace;font-size:0.82rem;min-height:36px;}
+.data-label{font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:0.25rem;}
+.status-bar{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;font-family:'JetBrains Mono',monospace;font-size:0.78rem;line-height:1.7;min-height:100px;max-height:200px;overflow-y:auto;margin:0.5rem 0;}
+.log-clone{color:var(--green-glow);}.log-wire{color:var(--cyan);}.log-visit{color:var(--orange);}.log-skip{color:var(--text-dim);}.log-pop{color:var(--red);}.log-push{color:var(--purple);}.log-done{color:var(--accent);font-weight:600;}.log-call{color:var(--yellow);}
+
+.controls{display:flex;gap:0.75rem;justify-content:center;align-items:center;margin:1rem 0;flex-wrap:wrap;}
+button{font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;padding:0.5rem 1.25rem;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;transition:all 0.2s;}
+button:hover{background:rgba(88,166,255,0.1);border-color:var(--accent);color:var(--accent);}
+button:active{transform:scale(0.97);}
+button.primary{background:rgba(88,166,255,0.15);border-color:var(--accent);color:var(--accent);}
+button:disabled{opacity:0.3;cursor:not-allowed;}
+.step-counter{font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text-dim);min-width:100px;text-align:center;}
+
+/* Tab system */
+.tabs{display:flex;gap:0;margin:1rem 0 0;border-bottom:2px solid var(--border);}
+.tab{padding:0.6rem 1.25rem;font-size:0.85rem;font-weight:600;color:var(--text-dim);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-content{display:none;padding-top:1rem;}
+.tab-content.active{display:block;}
+
+.legend{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;margin:1rem 0;}
+.legend-item{display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;color:var(--text-dim);}
+.legend-swatch{width:16px;height:16px;border-radius:50%;border:2px solid;}
+
+/* Code block */
+.code-block{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;font-family:'JetBrains Mono',monospace;font-size:0.78rem;line-height:1.8;overflow-x:auto;counter-reset:line;margin:1rem 0;}
+.code-line{display:block;padding:0 0.5rem;border-radius:3px;white-space:pre;transition:background 0.3s;}
+.code-line::before{counter-increment:line;content:counter(line);display:inline-block;width:2rem;margin-right:1rem;text-align:right;color:#484f58;font-size:0.72rem;}
+.code-line.highlight{background:var(--highlight);}
+.kw{color:#ff7b72;}.fn{color:#d2a8ff;}.str{color:#a5d6ff;}.num{color:#79c0ff;}.cmt{color:#484f58;font-style:italic;}.var{color:#ffa657;}.op{color:#ff7b72;}.typ{color:#7ee787;}
+
+/* Complexity */
+.complexity-grid{display:flex;gap:2rem;flex-wrap:wrap;margin:1rem 0;}
+.complexity-item{flex:1;min-width:200px;}
+.complexity-item h3{margin-top:0;}
+
+@media(max-width:700px){h1{font-size:1.8rem;}section{padding:1.25rem;}.graph-area{height:280px;}.compare-row{gap:1rem;}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+<h1>Clone Graph</h1>
+<p class="subtitle">LeetCode #133 — Iterative DFS, Recursive DFS & BFS Visual Walkthrough</p>
+<div>
+  <span class="tag tag-pattern">BFS/DFS + Hash Map</span>
+  <span class="tag tag-medium">Medium</span>
+  <span class="tag tag-graph">Graphs</span>
+</div>
+</header>
+
+<!-- SECTION 1: WHAT IS THE PROBLEM -->
+<section>
+<h2>1 — What's the Problem?</h2>
+<p>Given a reference to a node in a <strong>connected, undirected graph</strong>, return a <strong>deep copy</strong> (clone) of the entire graph. Every node in the clone must be a brand new object — zero shared references with the original.</p>
+<p>Each node has a <code>val</code> (integer, unique) and a <code>neighbors</code> list (pointers to other nodes).</p>
+
+<div class="callout callout-blue">
+<strong>Key challenge:</strong> Nodes can form cycles. If node 1 points to node 2, and node 2 points back to node 1, a naive copy would loop forever. You need a way to say "I already cloned this node" and retrieve that clone instead of creating a duplicate.
+</div>
+
+<p><strong>The solution:</strong> Use a <strong>hash map</strong> (Python dict) that maps each original node to its clone. This serves double duty — it's your <em>visited check</em> AND your <em>clone lookup table</em>. Two birds, one dictionary.</p>
+
+<div style="text-align:center; margin:1.5rem 0;">
+<code style="font-family:'JetBrains Mono',monospace; font-size:0.9rem; color:var(--accent);">o_to_n[original_node] = Node(original_node.val) &nbsp;&nbsp;# key: original → value: clone</code>
+</div>
+</section>
+
+<!-- SECTION 2: DFS vs BFS EXPLAINED -->
+<section>
+<h2>2 — DFS vs BFS: What's the Difference?</h2>
+<p class="dim">Both visit every reachable node exactly once. The difference is the <strong>order</strong> they visit them, which comes from one data structure swap.</p>
+
+<div class="compare-row">
+  <div class="compare-card">
+    <span class="badge badge-bfs">FIFO</span>
+    <h3 style="color:var(--green-glow);">BFS — Breadth First Search</h3>
+    <p>Uses a <strong>queue</strong> (first in, first out).</p>
+    <p>Explores <strong>level by level</strong> — all neighbors first, then their neighbors. Like ripples spreading from a stone dropped in water.</p>
+    <p style="font-family:'JetBrains Mono',monospace; font-size:0.82rem; color:var(--green-glow); margin-top:0.75rem;">
+      q = deque([start])<br>
+      current = q.<strong>popleft()</strong><br>
+      q.append(neighbor)
+    </p>
+    <p class="dim" style="font-size:0.85rem; margin-top:0.75rem;"><strong>Best for:</strong> Shortest path in unweighted graphs, level-order traversal.</p>
+  </div>
+
+  <div class="compare-card">
+    <span class="badge badge-dfs">LIFO</span>
+    <h3 style="color:var(--purple);">DFS — Depth First Search</h3>
+    <p>Uses a <strong>stack</strong> (last in, first out).</p>
+    <p>Dives <strong>as deep as possible</strong> down one path before backtracking. Like walking a maze — go until you hit a dead end, then back up.</p>
+    <p style="font-family:'JetBrains Mono',monospace; font-size:0.82rem; color:var(--purple); margin-top:0.75rem;">
+      stk = [start]<br>
+      current = stk.<strong>pop()</strong><br>
+      stk.append(neighbor)
+    </p>
+    <p class="dim" style="font-size:0.85rem; margin-top:0.75rem;"><strong>Best for:</strong> Exhaustive path search, backtracking, tree problems, cycle detection.</p>
+  </div>
+</div>
+
+<div class="callout">
+<strong>The only code difference:</strong> <code>deque</code> + <code>popleft()</code> (BFS) vs <code>list</code> + <code>pop()</code> (DFS). Everything else — the visited check, the neighbor loop, the overall structure — is identical.
+</div>
+
+<h3>Recursive DFS — The Third Option</h3>
+<p>Instead of an explicit stack, you let the <strong>call stack</strong> do the work. Each recursive call pushes a frame; returning pops it. Usually produces the shortest, cleanest code. Same traversal order as iterative DFS.</p>
+<p class="dim" style="font-size:0.85rem;"><strong>Trade-off:</strong> Python has a default recursion limit of ~1000. For very deep graphs, iterative is safer.</p>
+</section>
+
+<!-- SECTION 3: ALGORITHM LOGIC -->
+<section>
+<h2>3 — Algorithm Logic (All Three Approaches)</h2>
+<p class="dim">The core pattern is the same regardless of traversal method.</p>
+
+<div style="display:flex;flex-direction:column;align-items:center;gap:0;margin:1.5rem 0;">
+  <div style="padding:0.6rem 1.5rem;border-radius:10px;font-size:0.85rem;font-weight:500;text-align:center;max-width:400px;border:1px solid rgba(88,166,255,0.3);background:rgba(88,166,255,0.1);color:var(--accent);">Guard clause: if not node → return None</div>
+  <div style="width:2px;height:20px;background:var(--border);position:relative;"><div style="position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);font-size:0.5rem;color:var(--text-dim);">▼</div></div>
+  <div style="padding:0.6rem 1.5rem;border-radius:10px;font-size:0.85rem;font-weight:500;text-align:center;max-width:400px;border:1px solid var(--border);background:var(--surface2);">Seed: Create clone of start node, store in dict</div>
+  <div style="width:2px;height:20px;background:var(--border);position:relative;"><div style="position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);font-size:0.5rem;color:var(--text-dim);">▼</div></div>
+  <div style="padding:0.6rem 1.5rem;border-radius:10px;font-size:0.85rem;font-weight:500;text-align:center;max-width:400px;border:1px solid rgba(210,168,255,0.3);background:rgba(210,168,255,0.1);color:var(--purple);">Traverse: Pop/recurse on each node</div>
+  <div style="width:2px;height:20px;background:var(--border);position:relative;"><div style="position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);font-size:0.5rem;color:var(--text-dim);">▼</div></div>
+  <div style="padding:0.6rem 1.5rem;border-radius:10px;font-size:0.85rem;font-weight:500;text-align:center;max-width:400px;border:1px solid var(--border);background:var(--surface2);">For each neighbor: if not in dict → create clone, add to dict, push/enqueue/recurse</div>
+  <div style="width:2px;height:20px;background:var(--border);position:relative;"><div style="position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);font-size:0.5rem;color:var(--text-dim);">▼</div></div>
+  <div style="padding:0.6rem 1.5rem;border-radius:10px;font-size:0.85rem;font-weight:500;text-align:center;max-width:400px;border:1px solid rgba(46,160,67,0.3);background:rgba(46,160,67,0.1);color:var(--green-glow);">Wire: Append clone of neighbor to clone of current node's neighbors list</div>
+  <div style="width:2px;height:20px;background:var(--border);position:relative;"><div style="position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);font-size:0.5rem;color:var(--text-dim);">▼</div></div>
+  <div style="padding:0.6rem 1.5rem;border-radius:10px;font-size:0.85rem;font-weight:500;text-align:center;max-width:400px;border:1px solid rgba(240,136,62,0.3);background:rgba(240,136,62,0.1);color:var(--orange);">Return: o_to_n[start node] — the clone of the entry point</div>
+</div>
+
+<div class="callout callout-green">
+<strong>The dict does double duty:</strong> <code>if nei not in o_to_n</code> is your visited check. <code>o_to_n[nei]</code> retrieves the clone. No separate visited set needed.
+</div>
+</section>
+
+<!-- SECTION 4: INTERACTIVE STEP-THROUGH -->
+<section>
+<h2>4 — Step Through It</h2>
+<p class="dim">Watch each algorithm clone a 4-node cyclic graph. Switch tabs to compare traversal orders.</p>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-swatch" style="border-color:var(--accent);background:transparent;"></div> Original</div>
+  <div class="legend-item"><div class="legend-swatch" style="border-color:var(--red);background:rgba(247,129,102,0.2);"></div> Processing</div>
+  <div class="legend-item"><div class="legend-swatch" style="border-color:var(--purple);background:rgba(210,168,255,0.15);"></div> In Stack/Queue</div>
+  <div class="legend-item"><div class="legend-swatch" style="border-color:var(--orange);background:rgba(240,136,62,0.15);"></div> Visited (in dict)</div>
+  <div class="legend-item"><div class="legend-swatch" style="border-color:var(--green);background:rgba(46,160,67,0.2);"></div> Cloned</div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('iter-dfs')">Iterative DFS</div>
+  <div class="tab" onclick="switchTab('rec-dfs')">Recursive DFS</div>
+  <div class="tab" onclick="switchTab('bfs')">BFS</div>
+</div>
+
+<!-- ITERATIVE DFS TAB -->
+<div class="tab-content active" id="tab-iter-dfs">
+<div class="sim-container">
+  <div class="sim-panel">
+    <div class="data-label">Original Graph</div>
+    <div class="graph-area" id="graph-iter">
+      <svg id="svg-iter"></svg>
+    </div>
+  </div>
+  <div class="sim-panel">
+    <div class="data-label">Stack</div>
+    <div class="data-display" id="stack-iter">[ ]</div>
+    <div class="data-label">Dict (old → new)</div>
+    <div class="data-display" id="dict-iter">{ }</div>
+    <div class="data-label">Clone Neighbor Wiring</div>
+    <div class="data-display" id="wiring-iter"></div>
+    <div class="data-label">Execution Log</div>
+    <div class="status-bar" id="log-iter"></div>
+  </div>
+</div>
+<div class="controls">
+  <button onclick="sims['iter-dfs'].reset()">Reset</button>
+  <button onclick="sims['iter-dfs'].back()" id="btn-prev-iter">← Back</button>
+  <span class="step-counter" id="step-iter">Step 0 / 0</span>
+  <button class="primary" onclick="sims['iter-dfs'].forward()" id="btn-next-iter">Next →</button>
+  <button onclick="sims['iter-dfs'].togglePlay()" id="btn-play-iter">▶ Auto</button>
+</div>
+</div>
+
+<!-- RECURSIVE DFS TAB -->
+<div class="tab-content" id="tab-rec-dfs">
+<div class="sim-container">
+  <div class="sim-panel">
+    <div class="data-label">Original Graph</div>
+    <div class="graph-area" id="graph-rec">
+      <svg id="svg-rec"></svg>
+    </div>
+  </div>
+  <div class="sim-panel">
+    <div class="data-label">Call Stack</div>
+    <div class="data-display" id="stack-rec">[ ]</div>
+    <div class="data-label">Dict (old → new)</div>
+    <div class="data-display" id="dict-rec">{ }</div>
+    <div class="data-label">Clone Neighbor Wiring</div>
+    <div class="data-display" id="wiring-rec"></div>
+    <div class="data-label">Execution Log</div>
+    <div class="status-bar" id="log-rec"></div>
+  </div>
+</div>
+<div class="controls">
+  <button onclick="sims['rec-dfs'].reset()">Reset</button>
+  <button onclick="sims['rec-dfs'].back()" id="btn-prev-rec">← Back</button>
+  <span class="step-counter" id="step-rec">Step 0 / 0</span>
+  <button class="primary" onclick="sims['rec-dfs'].forward()" id="btn-next-rec">Next →</button>
+  <button onclick="sims['rec-dfs'].togglePlay()" id="btn-play-rec">▶ Auto</button>
+</div>
+</div>
+
+<!-- BFS TAB -->
+<div class="tab-content" id="tab-bfs">
+<div class="sim-container">
+  <div class="sim-panel">
+    <div class="data-label">Original Graph</div>
+    <div class="graph-area" id="graph-bfs">
+      <svg id="svg-bfs"></svg>
+    </div>
+  </div>
+  <div class="sim-panel">
+    <div class="data-label">Queue</div>
+    <div class="data-display" id="stack-bfs">[ ]</div>
+    <div class="data-label">Dict (old → new)</div>
+    <div class="data-display" id="dict-bfs">{ }</div>
+    <div class="data-label">Clone Neighbor Wiring</div>
+    <div class="data-display" id="wiring-bfs"></div>
+    <div class="data-label">Execution Log</div>
+    <div class="status-bar" id="log-bfs"></div>
+  </div>
+</div>
+<div class="controls">
+  <button onclick="sims['bfs'].reset()">Reset</button>
+  <button onclick="sims['bfs'].back()" id="btn-prev-bfs">← Back</button>
+  <span class="step-counter" id="step-bfs">Step 0 / 0</span>
+  <button class="primary" onclick="sims['bfs'].forward()" id="btn-next-bfs">Next →</button>
+  <button onclick="sims['bfs'].togglePlay()" id="btn-play-bfs">▶ Auto</button>
+</div>
+</div>
+</section>
+
+<!-- SECTION 5: FULL CODE -->
+<section>
+<h2>5 — Complete Implementations</h2>
+
+<div class="tabs" id="code-tabs">
+  <div class="tab active" onclick="switchCodeTab('code-iter')">Iterative DFS</div>
+  <div class="tab" onclick="switchCodeTab('code-rec')">Recursive DFS</div>
+  <div class="tab" onclick="switchCodeTab('code-bfs')">BFS</div>
+</div>
+
+<div class="tab-content active" id="tab-code-iter">
+<div class="code-block">
+<span class="code-line"><span class="kw">def</span> <span class="fn">cloneGraph</span>(self, node: Optional[<span class="str">'Node'</span>]) -> Optional[<span class="str">'Node'</span>]:</span>
+<span class="code-line">    <span class="kw">if not</span> node:</span>
+<span class="code-line">        <span class="kw">return</span> <span class="num">None</span></span>
+<span class="code-line"></span>
+<span class="code-line">    o_to_n = {node: <span class="fn">Node</span>(node.val)}  <span class="cmt"># seed clone of start</span></span>
+<span class="code-line">    stk = [node]</span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">while</span> stk:</span>
+<span class="code-line">        curr = stk.<span class="fn">pop</span>()              <span class="cmt"># LIFO → depth first</span></span>
+<span class="code-line">        <span class="kw">for</span> nei <span class="kw">in</span> curr.neighbors:</span>
+<span class="code-line">            <span class="kw">if</span> nei <span class="kw">not in</span> o_to_n:      <span class="cmt"># dict IS visited check</span></span>
+<span class="code-line">                o_to_n[nei] = <span class="fn">Node</span>(nei.val)</span>
+<span class="code-line">                stk.<span class="fn">append</span>(nei)</span>
+<span class="code-line">            o_to_n[curr].neighbors.<span class="fn">append</span>(o_to_n[nei]) <span class="cmt"># wire</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">return</span> o_to_n[node]</span>
+</div>
+</div>
+
+<div class="tab-content" id="tab-code-rec">
+<div class="code-block">
+<span class="code-line"><span class="kw">def</span> <span class="fn">cloneGraph</span>(self, node: Optional[<span class="str">'Node'</span>]) -> Optional[<span class="str">'Node'</span>]:</span>
+<span class="code-line">    o_to_n = {}                              <span class="cmt"># shared across all calls</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">def</span> <span class="fn">dfs</span>(node):</span>
+<span class="code-line">        <span class="kw">if</span> node <span class="kw">in</span> o_to_n:                 <span class="cmt"># already cloned → return it</span></span>
+<span class="code-line">            <span class="kw">return</span> o_to_n[node]</span>
+<span class="code-line"></span>
+<span class="code-line">        clone = <span class="fn">Node</span>(node.val)             <span class="cmt"># create clone</span></span>
+<span class="code-line">        o_to_n[node] = clone               <span class="cmt"># store BEFORE recursing</span></span>
+<span class="code-line"></span>
+<span class="code-line">        <span class="kw">for</span> nei <span class="kw">in</span> node.neighbors:         <span class="cmt"># recurse + wire</span></span>
+<span class="code-line">            clone.neighbors.<span class="fn">append</span>(<span class="fn">dfs</span>(nei))</span>
+<span class="code-line"></span>
+<span class="code-line">        <span class="kw">return</span> clone</span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">return</span> <span class="fn">dfs</span>(node) <span class="kw">if</span> node <span class="kw">else</span> <span class="num">None</span></span>
+</div>
+</div>
+
+<div class="tab-content" id="tab-code-bfs">
+<div class="code-block">
+<span class="code-line"><span class="kw">from</span> collections <span class="kw">import</span> deque</span>
+<span class="code-line"></span>
+<span class="code-line"><span class="kw">def</span> <span class="fn">cloneGraph</span>(self, node: Optional[<span class="str">'Node'</span>]) -> Optional[<span class="str">'Node'</span>]:</span>
+<span class="code-line">    <span class="kw">if not</span> node:</span>
+<span class="code-line">        <span class="kw">return</span> <span class="num">None</span></span>
+<span class="code-line"></span>
+<span class="code-line">    o_to_n = {node: <span class="fn">Node</span>(node.val)}  <span class="cmt"># seed clone of start</span></span>
+<span class="code-line">    q = <span class="fn">deque</span>([node])</span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">while</span> q:</span>
+<span class="code-line">        curr = q.<span class="fn">popleft</span>()             <span class="cmt"># FIFO → breadth first</span></span>
+<span class="code-line">        <span class="kw">for</span> nei <span class="kw">in</span> curr.neighbors:</span>
+<span class="code-line">            <span class="kw">if</span> nei <span class="kw">not in</span> o_to_n:</span>
+<span class="code-line">                o_to_n[nei] = <span class="fn">Node</span>(nei.val)</span>
+<span class="code-line">                q.<span class="fn">append</span>(nei)</span>
+<span class="code-line">            o_to_n[curr].neighbors.<span class="fn">append</span>(o_to_n[nei]) <span class="cmt"># wire</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">return</span> o_to_n[node]</span>
+</div>
+</div>
+
+<div class="complexity-grid">
+  <div class="complexity-item">
+    <h3>Time: O(V + E)</h3>
+    <p class="dim" style="font-size:0.85rem;">Visit every vertex once (V), traverse every edge once from each side (E). Same for all three approaches.</p>
+  </div>
+  <div class="complexity-item">
+    <h3>Space: O(V)</h3>
+    <p class="dim" style="font-size:0.85rem;">The dict stores V clones. Stack/queue/call-stack holds at most V nodes. Total: O(V).</p>
+  </div>
+</div>
+</section>
+
+</div>
+
+<script>
+// ===== GRAPH DATA: 4-node cycle (LeetCode example) =====
+// Adjacency: 1:[2,4], 2:[1,3], 3:[2,4], 4:[1,3]
+const ADJ = {1:[2,4], 2:[1,3], 3:[2,4], 4:[1,3]};
+const NODE_POS = {1:{x:130,y:80}, 2:{x:380,y:80}, 3:{x:380,y:240}, 4:{x:130,y:240}};
+const EDGES = [[1,2],[2,3],[3,4],[1,4]];
+
+// ===== TAB SWITCHING =====
+function switchTab(id) {
+  document.querySelectorAll('.tab-content').forEach(tc => {
+    if (tc.id.startsWith('tab-') && !tc.id.startsWith('tab-code-')) tc.classList.remove('active');
+  });
+  document.querySelectorAll('.tabs')[0].querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+function switchCodeTab(id) {
+  document.querySelectorAll('[id^="tab-code-"]').forEach(tc => tc.classList.remove('active'));
+  document.getElementById('code-tabs').querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ===== STEP COMPUTATION =====
+function computeIterDFS() {
+  const steps = [];
+  const dict = {};
+  const stack = [1];
+  dict[1] = true;
+  const wiring = {};
+  [1,2,3,4].forEach(n => wiring[n] = []);
+
+  steps.push({type:'init', dict:{1:true}, stack:[1], active:null, wiring:JSON.parse(JSON.stringify(wiring)),
+    log:'Initialize: Clone node 1, add to dict, push to stack'});
+
+  while (stack.length > 0) {
+    const curr = stack.pop();
+    steps.push({type:'pop', dict:{...dict}, stack:[...stack], active:curr, wiring:JSON.parse(JSON.stringify(wiring)),
+      log:`Pop node ${curr} from stack — process its neighbors`});
+
+    for (const nei of ADJ[curr]) {
+      if (!dict[nei]) {
+        dict[nei] = true;
+        stack.push(nei);
+        steps.push({type:'clone', dict:{...dict}, stack:[...stack], active:curr, newClone:nei, wiring:JSON.parse(JSON.stringify(wiring)),
+          log:`  → Neighbor ${nei}: NOT in dict → create clone, push to stack`});
+      } else {
+        steps.push({type:'exists', dict:{...dict}, stack:[...stack], active:curr, existingClone:nei, wiring:JSON.parse(JSON.stringify(wiring)),
+          log:`  → Neighbor ${nei}: already in dict → skip clone`});
+      }
+      wiring[curr].push(nei);
+      steps.push({type:'wire', dict:{...dict}, stack:[...stack], active:curr, wireTarget:nei, wiring:JSON.parse(JSON.stringify(wiring)),
+        log:`  → Wire: clone(${curr}).neighbors.append(clone(${nei}))`});
+    }
+  }
+  steps.push({type:'done', dict:{...dict}, stack:[], active:null, wiring:JSON.parse(JSON.stringify(wiring)),
+    log:'Done! Stack empty. Return clone of node 1.'});
+  return steps;
+}
+
+function computeRecDFS() {
+  const steps = [];
+  const dict = {};
+  const callStack = [];
+  const wiring = {};
+  [1,2,3,4].forEach(n => wiring[n] = []);
+
+  function dfs(node) {
+    if (dict[node]) {
+      steps.push({type:'cached', dict:{...dict}, stack:[...callStack], active:node, wiring:JSON.parse(JSON.stringify(wiring)),
+        log:`  dfs(${node}): already in dict → return cached clone`});
+      return;
+    }
+    dict[node] = true;
+    callStack.push(node);
+    steps.push({type:'enter', dict:{...dict}, stack:[...callStack], active:node, wiring:JSON.parse(JSON.stringify(wiring)),
+      log:`dfs(${node}): create clone, add to dict, recurse on neighbors`});
+
+    for (const nei of ADJ[node]) {
+      steps.push({type:'recurse-into', dict:{...dict}, stack:[...callStack], active:node, wireTarget:nei, wiring:JSON.parse(JSON.stringify(wiring)),
+        log:`  → dfs(${node}): checking neighbor ${nei}...`});
+      dfs(nei);
+      wiring[node].push(nei);
+      steps.push({type:'wire', dict:{...dict}, stack:[...callStack], active:node, wireTarget:nei, wiring:JSON.parse(JSON.stringify(wiring)),
+        log:`  → Wire: clone(${node}).neighbors.append(clone(${nei}))`});
+    }
+    callStack.pop();
+    steps.push({type:'return', dict:{...dict}, stack:[...callStack], active:node, wiring:JSON.parse(JSON.stringify(wiring)),
+      log:`dfs(${node}): all neighbors processed → return clone(${node})`});
+  }
+
+  steps.push({type:'init', dict:{}, stack:[], active:null, wiring:JSON.parse(JSON.stringify(wiring)),
+    log:'Start: call dfs(1)'});
+  dfs(1);
+  steps.push({type:'done', dict:{...dict}, stack:[], active:null, wiring:JSON.parse(JSON.stringify(wiring)),
+    log:'Done! Recursion complete. Return clone of node 1.'});
+  return steps;
+}
+
+function computeBFS() {
+  const steps = [];
+  const dict = {};
+  const queue = [1];
+  dict[1] = true;
+  const wiring = {};
+  [1,2,3,4].forEach(n => wiring[n] = []);
+
+  steps.push({type:'init', dict:{1:true}, stack:[1], active:null, wiring:JSON.parse(JSON.stringify(wiring)),
+    log:'Initialize: Clone node 1, add to dict, enqueue'});
+
+  while (queue.length > 0) {
+    const curr = queue.shift();
+    steps.push({type:'pop', dict:{...dict}, stack:[...queue], active:curr, wiring:JSON.parse(JSON.stringify(wiring)),
+      log:`Dequeue node ${curr} (popleft) — process its neighbors`});
+
+    for (const nei of ADJ[curr]) {
+      if (!dict[nei]) {
+        dict[nei] = true;
+        queue.push(nei);
+        steps.push({type:'clone', dict:{...dict}, stack:[...queue], active:curr, newClone:nei, wiring:JSON.parse(JSON.stringify(wiring)),
+          log:`  → Neighbor ${nei}: NOT in dict → create clone, enqueue`});
+      } else {
+        steps.push({type:'exists', dict:{...dict}, stack:[...queue], active:curr, existingClone:nei, wiring:JSON.parse(JSON.stringify(wiring)),
+          log:`  → Neighbor ${nei}: already in dict → skip clone`});
+      }
+      wiring[curr].push(nei);
+      steps.push({type:'wire', dict:{...dict}, stack:[...queue], active:curr, wireTarget:nei, wiring:JSON.parse(JSON.stringify(wiring)),
+        log:`  → Wire: clone(${curr}).neighbors.append(clone(${nei}))`});
+    }
+  }
+  steps.push({type:'done', dict:{...dict}, stack:[], active:null, wiring:JSON.parse(JSON.stringify(wiring)),
+    log:'Done! Queue empty. Return clone of node 1.'});
+  return steps;
+}
+
+// ===== RENDERING =====
+function drawGraph(containerId, svgId, step) {
+  const container = document.getElementById(containerId);
+  const svg = document.getElementById(svgId);
+
+  // Clear old nodes (keep svg)
+  container.querySelectorAll('.graph-node,.graph-label').forEach(el => el.remove());
+
+  // Draw edges
+  let edgeHtml = '';
+  for (const [a, b] of EDGES) {
+    const pa = NODE_POS[a], pb = NODE_POS[b];
+    const cls = 'edge';
+    edgeHtml += `<line x1="${pa.x+26}" y1="${pa.y+26}" x2="${pb.x+26}" y2="${pb.y+26}" class="${cls}"/>`;
+  }
+  svg.innerHTML = edgeHtml;
+
+  // Draw nodes
+  for (let n = 1; n <= 4; n++) {
+    const pos = NODE_POS[n];
+    const el = document.createElement('div');
+    el.className = 'graph-node';
+
+    if (step.active === n) el.classList.add('active');
+    else if (step.stack && step.stack.includes(n)) el.classList.add('in-stack');
+    else if (step.dict[n]) el.classList.add('visited');
+    else el.classList.add('original');
+
+    el.style.left = pos.x + 'px';
+    el.style.top = pos.y + 'px';
+    el.textContent = n;
+    container.appendChild(el);
+
+    // Label
+    const lbl = document.createElement('div');
+    lbl.className = 'graph-label';
+    lbl.style.left = (pos.x + 56) + 'px';
+    lbl.style.top = (pos.y - 2) + 'px';
+    const neis = ADJ[n].join(',');
+    lbl.textContent = `[${neis}]`;
+    container.appendChild(lbl);
+  }
+}
+
+function renderSim(simId, step, stepIdx, totalSteps) {
+  const suffix = simId === 'iter-dfs' ? 'iter' : simId === 'rec-dfs' ? 'rec' : 'bfs';
+  const graphId = 'graph-' + suffix;
+  const svgId = 'svg-' + suffix;
+
+  drawGraph(graphId, svgId, step);
+
+  // Stack/Queue display
+  const stackLabel = simId === 'bfs' ? 'Queue' : simId === 'rec-dfs' ? 'Call Stack' : 'Stack';
+  const stackEl = document.getElementById('stack-' + suffix);
+  if (step.stack.length === 0) stackEl.innerHTML = `<span style="color:var(--text-dim);">[ empty ]</span>`;
+  else stackEl.innerHTML = step.stack.map(n => `<span style="color:var(--purple);font-weight:600;">${n}</span>`).join(' → ');
+
+  // Dict display
+  const dictEl = document.getElementById('dict-' + suffix);
+  const dictEntries = Object.keys(step.dict).filter(k => step.dict[k]);
+  if (dictEntries.length === 0) dictEl.innerHTML = `<span style="color:var(--text-dim);">{ }</span>`;
+  else dictEl.innerHTML = dictEntries.map(k => `<span style="color:var(--accent);">${k}</span>→<span style="color:var(--green-glow);">${k}'</span>`).join(' &nbsp;|&nbsp; ');
+
+  // Wiring display
+  const wiringEl = document.getElementById('wiring-' + suffix);
+  let wiringHtml = '';
+  for (let n = 1; n <= 4; n++) {
+    if (step.wiring[n] && step.wiring[n].length > 0) {
+      wiringHtml += `<span style="color:var(--green-glow);">${n}'</span>.neighbors = [${step.wiring[n].map(w => `<span style="color:var(--cyan);">${w}'</span>`).join(', ')}] &nbsp; `;
+    }
+  }
+  wiringEl.innerHTML = wiringHtml || '<span style="color:var(--text-dim);">No wiring yet</span>';
+
+  // Step counter
+  document.getElementById('step-' + suffix).textContent = `Step ${stepIdx} / ${totalSteps - 1}`;
+}
+
+function renderLog(simId, steps, currentStep) {
+  const suffix = simId === 'iter-dfs' ? 'iter' : simId === 'rec-dfs' ? 'rec' : 'bfs';
+  const logEl = document.getElementById('log-' + suffix);
+  let html = '';
+  for (let i = 0; i <= currentStep; i++) {
+    const s = steps[i];
+    let cls = 'log-visit';
+    if (s.type === 'clone' || s.type === 'enter') cls = 'log-clone';
+    else if (s.type === 'wire') cls = 'log-wire';
+    else if (s.type === 'pop') cls = 'log-pop';
+    else if (s.type === 'exists' || s.type === 'cached' || s.type === 'skip') cls = 'log-skip';
+    else if (s.type === 'done') cls = 'log-done';
+    else if (s.type === 'recurse-into') cls = 'log-call';
+    else if (s.type === 'return') cls = 'log-push';
+    html += `<div class="${cls}">${s.log}</div>`;
+  }
+  logEl.innerHTML = html;
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+// ===== SIMULATION CONTROLLER =====
+class Sim {
+  constructor(id, computeFn) {
+    this.id = id;
+    this.steps = computeFn();
+    this.current = 0;
+    this.interval = null;
+    this.render();
+  }
+  render() {
+    renderSim(this.id, this.steps[this.current], this.current, this.steps.length);
+    renderLog(this.id, this.steps, this.current);
+  }
+  forward() {
+    if (this.current < this.steps.length - 1) { this.current++; this.render(); }
+    else if (this.interval) this.togglePlay();
+  }
+  back() {
+    if (this.current > 0) { this.current--; this.render(); }
+  }
+  reset() {
+    if (this.interval) this.togglePlay();
+    this.current = 0;
+    this.render();
+  }
+  togglePlay() {
+    const suffix = this.id === 'iter-dfs' ? 'iter' : this.id === 'rec-dfs' ? 'rec' : 'bfs';
+    const btn = document.getElementById('btn-play-' + suffix);
+    if (this.interval) {
+      clearInterval(this.interval);
+      this.interval = null;
+      btn.textContent = '▶ Auto';
+    } else {
+      btn.textContent = '⏸ Pause';
+      this.interval = setInterval(() => {
+        if (this.current >= this.steps.length - 1) { this.togglePlay(); return; }
+        this.forward();
+      }, 800);
+    }
+  }
+}
+
+const sims = {};
+
+function initSims() {
+  sims['iter-dfs'] = new Sim('iter-dfs', computeIterDFS);
+  sims['rec-dfs'] = new Sim('rec-dfs', computeRecDFS);
+  sims['bfs'] = new Sim('bfs', computeBFS);
+}
+
+// Keyboard
+document.addEventListener('keydown', (e) => {
+  const activeTab = document.querySelector('.tab-content.active:not([id^="tab-code"])');
+  if (!activeTab) return;
+  const id = activeTab.id.replace('tab-', '');
+  if (!sims[id]) return;
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); sims[id].forward(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); sims[id].back(); }
+  if (e.key === 'r') sims[id].reset();
+});
+
+initSims();
+</script>
+</body>
+</html>

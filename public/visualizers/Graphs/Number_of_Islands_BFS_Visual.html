@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Number of Islands — BFS Visual Walkthrough</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2333;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-dim: #8b949e;
+    --water: #1a3a5c;
+    --water-cell: #0d2137;
+    --land: #2ea043;
+    --land-glow: #3fb950;
+    --visited: #f0883e;
+    --visiting: #f78166;
+    --queued: #d2a8ff;
+    --accent: #58a6ff;
+    --code-bg: #0d1117;
+    --highlight-line: rgba(88,166,255,0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  header {
+    text-align: center;
+    padding: 3rem 0 2rem;
+    position: relative;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(46,160,67,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, var(--land-glow), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.25rem;
+  }
+
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    font-weight: 400;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 0.2rem 0.65rem;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin: 0.75rem 0.2rem 0;
+  }
+  .tag-pattern { background: rgba(88,166,255,0.15); color: var(--accent); }
+  .tag-medium { background: rgba(240,136,62,0.15); color: var(--visited); }
+  .tag-graph { background: rgba(210,168,255,0.15); color: var(--queued); }
+
+  /* SECTION STYLING */
+  section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 1.5rem 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--land-glow), var(--accent), var(--queued));
+    border-radius: 12px 12px 0 0;
+  }
+
+  h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 1.25rem 0 0.5rem;
+    color: var(--accent);
+  }
+
+  p { margin-bottom: 0.75rem; color: var(--text); font-size: 0.95rem; }
+  .dim { color: var(--text-dim); }
+
+  /* GRID VISUALIZATION */
+  .grid-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: center;
+    align-items: flex-start;
+    margin: 1.5rem 0;
+  }
+
+  .grid-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .grid-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+  }
+
+  .grid {
+    display: inline-grid;
+    gap: 3px;
+    padding: 8px;
+    background: var(--surface2);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  .cell {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .cell-water {
+    background: var(--water-cell);
+    color: #4a6fa5;
+    border: 1px solid rgba(26,58,92,0.5);
+  }
+
+  .cell-land {
+    background: rgba(46,160,67,0.2);
+    color: var(--land-glow);
+    border: 1px solid rgba(46,160,67,0.4);
+    box-shadow: 0 0 8px rgba(46,160,67,0.15);
+  }
+
+  .cell-visited {
+    background: rgba(240,136,62,0.25);
+    color: var(--visiting);
+    border: 1px solid rgba(240,136,62,0.5);
+    box-shadow: 0 0 10px rgba(240,136,62,0.2);
+  }
+
+  .cell-visiting {
+    background: rgba(247,129,102,0.35);
+    color: #fff;
+    border: 1px solid var(--visiting);
+    box-shadow: 0 0 16px rgba(247,129,102,0.4);
+    animation: pulse 1s ease-in-out infinite;
+  }
+
+  .cell-queued {
+    background: rgba(210,168,255,0.2);
+    color: var(--queued);
+    border: 1px solid rgba(210,168,255,0.4);
+    box-shadow: 0 0 10px rgba(210,168,255,0.15);
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+
+  /* LEGEND */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    margin: 1rem 0;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+  }
+
+  .legend-swatch {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+  }
+
+  /* INTERACTIVE CONTROLS */
+  .controls {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    align-items: center;
+    margin: 1.25rem 0;
+    flex-wrap: wrap;
+  }
+
+  button {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.5rem 1.25rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  button:hover {
+    background: rgba(88,166,255,0.1);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  button:active { transform: scale(0.97); }
+
+  button.primary {
+    background: rgba(46,160,67,0.15);
+    border-color: var(--land);
+    color: var(--land-glow);
+  }
+
+  button.primary:hover {
+    background: rgba(46,160,67,0.25);
+  }
+
+  button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .step-counter {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    min-width: 100px;
+    text-align: center;
+  }
+
+  /* STATUS LOG */
+  .status-bar {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    min-height: 80px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .log-entry { margin-bottom: 0.15rem; }
+  .log-scan { color: var(--text-dim); }
+  .log-found { color: var(--land-glow); font-weight: 600; }
+  .log-bfs { color: var(--visiting); }
+  .log-queue { color: var(--queued); }
+  .log-done { color: var(--accent); }
+  .log-island { color: #f0883e; font-weight: 700; }
+
+  /* QUEUE DISPLAY */
+  .queue-display {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.75rem 0;
+    flex-wrap: wrap;
+  }
+
+  .queue-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    font-weight: 600;
+  }
+
+  .queue-item {
+    display: inline-flex;
+    padding: 0.2rem 0.55rem;
+    background: rgba(210,168,255,0.15);
+    border: 1px solid rgba(210,168,255,0.3);
+    border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--queued);
+    transition: all 0.3s;
+  }
+
+  .queue-item.processing {
+    background: rgba(247,129,102,0.25);
+    border-color: var(--visiting);
+    color: var(--visiting);
+  }
+
+  /* CODE SECTION */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    overflow-x: auto;
+    counter-reset: line;
+    margin: 1rem 0;
+  }
+
+  .code-line {
+    display: block;
+    padding: 0 0.5rem;
+    border-radius: 3px;
+    white-space: pre;
+    transition: background 0.3s;
+  }
+
+  .code-line::before {
+    counter-increment: line;
+    content: counter(line);
+    display: inline-block;
+    width: 2rem;
+    margin-right: 1rem;
+    text-align: right;
+    color: #484f58;
+    font-size: 0.75rem;
+  }
+
+  .code-line.highlight {
+    background: var(--highlight-line);
+  }
+
+  .kw { color: #ff7b72; }
+  .fn { color: #d2a8ff; }
+  .str { color: #a5d6ff; }
+  .num { color: #79c0ff; }
+  .cmt { color: #484f58; font-style: italic; }
+  .var { color: #ffa657; }
+  .op { color: #ff7b72; }
+  .typ { color: #7ee787; }
+
+  /* CONCEPT GRID (static examples) */
+  .concept-row {
+    display: flex;
+    gap: 2.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 1.5rem 0;
+  }
+
+  .concept-card {
+    text-align: center;
+  }
+
+  .concept-card .grid {
+    margin-bottom: 0.5rem;
+  }
+
+  .concept-card p {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+  }
+
+  .mini-cell {
+    width: 36px;
+    height: 36px;
+    font-size: 0.8rem;
+  }
+
+  /* FLOW DIAGRAM */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    align-items: center;
+    margin: 1.5rem 0;
+  }
+
+  .flow-node {
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: center;
+    max-width: 340px;
+    border: 1px solid var(--border);
+  }
+
+  .flow-arrow {
+    width: 2px;
+    height: 24px;
+    background: var(--border);
+    position: relative;
+  }
+
+  .flow-arrow::after {
+    content: '▼';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.6rem;
+    color: var(--text-dim);
+  }
+
+  .flow-branch {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+  }
+
+  .flow-start { background: rgba(88,166,255,0.12); border-color: rgba(88,166,255,0.3); color: var(--accent); }
+  .flow-process { background: var(--surface2); color: var(--text); }
+  .flow-decision { background: rgba(210,168,255,0.1); border-color: rgba(210,168,255,0.3); color: var(--queued); border-radius: 4px; transform: rotate(0deg); }
+  .flow-action { background: rgba(46,160,67,0.1); border-color: rgba(46,160,67,0.3); color: var(--land-glow); }
+  .flow-end { background: rgba(240,136,62,0.1); border-color: rgba(240,136,62,0.3); color: var(--visited); }
+
+  .flow-label {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-top: -4px;
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+
+  .callout {
+    background: rgba(240,136,62,0.08);
+    border-left: 3px solid var(--visited);
+    padding: 0.75rem 1rem;
+    border-radius: 0 8px 8px 0;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+  }
+
+  .callout strong { color: var(--visited); }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 2rem 0;
+  }
+
+  /* responsive */
+  @media (max-width: 700px) {
+    h1 { font-size: 1.8rem; }
+    section { padding: 1.25rem; }
+    .cell { width: 38px; height: 38px; font-size: 0.8rem; }
+    .grid-container { gap: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<!-- HEADER -->
+<header>
+  <h1>Number of Islands</h1>
+  <p class="subtitle">LeetCode #200 — BFS Iterative Solution Visual Walkthrough</p>
+  <div>
+    <span class="tag tag-pattern">BFS Grid Traversal</span>
+    <span class="tag tag-medium">Medium</span>
+    <span class="tag tag-graph">Graphs</span>
+  </div>
+</header>
+
+<!-- SECTION 1: WHAT IS THE PROBLEM -->
+<section>
+  <h2>1 — What Are We Looking At?</h2>
+  <p>The grid is a <strong>list of lists</strong>. Each cell is either <code>"1"</code> (land) or <code>"0"</code> (water). An <strong>island</strong> is a group of <code>"1"</code>s connected horizontally or vertically — <em>not diagonally</em>.</p>
+
+  <div class="concept-row">
+    <div class="concept-card">
+      <div class="grid" style="grid-template-columns: repeat(4,1fr);">
+        <div class="cell mini-cell cell-land">1</div><div class="cell mini-cell cell-land">1</div><div class="cell mini-cell cell-water">0</div><div class="cell mini-cell cell-water">0</div>
+        <div class="cell mini-cell cell-land">1</div><div class="cell mini-cell cell-land">1</div><div class="cell mini-cell cell-water">0</div><div class="cell mini-cell cell-water">0</div>
+        <div class="cell mini-cell cell-water">0</div><div class="cell mini-cell cell-water">0</div><div class="cell mini-cell cell-land">1</div><div class="cell mini-cell cell-water">0</div>
+        <div class="cell mini-cell cell-water">0</div><div class="cell mini-cell cell-water">0</div><div class="cell mini-cell cell-water">0</div><div class="cell mini-cell cell-land">1</div>
+      </div>
+      <p><strong>3 islands</strong></p>
+    </div>
+    <div class="concept-card">
+      <div class="grid" style="grid-template-columns: repeat(3,1fr);">
+        <div class="cell mini-cell cell-land">1</div><div class="cell mini-cell cell-water">0</div><div class="cell mini-cell cell-land">1</div>
+        <div class="cell mini-cell cell-water">0</div><div class="cell mini-cell cell-land">1</div><div class="cell mini-cell cell-water">0</div>
+        <div class="cell mini-cell cell-land">1</div><div class="cell mini-cell cell-water">0</div><div class="cell mini-cell cell-land">1</div>
+      </div>
+      <p><strong>5 islands</strong> (no diagonals!)</p>
+    </div>
+    <div class="concept-card">
+      <div class="grid" style="grid-template-columns: repeat(3,1fr);">
+        <div class="cell mini-cell cell-land">1</div><div class="cell mini-cell cell-land">1</div><div class="cell mini-cell cell-land">1</div>
+        <div class="cell mini-cell cell-land">1</div><div class="cell mini-cell cell-land">1</div><div class="cell mini-cell cell-land">1</div>
+        <div class="cell mini-cell cell-land">1</div><div class="cell mini-cell cell-land">1</div><div class="cell mini-cell cell-land">1</div>
+      </div>
+      <p><strong>1 island</strong> (all connected)</p>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 2: ALGORITHM LOGIC FLOW -->
+<section>
+  <h2>2 — Algorithm Logic Flow</h2>
+  <p class="dim">How the main loop and BFS function work together.</p>
+
+  <div class="flow">
+    <div class="flow-node flow-start">Start: Initialize islands=0, visit=set(), get rows & cols</div>
+    <div class="flow-arrow"></div>
+    <div class="flow-node flow-process">Main Loop: Scan every cell (r, c) in the grid</div>
+    <div class="flow-arrow"></div>
+    <div class="flow-node flow-decision">Is grid[r][c] == "1" AND (r,c) not in visit?</div>
+    <div class="flow-arrow"></div>
+    <div style="display:flex; gap:2rem; align-items:flex-start;">
+      <div style="display:flex; flex-direction:column; align-items:center; gap:0;">
+        <div class="flow-label">YES → New island found</div>
+        <div class="flow-node flow-action">islands += 1<br>Call bfs(r, c)</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node flow-process" style="font-size:0.8rem;">BFS: Seed queue with (r,c)<br>Mark (r,c) visited</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node flow-decision" style="font-size:0.8rem;">While queue not empty?</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node flow-process" style="font-size:0.8rem;">Pop cell → check 4 neighbors<br>Add valid neighbors to queue<br>Mark them visited</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-node flow-end" style="font-size:0.8rem;">Queue empty → BFS starves<br>Return to main loop</div>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:0;">
+        <div class="flow-label">NO → Skip</div>
+        <div class="flow-node flow-process" style="opacity:0.6; font-size:0.8rem;">Move to next cell (r, c)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>Key insight:</strong> BFS doesn't "break" when it hits water. It <em>starves</em> — no valid neighbors get added to the queue, so the queue empties and the while loop naturally exits.
+  </div>
+</section>
+
+<!-- SECTION 3: INTERACTIVE BFS WALKTHROUGH -->
+<section>
+  <h2>3 — Step Through It</h2>
+  <p class="dim">Watch BFS explore the grid cell by cell. Use the controls to step forward or auto-play.</p>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch" style="background:rgba(46,160,67,0.3); border:1px solid rgba(46,160,67,0.5);"></div> Unvisited Land</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:rgba(247,129,102,0.35); border:1px solid #f78166;"></div> Currently Processing</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:rgba(210,168,255,0.2); border:1px solid rgba(210,168,255,0.4);"></div> In Queue</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:rgba(240,136,62,0.25); border:1px solid rgba(240,136,62,0.5);"></div> Visited</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--water-cell); border:1px solid rgba(26,58,92,0.5);"></div> Water</div>
+  </div>
+
+  <div class="grid-container">
+    <div class="grid-panel">
+      <div class="grid-label">Grid State</div>
+      <div class="grid" id="bfs-grid" style="grid-template-columns: repeat(5,1fr);"></div>
+    </div>
+    <div style="flex:1; min-width: 280px;">
+      <div class="queue-display">
+        <span class="queue-label">Queue:</span>
+        <span id="queue-visual"></span>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace; font-size:0.85rem; margin:0.5rem 0;">
+        Islands found: <span id="island-counter" style="color:var(--land-glow); font-weight:700;">0</span>
+      </div>
+      <div class="status-bar" id="log"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button id="btn-reset" onclick="resetBFS()">Reset</button>
+    <button id="btn-prev" onclick="stepBack()" disabled>← Back</button>
+    <span class="step-counter" id="step-label">Step 0 / 0</span>
+    <button id="btn-next" class="primary" onclick="stepForward()">Next →</button>
+    <button id="btn-play" onclick="togglePlay()">▶ Auto</button>
+  </div>
+</section>
+
+<!-- SECTION 4: FULL CODE -->
+<section>
+  <h2>4 — Complete Implementation</h2>
+  <p class="dim">Clean Python3 solution with the BFS approach. Lines highlight as you step through above.</p>
+
+  <div class="code-block" id="code-display">
+    <span class="code-line" data-line="1"><span class="kw">from</span> collections <span class="kw">import</span> deque</span>
+    <span class="code-line" data-line="2"></span>
+    <span class="code-line" data-line="3"><span class="kw">def</span> <span class="fn">numIslands</span>(grid: list[list[<span class="typ">str</span>]]) -> <span class="typ">int</span>:</span>
+    <span class="code-line" data-line="4">    <span class="kw">if not</span> grid:</span>
+    <span class="code-line" data-line="5">        <span class="kw">return</span> <span class="num">0</span></span>
+    <span class="code-line" data-line="6"></span>
+    <span class="code-line" data-line="7">    rows, cols = <span class="fn">len</span>(grid), <span class="fn">len</span>(grid[<span class="num">0</span>])</span>
+    <span class="code-line" data-line="8">    visit = <span class="fn">set</span>()</span>
+    <span class="code-line" data-line="9">    islands = <span class="num">0</span></span>
+    <span class="code-line" data-line="10"></span>
+    <span class="code-line" data-line="11">    <span class="kw">def</span> <span class="fn">bfs</span>(r, c):</span>
+    <span class="code-line" data-line="12">        q = <span class="fn">deque</span>()</span>
+    <span class="code-line" data-line="13">        visit.<span class="fn">add</span>((r, c))       <span class="cmt"># mark start visited</span></span>
+    <span class="code-line" data-line="14">        q.<span class="fn">append</span>((r, c))       <span class="cmt"># seed the queue</span></span>
+    <span class="code-line" data-line="15"></span>
+    <span class="code-line" data-line="16">        <span class="kw">while</span> q:                <span class="cmt"># runs until queue starves</span></span>
+    <span class="code-line" data-line="17">            row, col = q.<span class="fn">popleft</span>()</span>
+    <span class="code-line" data-line="18">            directions = [[<span class="num">1</span>,<span class="num">0</span>],[<span class="num">-1</span>,<span class="num">0</span>],[<span class="num">0</span>,<span class="num">1</span>],[<span class="num">0</span>,<span class="num">-1</span>]]</span>
+    <span class="code-line" data-line="19"></span>
+    <span class="code-line" data-line="20">            <span class="kw">for</span> dr, dc <span class="kw">in</span> directions:</span>
+    <span class="code-line" data-line="21">                nr, nc = row + dr, col + dc</span>
+    <span class="code-line" data-line="22">                <span class="kw">if</span> (nr <span class="kw">in</span> <span class="fn">range</span>(rows)</span>
+    <span class="code-line" data-line="23">                    <span class="kw">and</span> nc <span class="kw">in</span> <span class="fn">range</span>(cols)</span>
+    <span class="code-line" data-line="24">                    <span class="kw">and</span> grid[nr][nc] == <span class="str">"1"</span></span>
+    <span class="code-line" data-line="25">                    <span class="kw">and</span> (nr, nc) <span class="kw">not in</span> visit):</span>
+    <span class="code-line" data-line="26">                    q.<span class="fn">append</span>((nr, nc))</span>
+    <span class="code-line" data-line="27">                    visit.<span class="fn">add</span>((nr, nc))</span>
+    <span class="code-line" data-line="28"></span>
+    <span class="code-line" data-line="29">    <span class="kw">for</span> r <span class="kw">in</span> <span class="fn">range</span>(rows):     <span class="cmt"># main scan loop</span></span>
+    <span class="code-line" data-line="30">        <span class="kw">for</span> c <span class="kw">in</span> <span class="fn">range</span>(cols):</span>
+    <span class="code-line" data-line="31">            <span class="kw">if</span> grid[r][c] == <span class="str">"1"</span> <span class="kw">and</span> (r, c) <span class="kw">not in</span> visit:</span>
+    <span class="code-line" data-line="32">                islands += <span class="num">1</span></span>
+    <span class="code-line" data-line="33">                <span class="fn">bfs</span>(r, c)</span>
+    <span class="code-line" data-line="34"></span>
+    <span class="code-line" data-line="35">    <span class="kw">return</span> islands</span>
+  </div>
+
+  <div style="display:flex; gap:2rem; flex-wrap:wrap; margin-top:1rem;">
+    <div style="flex:1; min-width:200px;">
+      <h3>Time: O(m × n)</h3>
+      <p class="dim" style="font-size:0.85rem;">Every cell visited at most once by the scan + at most once by BFS. Two passes over the same data = still O(m×n).</p>
+    </div>
+    <div style="flex:1; min-width:200px;">
+      <h3>Space: O(m × n)</h3>
+      <p class="dim" style="font-size:0.85rem;">Visited set can hold all cells. Queue worst case (all 1s) also holds m×n. Both scale with grid size.</p>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<script>
+// === BFS SIMULATION ENGINE ===
+const GRID = [
+  ["1","1","0","0","1"],
+  ["1","1","0","0","0"],
+  ["0","0","1","0","0"],
+  ["0","0","0","1","1"],
+];
+const ROWS = GRID.length;
+const COLS = GRID[0].length;
+
+// Pre-compute all steps
+function computeSteps() {
+  const steps = [];
+  const visited = new Set();
+  let islands = 0;
+
+  const key = (r,c) => `${r},${c}`;
+
+  steps.push({
+    type: 'init',
+    visited: new Set(visited),
+    queue: [],
+    processing: null,
+    islands: 0,
+    log: 'Initialize: islands=0, visit=set(), scan begins...',
+    lines: [7,8,9]
+  });
+
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (GRID[r][c] === "0") {
+        steps.push({
+          type: 'scan-water',
+          visited: new Set(visited),
+          queue: [],
+          processing: [r,c],
+          islands,
+          log: `Scan (${r},${c}): water — skip`,
+          lines: [29,30,31]
+        });
+        continue;
+      }
+      if (visited.has(key(r,c))) {
+        steps.push({
+          type: 'scan-visited',
+          visited: new Set(visited),
+          queue: [],
+          processing: [r,c],
+          islands,
+          log: `Scan (${r},${c}): already visited — skip`,
+          lines: [29,30,31]
+        });
+        continue;
+      }
+
+      // New island
+      islands++;
+      steps.push({
+        type: 'new-island',
+        visited: new Set(visited),
+        queue: [],
+        processing: [r,c],
+        islands,
+        log: `Scan (${r},${c}): unvisited land! Island #${islands} found. Call bfs(${r},${c})`,
+        lines: [31,32,33]
+      });
+
+      // BFS
+      const queue = [[r,c]];
+      visited.add(key(r,c));
+
+      steps.push({
+        type: 'bfs-seed',
+        visited: new Set(visited),
+        queue: queue.map(x=>[...x]),
+        processing: null,
+        islands,
+        log: `BFS: Seed queue with (${r},${c}), mark visited`,
+        lines: [12,13,14]
+      });
+
+      while (queue.length > 0) {
+        const [cr, cc] = queue.shift();
+
+        steps.push({
+          type: 'bfs-pop',
+          visited: new Set(visited),
+          queue: queue.map(x=>[...x]),
+          processing: [cr,cc],
+          islands,
+          log: `BFS: Pop (${cr},${cc}) — checking 4 neighbors`,
+          lines: [16,17,18]
+        });
+
+        const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+        const dirNames = ['down','up','right','left'];
+        for (let d = 0; d < 4; d++) {
+          const nr = cr + dirs[d][0];
+          const nc = cc + dirs[d][1];
+          const dname = dirNames[d];
+
+          if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && GRID[nr][nc] === "1" && !visited.has(key(nr,nc))) {
+            visited.add(key(nr,nc));
+            queue.push([nr,nc]);
+            steps.push({
+              type: 'bfs-add',
+              visited: new Set(visited),
+              queue: queue.map(x=>[...x]),
+              processing: [cr,cc],
+              islands,
+              log: `  → ${dname} (${nr},${nc}): valid land — add to queue`,
+              lines: [20,21,22,23,24,25,26,27]
+            });
+          } else {
+            let reason = '';
+            if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) reason = 'out of bounds';
+            else if (GRID[nr][nc] === "0") reason = 'water';
+            else reason = 'already visited';
+            steps.push({
+              type: 'bfs-skip',
+              visited: new Set(visited),
+              queue: queue.map(x=>[...x]),
+              processing: [cr,cc],
+              islands,
+              log: `  → ${dname} (${nr},${nc}): ${reason} — skip`,
+              lines: [20,21,22,23,24,25]
+            });
+          }
+        }
+      }
+
+      steps.push({
+        type: 'bfs-done',
+        visited: new Set(visited),
+        queue: [],
+        processing: null,
+        islands,
+        log: `BFS: Queue empty — island #${islands} fully explored. Back to main scan.`,
+        lines: [16]
+      });
+    }
+  }
+
+  steps.push({
+    type: 'complete',
+    visited: new Set(visited),
+    queue: [],
+    processing: null,
+    islands,
+    log: `Done! Total islands: ${islands}`,
+    lines: [35]
+  });
+
+  return steps;
+}
+
+let steps = computeSteps();
+let currentStep = 0;
+let playInterval = null;
+
+function renderGrid(step) {
+  const gridEl = document.getElementById('bfs-grid');
+  gridEl.innerHTML = '';
+
+  const visitedSet = step.visited;
+  const queueSet = new Set(step.queue.map(q => `${q[0]},${q[1]}`));
+  const proc = step.processing;
+
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.textContent = GRID[r][c];
+
+      const k = `${r},${c}`;
+      const isProcessing = proc && proc[0] === r && proc[1] === c;
+
+      if (GRID[r][c] === "0") {
+        cell.classList.add('cell-water');
+      } else if (isProcessing && step.type.startsWith('bfs')) {
+        cell.classList.add('cell-visiting');
+      } else if (queueSet.has(k)) {
+        cell.classList.add('cell-queued');
+      } else if (visitedSet.has(k)) {
+        cell.classList.add('cell-visited');
+      } else {
+        cell.classList.add('cell-land');
+      }
+
+      // Add coordinate overlay
+      const coord = document.createElement('div');
+      coord.style.cssText = 'position:absolute;bottom:1px;right:3px;font-size:0.55rem;color:rgba(255,255,255,0.3);';
+      coord.textContent = `${r},${c}`;
+      cell.style.position = 'relative';
+      cell.appendChild(coord);
+
+      gridEl.appendChild(cell);
+    }
+  }
+}
+
+function renderQueue(step) {
+  const el = document.getElementById('queue-visual');
+  if (step.queue.length === 0) {
+    el.innerHTML = '<span style="color:var(--text-dim); font-family:JetBrains Mono,monospace; font-size:0.8rem;">[ empty ]</span>';
+    return;
+  }
+  el.innerHTML = step.queue.map((q, i) =>
+    `<span class="queue-item${i===0 && step.type==='bfs-pop' ? ' processing' : ''}">(${q[0]},${q[1]})</span>`
+  ).join('');
+}
+
+function renderLog(step) {
+  const el = document.getElementById('log');
+  // Accumulate logs up to current step
+  let html = '';
+  for (let i = 0; i <= currentStep && i < steps.length; i++) {
+    const s = steps[i];
+    let cls = 'log-scan';
+    if (s.type === 'new-island') cls = 'log-found';
+    else if (s.type === 'bfs-done' || s.type === 'complete') cls = 'log-done';
+    else if (s.type === 'bfs-add') cls = 'log-queue';
+    else if (s.type.startsWith('bfs')) cls = 'log-bfs';
+    if (s.log.includes('Island #')) cls = 'log-island';
+    html += `<div class="log-entry ${cls}">${s.log}</div>`;
+  }
+  el.innerHTML = html;
+  el.scrollTop = el.scrollHeight;
+}
+
+function highlightCode(step) {
+  document.querySelectorAll('.code-line').forEach(el => el.classList.remove('highlight'));
+  if (step.lines) {
+    step.lines.forEach(n => {
+      const line = document.querySelector(`.code-line[data-line="${n}"]`);
+      if (line) line.classList.add('highlight');
+    });
+  }
+}
+
+function render() {
+  const step = steps[currentStep];
+  renderGrid(step);
+  renderQueue(step);
+  renderLog(step);
+  highlightCode(step);
+  document.getElementById('island-counter').textContent = step.islands;
+  document.getElementById('step-label').textContent = `Step ${currentStep} / ${steps.length - 1}`;
+  document.getElementById('btn-prev').disabled = currentStep === 0;
+  document.getElementById('btn-next').disabled = currentStep >= steps.length - 1;
+}
+
+function stepForward() {
+  if (currentStep < steps.length - 1) { currentStep++; render(); }
+  else if (playInterval) togglePlay();
+}
+
+function stepBack() {
+  if (currentStep > 0) { currentStep--; render(); }
+}
+
+function resetBFS() {
+  if (playInterval) togglePlay();
+  currentStep = 0;
+  render();
+}
+
+function togglePlay() {
+  if (playInterval) {
+    clearInterval(playInterval);
+    playInterval = null;
+    document.getElementById('btn-play').textContent = '▶ Auto';
+  } else {
+    document.getElementById('btn-play').textContent = '⏸ Pause';
+    playInterval = setInterval(() => {
+      if (currentStep >= steps.length - 1) { togglePlay(); return; }
+      stepForward();
+    }, 600);
+  }
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); stepForward(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); stepBack(); }
+  if (e.key === 'r') resetBFS();
+});
+
+// Init
+render();
+</script>
+</body>
+</html>
