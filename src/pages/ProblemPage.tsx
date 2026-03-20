@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import { getProblemById, type Problem } from '../data/problemsData';
+import { getVisualizerPath } from '../data/problemVisualizers';
 
 function ProblemPage() {
   const { id } = useParams<{ id: string }>();
@@ -35,6 +36,9 @@ function ProblemPage() {
   const [solvedIn20Min, setSolvedIn20Min] = useState(false);
   const [completed, setCompleted] = useState(false);
 
+  // Tab state for left panel
+  const [activeTab, setActiveTab] = useState<'description' | 'visualizer'>('description');
+
   // Test output state
   const [testOutput, setTestOutput] = useState('');
 
@@ -56,6 +60,8 @@ function ProblemPage() {
   // Sync localStorage to state when problem or language changes
   // Uses the "store previous rendering info in state" pattern supported by React
   const [prevSyncKey, setPrevSyncKey] = useState('');
+  const visualizerPath = getVisualizerPath(Number(problemId));
+
   const syncKey = `${problemId}_${language}`;
   if (problem && syncKey !== prevSyncKey) {
     setPrevSyncKey(syncKey);
@@ -69,6 +75,7 @@ function ProblemPage() {
     setNotes(savedNotes ?? '');
     setCompleted(savedCompleted === 'true');
     setSolvedIn20Min(savedSolvedIn20 === 'true');
+    setActiveTab('description');
   }
 
   // Save code to localStorage whenever it changes
@@ -309,8 +316,43 @@ function ProblemPage() {
 
               {/* Main Content Area */}
               <div className="flex-1 flex overflow-hidden">
-                {/* Left Panel - Problem Description */}
-                <div className="w-1/2 border-r border-[#2a2a2a] overflow-auto">
+                {/* Left Panel - Problem Description / Visualizer */}
+                <div className="w-1/2 border-r border-[#2a2a2a] flex flex-col overflow-hidden">
+                  {/* Tab Bar - only shown when a visualizer exists */}
+                  {visualizerPath && (
+                    <div className="flex border-b border-[#2a2a2a] bg-[#1a1a1a] shrink-0">
+                      <button
+                        onClick={() => setActiveTab('description')}
+                        className={`px-4 py-2 text-xs font-semibold font-mono transition ${
+                          activeTab === 'description'
+                            ? 'text-[#4af626] border-b-2 border-[#4af626] bg-[#0d0d0d]'
+                            : 'text-gray-500 hover:text-gray-300'
+                        }`}
+                      >
+                        Description
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('visualizer')}
+                        className={`px-4 py-2 text-xs font-semibold font-mono transition ${
+                          activeTab === 'visualizer'
+                            ? 'text-[#4af626] border-b-2 border-[#4af626] bg-[#0d0d0d]'
+                            : 'text-gray-500 hover:text-gray-300'
+                        }`}
+                      >
+                        Visualizer
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Tab Content */}
+                  {activeTab === 'visualizer' && visualizerPath ? (
+                    <iframe
+                      src={visualizerPath}
+                      title={`${problem.title} Visualizer`}
+                      className="flex-1 w-full border-0"
+                    />
+                  ) : (
+                  <div className="flex-1 overflow-auto">
                   <div className="p-6 font-mono text-sm">
                     {/* Problem Header with Timer */}
                     <div className="mb-6">
@@ -443,6 +485,8 @@ function ProblemPage() {
                     </div>
 
                   </div>
+                  </div>
+                  )}
                 </div>
 
                 {/* Right Panel - Code Editor */}
