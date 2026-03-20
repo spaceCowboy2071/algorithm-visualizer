@@ -29,7 +29,7 @@ export const PROBLEMS_DATA: Record<number, Problem> = {
     id: 1,
     title: '3Sum',
     difficulty: 'Medium',
-    category: 'Array',
+    category: 'Arrays',
     leetcodeUrl: 'https://leetcode.com/problems/3sum/',
     description: `Given an integer array nums, return all the triplets [nums[i], nums[j], nums[k]] such that i != j, i != k, and j != k, and nums[i] + nums[j] + nums[k] == 0.
 
@@ -55,7 +55,7 @@ Notice that the solution set must not contain duplicate triplets.`,
     id: 2,
     title: 'Best Time to Buy and Sell Stock',
     difficulty: 'Easy',
-    category: 'Array',
+    category: 'Arrays',
     leetcodeUrl: 'https://leetcode.com/problems/best-time-to-buy-and-sell-stock/',
     description: `You are given an array prices where prices[i] is the price of a given stock on the ith day.
 
@@ -81,7 +81,7 @@ Return the maximum profit you can achieve from this transaction. If you cannot a
     id: 3,
     title: 'Container With Most Water',
     difficulty: 'Medium',
-    category: 'Array',
+    category: 'Arrays',
     leetcodeUrl: 'https://leetcode.com/problems/container-with-most-water/',
     description: `You are given an integer array height of length n. There are n vertical lines drawn such that the two endpoints of the ith line are (i, 0) and (i, height[i]).
 
@@ -107,7 +107,7 @@ Return the maximum amount of water a container can store.`,
     id: 4,
     title: 'Contains Duplicate',
     difficulty: 'Easy',
-    category: 'Array',
+    category: 'Arrays',
     leetcodeUrl: 'https://leetcode.com/problems/contains-duplicate/',
     description: `Given an integer array nums, return true if any value appears at least twice in the array, and return false if every element is distinct.`,
     examples: [
@@ -130,7 +130,7 @@ Return the maximum amount of water a container can store.`,
     id: 5,
     title: 'Find Minimum in Rotated Sorted Array',
     difficulty: 'Medium',
-    category: 'Array',
+    category: 'Arrays',
     leetcodeUrl: 'https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/',
     description: `Suppose an array of length n sorted in ascending order is rotated between 1 and n times. Given the sorted rotated array nums of unique elements, return the minimum element of this array.
 
@@ -154,7 +154,7 @@ You must write an algorithm that runs in O(log n) time.`,
     id: 6,
     title: 'Maximum Product Subarray',
     difficulty: 'Medium',
-    category: 'Array',
+    category: 'Arrays',
     leetcodeUrl: 'https://leetcode.com/problems/maximum-product-subarray/',
     description: `Given an integer array nums, find a subarray that has the largest product, and return the product.`,
     examples: [
@@ -176,7 +176,7 @@ You must write an algorithm that runs in O(log n) time.`,
     id: 7,
     title: 'Maximum Subarray',
     difficulty: 'Medium',
-    category: 'Array',
+    category: 'Arrays',
     leetcodeUrl: 'https://leetcode.com/problems/maximum-subarray/',
     description: `Given an integer array nums, find the subarray with the largest sum, and return its sum.`,
     examples: [
@@ -198,7 +198,7 @@ You must write an algorithm that runs in O(log n) time.`,
     id: 8,
     title: 'Product of Array Except Self',
     difficulty: 'Medium',
-    category: 'Array',
+    category: 'Arrays',
     leetcodeUrl: 'https://leetcode.com/problems/product-of-array-except-self/',
     description: `Given an integer array nums, return an array answer such that answer[i] is equal to the product of all the elements of nums except nums[i].
 
@@ -222,7 +222,7 @@ You must write an algorithm that runs in O(n) time and without using the divisio
     id: 9,
     title: 'Search in Rotated Sorted Array',
     difficulty: 'Medium',
-    category: 'Array',
+    category: 'Arrays',
     leetcodeUrl: 'https://leetcode.com/problems/search-in-rotated-sorted-array/',
     description: `Given the array nums after the possible rotation and an integer target, return the index of target if it is in nums, or -1 if it is not in nums.
 
@@ -246,7 +246,7 @@ You must write an algorithm with O(log n) runtime complexity.`,
     id: 10,
     title: 'Two Sum',
     difficulty: 'Easy',
-    category: 'Array',
+    category: 'Arrays',
     leetcodeUrl: 'https://leetcode.com/problems/two-sum/',
     description: `Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.
 
@@ -522,7 +522,7 @@ You may assume that each input would have exactly one solution, and you may not 
 
   // GRAPH (27-34)
   27: {
-    id: 27, title: 'Alien Dictionary (Premium)', difficulty: 'Hard', category: 'Graph',
+    id: 27, title: 'Alien Dictionary (Premium)', difficulty: 'Hard', category: 'Graphs',
     leetcodeUrl: 'https://leetcode.com/problems/alien-dictionary/',
     description: `Given a sorted dictionary of an alien language, derive the order of characters in the alphabet.`,
     examples: [
@@ -534,7 +534,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   28: {
-    id: 28, title: 'Clone Graph', difficulty: 'Medium', category: 'Graph',
+    id: 28, title: 'Clone Graph', difficulty: 'Medium', category: 'Graphs',
     leetcodeUrl: 'https://leetcode.com/problems/clone-graph/',
     description: `Given a reference of a node in a connected undirected graph, return a deep copy (clone) of the graph.`,
     examples: [
@@ -546,7 +546,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   29: {
-    id: 29, title: 'Course Schedule', difficulty: 'Medium', category: 'Graph',
+    id: 29, title: 'Course Schedule', difficulty: 'Medium', category: 'Graphs',
     leetcodeUrl: 'https://leetcode.com/problems/course-schedule/',
     description: `Given numCourses and prerequisites pairs, return true if you can finish all courses (no cycle in dependency graph).`,
     examples: [
@@ -559,7 +559,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   30: {
-    id: 30, title: 'Graph Valid Tree (Premium)', difficulty: 'Medium', category: 'Graph',
+    id: 30, title: 'Graph Valid Tree (Premium)', difficulty: 'Medium', category: 'Graphs',
     leetcodeUrl: 'https://leetcode.com/problems/graph-valid-tree/',
     description: `Given n nodes and a list of undirected edges, determine if these edges form a valid tree.`,
     examples: [
@@ -572,7 +572,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   31: {
-    id: 31, title: 'Longest Consecutive Sequence', difficulty: 'Medium', category: 'Graph',
+    id: 31, title: 'Longest Consecutive Sequence', difficulty: 'Medium', category: 'Graphs',
     leetcodeUrl: 'https://leetcode.com/problems/longest-consecutive-sequence/',
     description: `Given an unsorted array of integers nums, return the length of the longest consecutive elements sequence in O(n) time.`,
     examples: [
@@ -585,7 +585,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   32: {
-    id: 32, title: 'Number of Connected Components (Premium)', difficulty: 'Medium', category: 'Graph',
+    id: 32, title: 'Number of Connected Components (Premium)', difficulty: 'Medium', category: 'Graphs',
     leetcodeUrl: 'https://leetcode.com/problems/number-of-connected-components-in-an-undirected-graph/',
     description: `Given n nodes and a list of undirected edges, return the number of connected components in the graph.`,
     examples: [
@@ -597,7 +597,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   33: {
-    id: 33, title: 'Number of Islands', difficulty: 'Medium', category: 'Graph',
+    id: 33, title: 'Number of Islands', difficulty: 'Medium', category: 'Graphs',
     leetcodeUrl: 'https://leetcode.com/problems/number-of-islands/',
     description: `Given an m x n 2D grid map of '1's (land) and '0's (water), return the number of islands.`,
     examples: [
@@ -609,7 +609,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   34: {
-    id: 34, title: 'Pacific Atlantic Water Flow', difficulty: 'Medium', category: 'Graph',
+    id: 34, title: 'Pacific Atlantic Water Flow', difficulty: 'Medium', category: 'Graphs',
     leetcodeUrl: 'https://leetcode.com/problems/pacific-atlantic-water-flow/',
     description: `Given an m x n matrix of heights, return a list of grid coordinates where water can flow to both Pacific and Atlantic oceans.`,
     examples: [
@@ -622,7 +622,7 @@ You may assume that each input would have exactly one solution, and you may not 
 
   // HEAP (35-36)
   35: {
-    id: 35, title: 'Find Median from Data Stream', difficulty: 'Hard', category: 'Heap',
+    id: 35, title: 'Find Median from Data Stream', difficulty: 'Hard', category: 'Heaps',
     leetcodeUrl: 'https://leetcode.com/problems/find-median-from-data-stream/',
     description: `Design a data structure that supports adding integers and finding the median of all elements added so far.`,
     examples: [
@@ -634,7 +634,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   36: {
-    id: 36, title: 'Top K Frequent Elements', difficulty: 'Medium', category: 'Heap',
+    id: 36, title: 'Top K Frequent Elements', difficulty: 'Medium', category: 'Heaps',
     leetcodeUrl: 'https://leetcode.com/problems/top-k-frequent-elements/',
     description: `Given an integer array nums and an integer k, return the k most frequent elements.`,
     examples: [
@@ -839,7 +839,7 @@ You may assume that each input would have exactly one solution, and you may not 
 
   // STRING (52-61)
   52: {
-    id: 52, title: 'Encode and Decode Strings (Premium)', difficulty: 'Medium', category: 'String',
+    id: 52, title: 'Encode and Decode Strings (Premium)', difficulty: 'Medium', category: 'Strings',
     leetcodeUrl: 'https://leetcode.com/problems/encode-and-decode-strings/',
     description: `Design an algorithm to encode a list of strings to a string and decode it back.`,
     examples: [
@@ -851,7 +851,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   53: {
-    id: 53, title: 'Group Anagrams', difficulty: 'Medium', category: 'String',
+    id: 53, title: 'Group Anagrams', difficulty: 'Medium', category: 'Strings',
     leetcodeUrl: 'https://leetcode.com/problems/group-anagrams/',
     description: `Given an array of strings, group the anagrams together.`,
     examples: [
@@ -863,7 +863,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   54: {
-    id: 54, title: 'Longest Palindromic Substring', difficulty: 'Medium', category: 'String',
+    id: 54, title: 'Longest Palindromic Substring', difficulty: 'Medium', category: 'Strings',
     leetcodeUrl: 'https://leetcode.com/problems/longest-palindromic-substring/',
     description: `Given a string s, return the longest palindromic substring in s.`,
     examples: [
@@ -876,7 +876,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   55: {
-    id: 55, title: 'Longest Repeating Character Replacement', difficulty: 'Medium', category: 'String',
+    id: 55, title: 'Longest Repeating Character Replacement', difficulty: 'Medium', category: 'Strings',
     leetcodeUrl: 'https://leetcode.com/problems/longest-repeating-character-replacement/',
     description: `Given a string s and an integer k, you can replace any character at most k times. Return the length of the longest substring with the same letter after replacements.`,
     examples: [
@@ -889,7 +889,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   56: {
-    id: 56, title: 'Longest Substring Without Repeating Characters', difficulty: 'Medium', category: 'String',
+    id: 56, title: 'Longest Substring Without Repeating Characters', difficulty: 'Medium', category: 'Strings',
     leetcodeUrl: 'https://leetcode.com/problems/longest-substring-without-repeating-characters/',
     description: `Given a string s, find the length of the longest substring without repeating characters.`,
     examples: [
@@ -902,7 +902,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   57: {
-    id: 57, title: 'Minimum Window Substring', difficulty: 'Hard', category: 'String',
+    id: 57, title: 'Minimum Window Substring', difficulty: 'Hard', category: 'Strings',
     leetcodeUrl: 'https://leetcode.com/problems/minimum-window-substring/',
     description: `Given strings s and t, return the minimum window substring of s that contains all characters in t.`,
     examples: [
@@ -914,7 +914,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   58: {
-    id: 58, title: 'Palindromic Substrings', difficulty: 'Medium', category: 'String',
+    id: 58, title: 'Palindromic Substrings', difficulty: 'Medium', category: 'Strings',
     leetcodeUrl: 'https://leetcode.com/problems/palindromic-substrings/',
     description: `Given a string s, return the number of palindromic substrings in it.`,
     examples: [
@@ -927,7 +927,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   59: {
-    id: 59, title: 'Valid Anagram', difficulty: 'Easy', category: 'String',
+    id: 59, title: 'Valid Anagram', difficulty: 'Easy', category: 'Strings',
     leetcodeUrl: 'https://leetcode.com/problems/valid-anagram/',
     description: `Given two strings s and t, return true if t is an anagram of s, and false otherwise.`,
     examples: [
@@ -940,7 +940,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   60: {
-    id: 60, title: 'Valid Palindrome', difficulty: 'Easy', category: 'String',
+    id: 60, title: 'Valid Palindrome', difficulty: 'Easy', category: 'Strings',
     leetcodeUrl: 'https://leetcode.com/problems/valid-palindrome/',
     description: `A phrase is a palindrome if, after converting to lowercase and removing non-alphanumeric characters, it reads the same forward and backward.`,
     examples: [
@@ -953,7 +953,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   61: {
-    id: 61, title: 'Valid Parentheses', difficulty: 'Easy', category: 'String',
+    id: 61, title: 'Valid Parentheses', difficulty: 'Easy', category: 'Strings',
     leetcodeUrl: 'https://leetcode.com/problems/valid-parentheses/',
     description: `Given a string containing just '(', ')', '{', '}', '[' and ']', determine if the input string is valid.`,
     examples: [
@@ -968,7 +968,7 @@ You may assume that each input would have exactly one solution, and you may not 
 
   // TREE (62-75)
   62: {
-    id: 62, title: 'Add and Search Word', difficulty: 'Medium', category: 'Tree',
+    id: 62, title: 'Add and Search Word', difficulty: 'Medium', category: 'Trees',
     leetcodeUrl: 'https://leetcode.com/problems/design-add-and-search-words-data-structure/',
     description: `Design a data structure that supports adding new words and finding if a string matches any previously added string with '.' as wildcard.`,
     examples: [
@@ -980,7 +980,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   63: {
-    id: 63, title: 'Binary Tree Level Order Traversal', difficulty: 'Medium', category: 'Tree',
+    id: 63, title: 'Binary Tree Level Order Traversal', difficulty: 'Medium', category: 'Trees',
     leetcodeUrl: 'https://leetcode.com/problems/binary-tree-level-order-traversal/',
     description: `Given the root of a binary tree, return the level order traversal of its nodes' values (i.e., from left to right, level by level).`,
     examples: [
@@ -992,7 +992,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   64: {
-    id: 64, title: 'Binary Tree Maximum Path Sum', difficulty: 'Hard', category: 'Tree',
+    id: 64, title: 'Binary Tree Maximum Path Sum', difficulty: 'Hard', category: 'Trees',
     leetcodeUrl: 'https://leetcode.com/problems/binary-tree-maximum-path-sum/',
     description: `A path in a binary tree is a sequence of nodes where each pair of adjacent nodes has an edge. The path sum is the sum of the node's values in the path. Return the maximum path sum.`,
     examples: [
@@ -1004,7 +1004,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   65: {
-    id: 65, title: 'Construct Binary Tree from Preorder and Inorder Traversal', difficulty: 'Medium', category: 'Tree',
+    id: 65, title: 'Construct Binary Tree from Preorder and Inorder Traversal', difficulty: 'Medium', category: 'Trees',
     leetcodeUrl: 'https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/',
     description: `Given preorder and inorder traversal arrays of a tree, construct and return the binary tree.`,
     examples: [
@@ -1016,7 +1016,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   66: {
-    id: 66, title: 'Implement Trie (Prefix Tree)', difficulty: 'Medium', category: 'Tree',
+    id: 66, title: 'Implement Trie (Prefix Tree)', difficulty: 'Medium', category: 'Trees',
     leetcodeUrl: 'https://leetcode.com/problems/implement-trie-prefix-tree/',
     description: `Implement a trie with insert, search, and startsWith methods.`,
     examples: [
@@ -1028,7 +1028,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   67: {
-    id: 67, title: 'Invert/Flip Binary Tree', difficulty: 'Easy', category: 'Tree',
+    id: 67, title: 'Invert/Flip Binary Tree', difficulty: 'Easy', category: 'Trees',
     leetcodeUrl: 'https://leetcode.com/problems/invert-binary-tree/',
     description: `Given the root of a binary tree, invert the tree, and return its root.`,
     examples: [
@@ -1040,7 +1040,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   68: {
-    id: 68, title: 'Kth Smallest Element in a BST', difficulty: 'Medium', category: 'Tree',
+    id: 68, title: 'Kth Smallest Element in a BST', difficulty: 'Medium', category: 'Trees',
     leetcodeUrl: 'https://leetcode.com/problems/kth-smallest-element-in-a-bst/',
     description: `Given the root of a binary search tree, and an integer k, return the kth smallest value.`,
     examples: [
@@ -1053,7 +1053,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   69: {
-    id: 69, title: 'Lowest Common Ancestor of BST', difficulty: 'Easy', category: 'Tree',
+    id: 69, title: 'Lowest Common Ancestor of BST', difficulty: 'Easy', category: 'Trees',
     leetcodeUrl: 'https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/',
     description: `Given a binary search tree and two nodes, find their lowest common ancestor.`,
     examples: [
@@ -1065,7 +1065,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   70: {
-    id: 70, title: 'Maximum Depth of Binary Tree', difficulty: 'Easy', category: 'Tree',
+    id: 70, title: 'Maximum Depth of Binary Tree', difficulty: 'Easy', category: 'Trees',
     leetcodeUrl: 'https://leetcode.com/problems/maximum-depth-of-binary-tree/',
     description: `Given the root of a binary tree, return its maximum depth.`,
     examples: [
@@ -1078,7 +1078,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   71: {
-    id: 71, title: 'Same Tree', difficulty: 'Easy', category: 'Tree',
+    id: 71, title: 'Same Tree', difficulty: 'Easy', category: 'Trees',
     leetcodeUrl: 'https://leetcode.com/problems/same-tree/',
     description: `Given the roots of two binary trees p and q, check if they are the same or not.`,
     examples: [
@@ -1091,7 +1091,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   72: {
-    id: 72, title: 'Serialize and Deserialize Binary Tree', difficulty: 'Hard', category: 'Tree',
+    id: 72, title: 'Serialize and Deserialize Binary Tree', difficulty: 'Hard', category: 'Trees',
     leetcodeUrl: 'https://leetcode.com/problems/serialize-and-deserialize-binary-tree/',
     description: `Design an algorithm to serialize and deserialize a binary tree.`,
     examples: [
@@ -1103,7 +1103,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   73: {
-    id: 73, title: 'Subtree of Another Tree', difficulty: 'Easy', category: 'Tree',
+    id: 73, title: 'Subtree of Another Tree', difficulty: 'Easy', category: 'Trees',
     leetcodeUrl: 'https://leetcode.com/problems/subtree-of-another-tree/',
     description: `Given the roots of two binary trees root and subRoot, return true if there is a subtree of root with the same structure and node values as subRoot.`,
     examples: [
@@ -1115,7 +1115,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   74: {
-    id: 74, title: 'Validate Binary Search Tree', difficulty: 'Medium', category: 'Tree',
+    id: 74, title: 'Validate Binary Search Tree', difficulty: 'Medium', category: 'Trees',
     leetcodeUrl: 'https://leetcode.com/problems/validate-binary-search-tree/',
     description: `Given the root of a binary tree, determine if it is a valid binary search tree (BST).`,
     examples: [
@@ -1128,7 +1128,7 @@ You may assume that each input would have exactly one solution, and you may not 
   },
 
   75: {
-    id: 75, title: 'Word Search II', difficulty: 'Hard', category: 'Tree',
+    id: 75, title: 'Word Search II', difficulty: 'Hard', category: 'Trees',
     leetcodeUrl: 'https://leetcode.com/problems/word-search-ii/',
     description: `Given an m x n board of characters and a list of words, return all words on the board. Use a trie for efficiency.`,
     examples: [
