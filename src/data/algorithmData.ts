@@ -1012,6 +1012,219 @@ def level_order(root):
 };
 
 // ============================================
+// HASH TABLE ALGORITHMS
+// ============================================
+
+export const HASH_TABLE_INSERT_CHAINING_INFO: ComplexityInfo = {
+  name: "Insert (Chaining)",
+  timeComplexity: { best: "O(1)", average: "O(1)", worst: "O(n)" },
+  spaceComplexity: "O(n)",
+  explanations: {
+    how: "Separate chaining insert computes the hash of the key to find the bucket index, then appends the key to the linked list (chain) at that bucket. Collisions are handled naturally — multiple keys in the same bucket form a chain.",
+    when: "Use chaining when the load factor may be high or unpredictable. Chaining degrades gracefully — performance worsens linearly with chain length, but never fails due to a full table.",
+    where: "Chaining is used in Java's HashMap (prior to Java 8 tree-ification), Python's dict (with open addressing), many database index implementations, and general-purpose hash table libraries.",
+    why: "Choose chaining when: (1) deletion is frequent (no tombstones needed), (2) the load factor may exceed 1, (3) you want simpler implementation, or (4) worst-case behavior should degrade gracefully."
+  },
+  code: {
+    javascript: `function insert(table, key) {
+  const index = key % table.length;
+  table[index].push(key);
+}`,
+    python: `def insert(table, key):
+    index = key % len(table)
+    table[index].append(key)`
+  }
+};
+
+export const HASH_TABLE_SEARCH_CHAINING_INFO: ComplexityInfo = {
+  name: "Search (Chaining)",
+  timeComplexity: { best: "O(1)", average: "O(1 + n/m)", worst: "O(n)" },
+  spaceComplexity: "O(1)",
+  explanations: {
+    how: "Search computes the hash to find the bucket index, then iterates through the chain at that bucket comparing each entry's key with the target. Returns the entry if found, or null if the chain is exhausted.",
+    when: "Use chaining search when you need to look up a value in a hash table that uses separate chaining for collision resolution.",
+    where: "Hash table lookups are everywhere: database queries, caching systems, symbol tables in compilers, spell checkers, and any key-value retrieval system.",
+    why: "Choose chaining search when: (1) average-case O(1) lookup is needed, (2) the hash table uses separate chaining, (3) the load factor is moderate and chains are short."
+  },
+  code: {
+    javascript: `function search(table, key) {
+  const index = key % table.length;
+  const chain = table[index];
+
+  for (let i = 0; i < chain.length; i++) {
+    if (chain[i] === key) {
+      return { index, position: i };
+    }
+  }
+
+  return null;
+}`,
+    python: `def search(table, key):
+    index = key % len(table)
+    chain = table[index]
+
+    for i, entry in enumerate(chain):
+        if entry == key:
+            return (index, i)
+
+    return None`
+  }
+};
+
+export const HASH_TABLE_DELETE_CHAINING_INFO: ComplexityInfo = {
+  name: "Delete (Chaining)",
+  timeComplexity: { best: "O(1)", average: "O(1 + n/m)", worst: "O(n)" },
+  spaceComplexity: "O(1)",
+  explanations: {
+    how: "Delete computes the hash to find the bucket, then searches the chain for the target key. When found, the entry is removed from the chain. No tombstones are needed — the chain simply becomes shorter.",
+    when: "Use chaining delete when you need to remove entries from a hash table. Chaining makes deletion straightforward compared to open addressing, which requires tombstone markers.",
+    where: "Hash table deletion is used in cache eviction, removing expired sessions, cleaning up temporary data, and any system that dynamically manages a key-value store.",
+    why: "Choose chaining delete when: (1) deletions are frequent, (2) you want clean removal without tombstones, (3) you need the space to be immediately reclaimed."
+  },
+  code: {
+    javascript: `function remove(table, key) {
+  const index = key % table.length;
+  const chain = table[index];
+
+  for (let i = 0; i < chain.length; i++) {
+    if (chain[i] === key) {
+      chain.splice(i, 1);
+      return true;
+    }
+  }
+
+  return false;
+}`,
+    python: `def remove(table, key):
+    index = key % len(table)
+    chain = table[index]
+
+    for i, entry in enumerate(chain):
+        if entry == key:
+            chain.pop(i)
+            return True
+
+    return False`
+  }
+};
+
+export const HASH_TABLE_INSERT_PROBING_INFO: ComplexityInfo = {
+  name: "Insert (Linear Probing)",
+  timeComplexity: { best: "O(1)", average: "O(1/(1-a))", worst: "O(n)" },
+  spaceComplexity: "O(n)",
+  explanations: {
+    how: "Linear probing insert computes the hash to find the initial slot. If occupied, it probes the next slot sequentially (wrapping around) until an empty slot or tombstone is found. The key is placed in that slot. The table must not be completely full.",
+    when: "Use linear probing when memory locality matters. Since probing checks consecutive slots, it benefits from CPU cache lines. Best when the load factor stays below 0.7.",
+    where: "Linear probing is used in Python's dict (a variant), Robin Hood hashing, Google's Swiss table, and high-performance hash maps where cache efficiency is critical.",
+    why: "Choose linear probing when: (1) cache performance is important, (2) the load factor stays low (< 0.7), (3) you want all data in a contiguous array, or (4) memory allocation overhead of chaining is unacceptable."
+  },
+  code: {
+    javascript: `function insert(table, key) {
+  const size = table.length;
+  let index = key % size;
+
+  while (table[index] !== null && table[index] !== "DEL") {
+    index = (index + 1) % size;
+  }
+
+  table[index] = key;
+}`,
+    python: `def insert(table, key):
+    size = len(table)
+    index = key % size
+
+    while table[index] is not None and table[index] != "DEL":
+        index = (index + 1) % size
+
+    table[index] = key`
+  }
+};
+
+export const HASH_TABLE_SEARCH_PROBING_INFO: ComplexityInfo = {
+  name: "Search (Linear Probing)",
+  timeComplexity: { best: "O(1)", average: "O(1/(1-a))", worst: "O(n)" },
+  spaceComplexity: "O(1)",
+  explanations: {
+    how: "Linear probing search computes the hash and checks that slot. If it doesn't match, it probes the next slot sequentially. The search stops when the key is found, an empty slot is reached (key doesn't exist), or the entire table has been checked. Tombstones (DEL) are skipped during the probe.",
+    when: "Use linear probing search when looking up keys in an open-addressing hash table. The probe sequence must match the one used during insertion.",
+    where: "Used in any open-addressing hash table implementation. Common in systems programming, embedded systems, and performance-critical applications.",
+    why: "Choose linear probing search when: (1) your hash table uses linear probing, (2) you need cache-friendly lookups, (3) the load factor is moderate."
+  },
+  code: {
+    javascript: `function search(table, key) {
+  const size = table.length;
+  let index = key % size;
+  let start = index;
+
+  do {
+    if (table[index] === null) return -1;
+    if (table[index] === key) return index;
+    index = (index + 1) % size;
+  } while (index !== start);
+
+  return -1;
+}`,
+    python: `def search(table, key):
+    size = len(table)
+    index = key % size
+    start = index
+
+    while True:
+        if table[index] is None:
+            return -1
+        if table[index] == key:
+            return index
+        index = (index + 1) % size
+        if index == start:
+            return -1`
+  }
+};
+
+export const HASH_TABLE_DELETE_PROBING_INFO: ComplexityInfo = {
+  name: "Delete (Linear Probing)",
+  timeComplexity: { best: "O(1)", average: "O(1/(1-a))", worst: "O(n)" },
+  spaceComplexity: "O(1)",
+  explanations: {
+    how: "Linear probing delete first searches for the key using the probe sequence. When found, it doesn't actually empty the slot (which would break future probes). Instead, it marks the slot as a tombstone (DELETED). Future inserts can reuse tombstone slots, and future searches skip over them.",
+    when: "Use linear probing delete when removing keys from an open-addressing table. The tombstone mechanism is essential to maintain correctness of the probe sequence for other keys.",
+    where: "Used in any open-addressing hash table that supports deletion. The tombstone pattern is a classic technique in systems like Python's dict internals.",
+    why: "Choose linear probing delete when: (1) you must support deletion in an open-addressing table, (2) you understand that tombstones increase probe lengths over time, (3) periodic rehashing can clean up tombstones."
+  },
+  code: {
+    javascript: `function remove(table, key) {
+  const size = table.length;
+  let index = key % size;
+  let start = index;
+
+  do {
+    if (table[index] === null) return false;
+    if (table[index] === key) {
+      table[index] = "DEL";
+      return true;
+    }
+    index = (index + 1) % size;
+  } while (index !== start);
+
+  return false;
+}`,
+    python: `def remove(table, key):
+    size = len(table)
+    index = key % size
+    start = index
+
+    while True:
+        if table[index] is None:
+            return False
+        if table[index] == key:
+            table[index] = "DEL"
+            return True
+        index = (index + 1) % size
+        if index == start:
+            return False`
+  }
+};
+
+// ============================================
 // ALGORITHM REGISTRY
 // ============================================
 
@@ -1046,11 +1259,21 @@ export const TREE_ALGORITHMS: Record<string, ComplexityInfo> = {
   'Level-Order Traversal': LEVEL_ORDER_TRAVERSAL_INFO,
 };
 
+export const HASH_TABLE_ALGORITHMS: Record<string, ComplexityInfo> = {
+  'Insert (Chaining)': HASH_TABLE_INSERT_CHAINING_INFO,
+  'Search (Chaining)': HASH_TABLE_SEARCH_CHAINING_INFO,
+  'Delete (Chaining)': HASH_TABLE_DELETE_CHAINING_INFO,
+  'Insert (Linear Probing)': HASH_TABLE_INSERT_PROBING_INFO,
+  'Search (Linear Probing)': HASH_TABLE_SEARCH_PROBING_INFO,
+  'Delete (Linear Probing)': HASH_TABLE_DELETE_PROBING_INFO,
+};
+
 const ALGORITHM_REGISTRIES: Record<AlgorithmMode, Record<string, ComplexityInfo>> = {
   'sorting': SORTING_ALGORITHMS,
   'searching': SEARCHING_ALGORITHMS,
   'linked-list': LINKED_LIST_ALGORITHMS,
   'tree': TREE_ALGORITHMS,
+  'hash-table': HASH_TABLE_ALGORITHMS,
 };
 
 export const getAlgorithmInfo = (mode: AlgorithmMode, name: string): ComplexityInfo | null => {

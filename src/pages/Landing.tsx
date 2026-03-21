@@ -75,6 +75,20 @@ function Landing() {
                       </div>
                     </Link>
 
+                    {/* Hash Tables */}
+                    <Link
+                      to="/hash-tables"
+                      className="group border-l-2 border-transparent hover:border-[#4af626] hover:bg-[rgba(74,246,38,0.05)] transition-all pl-4 py-3"
+                    >
+                      <div className="text-[#4af626]">
+                        <span className="font-bold">$ </span>
+                        <span className="text-base md:text-lg">hash-tables</span>
+                      </div>
+                      <div className="text-gray-600 text-sm ml-6 mt-1">
+                        # Insert, Search, Delete with Chaining & Linear Probing
+                      </div>
+                    </Link>
+
                     {/* Graphs - Coming Soon */}
                     <div className="border-l-2 border-transparent opacity-50 pl-4 py-3 cursor-not-allowed">
                       <div className="text-[#4af626]">

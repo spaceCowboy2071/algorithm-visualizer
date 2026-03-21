@@ -1,5 +1,5 @@
 // Algorithm mode discriminator
-export type AlgorithmMode = 'sorting' | 'searching' | 'linked-list' | 'tree';
+export type AlgorithmMode = 'sorting' | 'searching' | 'linked-list' | 'tree' | 'hash-table';
 
 // Unified complexity info (shared by both sorting and searching)
 export interface ComplexityInfo {
@@ -87,8 +87,37 @@ export interface TreeHistoryState {
   operationResult: 'success' | 'not-found' | null;
 }
 
+// Hash table entry
+export interface HashEntry {
+  key: number;
+  id: string;
+}
+
+// Hash table bucket
+export interface HashBucket {
+  index: number;
+  entries: HashEntry[];
+  isDeleted?: boolean;
+}
+
+// History snapshot for hash table operations
+export interface HashTableHistoryState {
+  buckets: HashBucket[];
+  tableSize: number;
+  mode: 'chaining' | 'linear-probing';
+  currentBucketIndex: number | null;
+  currentEntryId: string | null;
+  highlightedBucketIndices: number[];
+  visitedEntryIds: string[];
+  foundEntryId: string | null;
+  hashComputationStep: string | null;
+  currentLine: number | null;
+  message: string;
+  operationResult: 'success' | 'not-found' | null;
+}
+
 // Union type for history
-export type HistoryState = SortingHistoryState | SearchHistoryState | LinkedListHistoryState | TreeHistoryState;
+export type HistoryState = SortingHistoryState | SearchHistoryState | LinkedListHistoryState | TreeHistoryState | HashTableHistoryState;
 
 // Control refs interface
 export interface VisualizationControlRefs {
