@@ -35,11 +35,13 @@ An interactive web application for visualizing sorting and searching algorithms 
 ### Blind 75 Challenge
 A comprehensive LeetCode interview preparation platform featuring:
 - **75 Curated Problems**: The complete Blind 75 list organized by category (Arrays, Strings, Trees, Graphs, Dynamic Programming, and more)
-- **Category-based Navigation**: Filter problems by topic
+- **Category-based Navigation**: Filter problems by topic with pattern labels (e.g., "Two Pointers", "Hash Map", "DFS / BFS")
 - **Difficulty Badges**: Color-coded Easy, Medium, Hard indicators
-- **Code Playground**: Integrated Monaco editor (VS Code) for solving problems
+- **Code Playground**: Integrated Monaco editor (VS Code) for solving problems, with time/space complexity inputs below the editor
 - **Interactive Visualizers**: Step-through HTML visualizers for select problems with animated state, live code highlighting, and complexity analysis (6 of 75 complete)
-- **Progress Tracking**: Mark problems as completed with localStorage persistence
+- **Study Tracker**: Rich per-problem progress tracking — status (Not Started / Studied / In Progress / Review Needed / Solved), confidence level (1-5), solved independently, solved under 20 min, attempt count (auto-incremented), notes, and complexity analysis
+- **Dashboard**: Aggregate stats overlay with solved/studied/in-progress counts, average confidence, completion percentage, and per-category progress bars
+- **Progress Overlay**: Centered modal on each problem page for quick status/confidence updates without leaving the editor
 
 ### Educational Features
 - **X-Ray Code Viewer**: Live code execution visualization
@@ -113,7 +115,8 @@ The optimized build will be in the `dist/` folder.
 - Searching algorithms: Binary Search, Linear Search, Jump Search, Interpolation Search
 - Unified ArrayVisualizer with mode switching (sorting/searching)
 - Linked Lists page with interactive visualization
-- Blind 75 problem tracker with Monaco code editor
+- Blind 75 study tracker with status/confidence/attempts/notes, dashboard overlay, and per-problem progress overlay
+- Monaco code editor with time/space complexity inputs on problem pages
 - 6 interactive HTML problem visualizers (Two Sum, Container With Most Water, Maximum Subarray, Product of Array Except Self, Clone Graph, Number of Islands)
 - X-Ray Code Viewer with line highlighting (JS + Python)
 - Complexity analysis panels (How/When/Where/Why)
@@ -125,15 +128,13 @@ The optimized build will be in the `dist/` folder.
 **In Progress**:
 - Remaining Blind 75 HTML visualizers (69 of 75)
 - Judge0 API integration for code submission
-- Full Blind 75 study tracker (status, confidence, attempts, notes, dashboard)
 
 **Planned**:
 - Additional sorting algorithms (Insertion, Selection, Heap, Radix)
 - Tree visualizations (BST, traversals)
 - Graph algorithms (Dijkstra's, BFS, DFS, A*)
 - Hash Table visualizations
-- User accounts with Firebase authentication
-- Spaced repetition reminders for problem review
+- Firebase integration — user accounts, Firestore migration for tracker data (currently localStorage), spaced repetition reminders
 
 ## License
 
