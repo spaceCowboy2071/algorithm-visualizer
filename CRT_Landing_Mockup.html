@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALGOVIZ CRT Landing Page Mockup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #111; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 2rem; }
+
+  .crt-monitor {
+    position: relative;
+    max-width: 780px;
+    width: 100%;
+  }
+
+  .bezel {
+    background: linear-gradient(170deg, #D4C4A8 0%, #C0B090 40%, #B8A880 100%);
+    border-radius: 20px;
+    padding: 50px 56px 60px;
+    position: relative;
+    border: 1px solid #A89870;
+  }
+
+  .bezel-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 0 4px;
+    font-family: 'Courier New', monospace;
+  }
+  .brand { font-size: 15px; font-weight: bold; color: #3A3520; letter-spacing: 0.12em; }
+  .brand-sub { font-size: 11px; color: #70624A; letter-spacing: 0.04em; margin-left: 10px; }
+  .model { font-size: 10px; color: #70624A; }
+
+  .screen {
+    background: #1a1e26;
+    border-radius: 10px;
+    border: 5px solid #1E1A16;
+    position: relative;
+    overflow: hidden;
+    padding: 20px 24px;
+    min-height: 320px;
+  }
+
+  .scanlines {
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .vignette {
+    position: absolute; inset: 0;
+    border-radius: 6px;
+    box-shadow: inset 0 0 60px rgba(0,0,0,0.5);
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .screen-content {
+    position: relative;
+    z-index: 1;
+    font-family: 'Courier New', monospace;
+  }
+
+  .bios-header {
+    text-align: center;
+    margin-bottom: 12px;
+    font-size: 11px;
+    opacity: 0.5;
+  }
+
+  .menu-box {
+    border: 2px solid;
+    padding: 14px 18px;
+    margin: 0 auto;
+    max-width: 520px;
+  }
+
+  .menu-title {
+    text-align: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 0.05em;
+  }
+
+  .menu-items { display: flex; flex-direction: column; gap: 4px; }
+
+  .menu-row {
+    display: flex;
+    align-items: center;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .menu-row:hover { opacity: 0.85; }
+
+  .cursor-col {
+    padding: 0 6px;
+    font-size: 13px;
+    font-weight: bold;
+    margin-right: 12px;
+    min-width: 25px;
+    text-align: center;
+  }
+
+  .row-label { font-size: 13px; font-weight: bold; }
+  .row-desc { font-size: 11px; opacity: 0.45; margin-left: auto; }
+
+  .menu-divider { border-top: 1px solid; margin: 4px 0; }
+
+  .footer-hint {
+    text-align: center;
+    margin-top: 14px;
+    font-size: 11px;
+    opacity: 0.4;
+  }
+
+  .footer-fkeys {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    padding: 0 4px;
+    font-size: 10px;
+    opacity: 0.3;
+  }
+
+  .bezel-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    padding: 0 8px;
+    font-family: 'Courier New', monospace;
+  }
+
+  .power-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .power-led {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    transition: background 0.3s, box-shadow 0.3s;
+  }
+  .power-label { font-size: 9px; color: #6B5D45; letter-spacing: 0.06em; }
+
+  .bezel-controls {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+  .bezel-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+    user-select: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+  .bezel-btn:hover { background: rgba(0,0,0,0.06); }
+  .bezel-btn:active { background: rgba(0,0,0,0.12); }
+  .bezel-dial { width: 50px; height: 3px; background: #AE9E80; border-radius: 2px; }
+  .bezel-label { font-size: 7px; color: #8A7A60; }
+
+  .stand-neck {
+    background: linear-gradient(180deg, #B8A880, #A89870);
+    height: 24px;
+    width: 180px;
+    margin: 0 auto;
+    border-radius: 0 0 6px 6px;
+    border: 1px solid #9A8A68;
+    border-top: none;
+  }
+  .stand-base {
+    background: linear-gradient(180deg, #C8B898, #B8A888);
+    height: 8px;
+    width: 300px;
+    margin: 0 auto;
+    border-radius: 0 0 10px 10px;
+    border: 1px solid #9A8A68;
+    border-top: none;
+  }
+
+  @keyframes blink { 50% { opacity: 0; } }
+  .blink { animation: blink 1s step-end infinite; }
+</style>
+</head>
+<body>
+
+<div class="crt-monitor">
+  <div class="bezel">
+
+    <!-- Bezel top: branding -->
+    <div class="bezel-top">
+      <div style="display:flex;align-items:center;">
+        <span class="brand">ALGOVIZ</span>
+        <span class="brand-sub">Educational Terminal</span>
+      </div>
+      <span class="model">Model AV-75</span>
+    </div>
+
+    <!-- Screen -->
+    <div class="screen">
+      <div class="scanlines"></div>
+      <div class="vignette"></div>
+
+      <div class="screen-content">
+
+        <!-- BIOS header -->
+        <div class="bios-header ph">── ALGOVIZ System v1.0  ·  Algorithm Workstation  ·  Mode: STD ──</div>
+
+        <!-- Menu box -->
+        <div class="menu-box" id="menu-box">
+          <div class="menu-title ph" id="menu-header">MAIN MENU</div>
+
+          <div class="menu-items">
+            <div class="menu-row" id="active-row">
+              <span class="cursor-col" id="cursor-arrow">></span>
+              <span class="row-label ph">Arrays</span>
+              <span class="row-desc ph">Bubble, Quick, Merge, Binary</span>
+            </div>
+            <div class="menu-row">
+              <span class="cursor-col">&nbsp;</span>
+              <span class="row-label ph">Linked Lists</span>
+              <span class="row-desc ph">Insert, Delete, Search, Reverse</span>
+            </div>
+            <div class="menu-row">
+              <span class="cursor-col">&nbsp;</span>
+              <span class="row-label ph">Trees</span>
+              <span class="row-desc ph">BST, Inorder, Preorder, Postorder</span>
+            </div>
+            <div class="menu-row">
+              <span class="cursor-col">&nbsp;</span>
+              <span class="row-label ph">Hash Tables</span>
+              <span class="row-desc ph">Chaining & Linear Probing</span>
+            </div>
+            <div class="menu-row">
+              <span class="cursor-col">&nbsp;</span>
+              <span class="row-label ph">Graphs</span>
+              <span class="row-desc ph">BFS, DFS, Dijkstra's</span>
+            </div>
+
+            <div class="menu-divider ph-border"></div>
+
+            <div class="menu-row">
+              <span class="cursor-col">&nbsp;</span>
+              <span class="row-label ph">Blind 75 Challenge</span>
+              <span class="row-desc ph">75 interview problems</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-hint ph">Use arrow keys to navigate and ENTER to select</div>
+        <div class="footer-fkeys">
+          <span class="ph">F1 Help&nbsp;&nbsp;&nbsp;F5 About&nbsp;&nbsp;&nbsp;F10 Docs</span>
+          <span class="ph">ESC Exit&nbsp;&nbsp;&nbsp;&nbsp;v1.0.0</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Bezel bottom: power LED + controls -->
+    <div class="bezel-bottom">
+      <div class="power-indicator">
+        <div class="power-led" id="power-led"></div>
+        <span class="power-label">POWER</span>
+      </div>
+      <div class="bezel-controls">
+        <div class="bezel-btn" id="color-btn">
+          <div class="bezel-dial"></div>
+          <span class="bezel-label">COLOR</span>
+        </div>
+        <div class="bezel-btn">
+          <div class="bezel-dial"></div>
+          <span class="bezel-label">CONTRAST</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Stand -->
+  <div class="stand-neck"></div>
+  <div class="stand-base"></div>
+</div>
+
+<script>
+  const THEMES = {
+    green: {
+      main: '#3fb950',
+      bg: 'rgba(63,185,80,0.12)',
+      cursorBg: '#3fb950',
+      cursorText: '#0d1117',
+      border: 'rgba(63,185,80,0.25)',
+      borderFaint: 'rgba(63,185,80,0.2)',
+      led: '#4ade80',
+      ledGlow: '0 0 4px #4ade80'
+    },
+    amber: {
+      main: '#FFBF40',
+      bg: 'rgba(255,191,64,0.12)',
+      cursorBg: '#FFBF40',
+      cursorText: '#0d1117',
+      border: 'rgba(255,191,64,0.25)',
+      borderFaint: 'rgba(255,191,64,0.2)',
+      led: '#FFBF40',
+      ledGlow: '0 0 4px #FFBF40'
+    }
+  };
+
+  let currentTheme = 'green';
+
+  function applyTheme(t) {
+    // All phosphor-colored text
+    document.querySelectorAll('.ph').forEach(el => el.style.color = t.main);
+
+    // Menu box border
+    document.getElementById('menu-box').style.borderColor = t.main;
+
+    // Menu header underline
+    document.getElementById('menu-header').style.borderBottomColor = t.border;
+
+    // Active row highlight
+    document.getElementById('active-row').style.background = t.bg;
+
+    // Cursor arrow
+    const arrow = document.getElementById('cursor-arrow');
+    arrow.style.color = t.cursorText;
+    arrow.style.background = t.cursorBg;
+
+    // Dividers
+    document.querySelectorAll('.ph-border').forEach(el => el.style.borderTopColor = t.borderFaint);
+
+    // Power LED
+    const led = document.getElementById('power-led');
+    led.style.background = t.led;
+    led.style.boxShadow = t.ledGlow;
+  }
+
+  // Initialize
+  applyTheme(THEMES.green);
+
+  // COLOR toggle
+  document.getElementById('color-btn').addEventListener('click', function() {
+    currentTheme = currentTheme === 'green' ? 'amber' : 'green';
+    applyTheme(THEMES[currentTheme]);
+  });
+</script>
+
+</body>
+</html>
