@@ -1225,6 +1225,244 @@ export const HASH_TABLE_DELETE_PROBING_INFO: ComplexityInfo = {
 };
 
 // ============================================
+// GRAPH ALGORITHMS
+// ============================================
+
+export const GRAPH_BFS_INFO: ComplexityInfo = {
+  name: "Breadth-First Search (BFS)",
+  timeComplexity: {
+    best: "O(V + E)",
+    average: "O(V + E)",
+    worst: "O(V + E)"
+  },
+  spaceComplexity: "O(V)",
+  explanations: {
+    how: "BFS explores a graph level by level starting from a source node. It uses a queue to track which node to visit next. First, all neighbors of the start node are visited, then their unvisited neighbors, and so on. This guarantees the shortest path in unweighted graphs.",
+    when: "Use BFS when you need to find the shortest path in an unweighted graph, explore nodes closest to the source first, or check if a graph is connected. It's also used for level-order traversal of trees and finding all nodes within a certain distance.",
+    where: "BFS is used in social network analysis (degrees of separation), GPS navigation (shortest route), web crawlers (exploring links level by level), network broadcasting, and puzzle solving (like finding the minimum moves in a game).",
+    why: "Choose BFS when: (1) you need the shortest path in an unweighted graph, (2) you want to explore nodes in order of their distance from the source, (3) you need to find all reachable nodes, or (4) you're searching for the nearest solution in a state space."
+  },
+  code: {
+    javascript: `function bfs(graph, start) {
+  const visited = new Set();
+  const queue = [start];
+  visited.add(start);
+
+  while (queue.length > 0) {
+    const node = queue.shift();
+    process(node);
+
+    for (const neighbor of graph[node]) {
+      if (!visited.has(neighbor)) {
+        visited.add(neighbor);
+        queue.push(neighbor);
+      }
+    }
+  }
+}`,
+    python: `def bfs(graph, start):
+    visited = set()
+    queue = [start]
+    visited.add(start)
+
+    while queue:
+        node = queue.pop(0)
+        process(node)
+
+        for neighbor in graph[node]:
+            if neighbor not in visited:
+                visited.add(neighbor)
+                queue.append(neighbor)`
+  }
+};
+
+export const GRAPH_DFS_INFO: ComplexityInfo = {
+  name: "Depth-First Search (DFS)",
+  timeComplexity: {
+    best: "O(V + E)",
+    average: "O(V + E)",
+    worst: "O(V + E)"
+  },
+  spaceComplexity: "O(V)",
+  explanations: {
+    how: "DFS explores a graph by going as deep as possible along each branch before backtracking. Starting from a source node, it visits an unvisited neighbor, then that neighbor's unvisited neighbor, and so on. When it reaches a dead end, it backtracks to explore other branches.",
+    when: "Use DFS when you need to explore all paths, detect cycles, perform topological sorting, solve mazes, or find connected components. DFS is preferred when the solution is likely far from the source or when you need to explore entire branches.",
+    where: "DFS is used in maze generation and solving, topological sorting for build systems, cycle detection in dependency graphs, finding strongly connected components, path existence checking, and generating permutations or combinations.",
+    why: "Choose DFS when: (1) you need to explore all possible paths, (2) memory is limited (DFS uses less memory than BFS for wide graphs), (3) you want to detect cycles, or (4) the solution is expected to be deep in the graph rather than close to the start."
+  },
+  code: {
+    javascript: `function dfs(graph, start) {
+  const visited = new Set();
+  const stack = [start];
+
+  while (stack.length > 0) {
+    const node = stack.pop();
+
+    if (visited.has(node)) continue;
+    visited.add(node);
+    process(node);
+
+    for (const neighbor of graph[node]) {
+      if (!visited.has(neighbor)) {
+        stack.push(neighbor);
+      }
+    }
+  }
+}`,
+    python: `def dfs(graph, start):
+    visited = set()
+    stack = [start]
+
+    while stack:
+        node = stack.pop()
+
+        if node in visited:
+            continue
+        visited.add(node)
+        process(node)
+
+        for neighbor in graph[node]:
+            if neighbor not in visited:
+                stack.append(neighbor)`
+  }
+};
+
+export const GRAPH_DIJKSTRA_INFO: ComplexityInfo = {
+  name: "Dijkstra's Algorithm",
+  timeComplexity: {
+    best: "O((V + E) log V)",
+    average: "O((V + E) log V)",
+    worst: "O((V + E) log V)"
+  },
+  spaceComplexity: "O(V)",
+  explanations: {
+    how: "Dijkstra's algorithm finds the shortest path from a source node to all other nodes in a weighted graph with non-negative weights. It maintains a distance table, initially setting all distances to infinity except the source (0). It repeatedly selects the unvisited node with the smallest distance, updates its neighbors' distances, and marks it as visited.",
+    when: "Use Dijkstra's when you need the shortest path in a weighted graph with non-negative edge weights. If edges can be negative, use Bellman-Ford instead. For unweighted graphs, BFS is simpler and equally effective.",
+    where: "Dijkstra's is used in GPS navigation (shortest driving route), network routing protocols (OSPF), flight path optimization, game AI pathfinding, and any system that needs to find least-cost paths through a weighted network.",
+    why: "Choose Dijkstra's when: (1) you need shortest paths in a weighted graph, (2) all edge weights are non-negative, (3) you want optimal paths from a single source to all destinations, or (4) you need a well-understood, efficient shortest-path algorithm."
+  },
+  code: {
+    javascript: `function dijkstra(graph, start) {
+  const dist = {};
+  const visited = new Set();
+
+  for (const node of graph.nodes) {
+    dist[node] = Infinity;
+  }
+  dist[start] = 0;
+
+  while (visited.size < graph.nodes.length) {
+    const u = getMinDistNode(dist, visited);
+    if (u === null) break;
+    visited.add(u);
+
+    for (const [v, weight] of graph[u]) {
+      if (!visited.has(v)) {
+        const alt = dist[u] + weight;
+        if (alt < dist[v]) {
+          dist[v] = alt;
+        }
+      }
+    }
+  }
+  return dist;
+}`,
+    python: `def dijkstra(graph, start):
+    dist = {}
+    visited = set()
+
+    for node in graph.nodes:
+        dist[node] = float('inf')
+    dist[start] = 0
+
+    while len(visited) < len(graph.nodes):
+        u = get_min_dist_node(dist, visited)
+        if u is None:
+            break
+        visited.add(u)
+
+        for v, weight in graph[u]:
+            if v not in visited:
+                alt = dist[u] + weight
+                if alt < dist[v]:
+                    dist[v] = alt
+
+    return dist`
+  }
+};
+
+export const GRAPH_TOPOLOGICAL_SORT_INFO: ComplexityInfo = {
+  name: "Topological Sort (Kahn's)",
+  timeComplexity: {
+    best: "O(V + E)",
+    average: "O(V + E)",
+    worst: "O(V + E)"
+  },
+  spaceComplexity: "O(V)",
+  explanations: {
+    how: "Kahn's algorithm performs topological sorting using BFS. It first computes the in-degree of every node. Nodes with in-degree 0 (no dependencies) are added to a queue. The algorithm repeatedly dequeues a node, adds it to the result, and decrements the in-degree of its neighbors. If a neighbor's in-degree reaches 0, it's added to the queue.",
+    when: "Use topological sort when you need to order tasks with dependencies, such as course prerequisites, build systems, or job scheduling. It only works on directed acyclic graphs (DAGs) — if the graph has a cycle, topological ordering is impossible.",
+    where: "Topological sort is used in build systems (Make, Webpack dependency resolution), course scheduling (prerequisite ordering), task scheduling with dependencies, spreadsheet cell evaluation order, and compiler optimization (instruction scheduling).",
+    why: "Choose Kahn's algorithm when: (1) you need a linear ordering of nodes respecting dependencies, (2) you want to detect cycles (if the result has fewer nodes than the graph, there's a cycle), (3) you want an intuitive BFS-based approach, or (4) you need to process items in dependency order."
+  },
+  code: {
+    javascript: `function topologicalSort(graph) {
+  const inDegree = {};
+  for (const node of graph.nodes) {
+    inDegree[node] = 0;
+  }
+  for (const [u, v] of graph.edges) {
+    inDegree[v]++;
+  }
+
+  const queue = [];
+  for (const node of graph.nodes) {
+    if (inDegree[node] === 0) {
+      queue.push(node);
+    }
+  }
+
+  const result = [];
+  while (queue.length > 0) {
+    const node = queue.shift();
+    result.push(node);
+
+    for (const neighbor of graph[node]) {
+      inDegree[neighbor]--;
+      if (inDegree[neighbor] === 0) {
+        queue.push(neighbor);
+      }
+    }
+  }
+  return result;
+}`,
+    python: `def topological_sort(graph):
+    in_degree = {}
+    for node in graph.nodes:
+        in_degree[node] = 0
+    for u, v in graph.edges:
+        in_degree[v] += 1
+
+    queue = []
+    for node in graph.nodes:
+        if in_degree[node] == 0:
+            queue.append(node)
+
+    result = []
+    while queue:
+        node = queue.pop(0)
+        result.append(node)
+
+        for neighbor in graph[node]:
+            in_degree[neighbor] -= 1
+            if in_degree[neighbor] == 0:
+                queue.append(neighbor)
+
+    return result`
+  }
+};
+
+// ============================================
 // ALGORITHM REGISTRY
 // ============================================
 
@@ -1268,12 +1506,20 @@ export const HASH_TABLE_ALGORITHMS: Record<string, ComplexityInfo> = {
   'Delete (Linear Probing)': HASH_TABLE_DELETE_PROBING_INFO,
 };
 
+export const GRAPH_ALGORITHMS: Record<string, ComplexityInfo> = {
+  'BFS': GRAPH_BFS_INFO,
+  'DFS': GRAPH_DFS_INFO,
+  "Dijkstra's": GRAPH_DIJKSTRA_INFO,
+  'Topological Sort': GRAPH_TOPOLOGICAL_SORT_INFO,
+};
+
 const ALGORITHM_REGISTRIES: Record<AlgorithmMode, Record<string, ComplexityInfo>> = {
   'sorting': SORTING_ALGORITHMS,
   'searching': SEARCHING_ALGORITHMS,
   'linked-list': LINKED_LIST_ALGORITHMS,
   'tree': TREE_ALGORITHMS,
   'hash-table': HASH_TABLE_ALGORITHMS,
+  'graph': GRAPH_ALGORITHMS,
 };
 
 export const getAlgorithmInfo = (mode: AlgorithmMode, name: string): ComplexityInfo | null => {

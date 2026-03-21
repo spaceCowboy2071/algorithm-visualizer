@@ -1,5 +1,5 @@
 // Algorithm mode discriminator
-export type AlgorithmMode = 'sorting' | 'searching' | 'linked-list' | 'tree' | 'hash-table';
+export type AlgorithmMode = 'sorting' | 'searching' | 'linked-list' | 'tree' | 'hash-table' | 'graph';
 
 // Unified complexity info (shared by both sorting and searching)
 export interface ComplexityInfo {
@@ -116,8 +116,49 @@ export interface HashTableHistoryState {
   operationResult: 'success' | 'not-found' | null;
 }
 
+// Graph node (vertex)
+export interface GraphNode {
+  id: string;
+  label: string;
+  x: number; // Normalized 0-1, scaled at render time
+  y: number;
+}
+
+// Graph edge
+export interface GraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  weight: number;
+}
+
+// Serializable graph structure
+export interface GraphData {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  directed: boolean;
+  weighted: boolean;
+}
+
+// History snapshot for graph operations
+export interface GraphHistoryState {
+  graph: GraphData;
+  currentNodeId: string | null;
+  visitedNodeIds: string[];
+  visitedEdgeIds: string[];
+  frontierNodeIds: string[];
+  foundNodeId: string | null;
+  highlightedPath: string[];
+  highlightedEdgePath: string[];
+  distances: Record<string, number>;
+  topologicalOrder: string[];
+  currentLine: number | null;
+  message: string;
+  operationResult: 'success' | 'not-found' | null;
+}
+
 // Union type for history
-export type HistoryState = SortingHistoryState | SearchHistoryState | LinkedListHistoryState | TreeHistoryState | HashTableHistoryState;
+export type HistoryState = SortingHistoryState | SearchHistoryState | LinkedListHistoryState | TreeHistoryState | HashTableHistoryState | GraphHistoryState;
 
 // Control refs interface
 export interface VisualizationControlRefs {

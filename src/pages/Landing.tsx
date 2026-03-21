@@ -89,17 +89,18 @@ function Landing() {
                       </div>
                     </Link>
 
-                    {/* Graphs - Coming Soon */}
-                    <div className="border-l-2 border-transparent opacity-50 pl-4 py-3 cursor-not-allowed">
+                    <Link
+                      to="/graphs"
+                      className="group border-l-2 border-transparent hover:border-[#4af626] hover:bg-[rgba(74,246,38,0.05)] transition-all pl-4 py-3"
+                    >
                       <div className="text-[#4af626]">
                         <span className="font-bold">$ </span>
                         <span className="text-base md:text-lg">graphs</span>
-                        <span className="text-gray-500 text-xs ml-2">[coming soon]</span>
                       </div>
                       <div className="text-gray-600 text-sm ml-6 mt-1">
                         # BFS, DFS, Dijkstra's, Topological Sort
                       </div>
-                    </div>
+                    </Link>
 
                     {/* Blind 75 Challenge */}
                     <Link
