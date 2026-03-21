@@ -3,6 +3,9 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import { getProblemById, type Problem } from '../data/problemsData';
 import { getVisualizerPath } from '../data/problemVisualizers';
+import { PROBLEMS } from '../data/blind75Problems';
+import { useTrackerStore } from '../hooks/useTrackerStore';
+import StatusEditDropdown from '../components/blind75/StatusEditDropdown';
 
 function ProblemPage() {
   const { id } = useParams<{ id: string }>();
@@ -18,8 +21,13 @@ function ProblemPage() {
   const [language, setLanguage] = useState<'javascript' | 'python'>('python');
   const [code, setCode] = useState('');
 
-  // Notes state
-  const [notes, setNotes] = useState('');
+  // Tracker store
+  const { getProgress, updateProgress } = useTrackerStore();
+  const blind75Problem = PROBLEMS.find(p => p.id === Number(problemId));
+  const progress = getProgress(Number(problemId));
+
+  // Notes state (local for textarea, synced to store)
+  const [notes, setNotes] = useState(progress.notes);
 
   // Notes modal state
   const [isNotesOpen, setIsNotesOpen] = useState(false);
@@ -32,9 +40,8 @@ function ProblemPage() {
   const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0, posX: 0, posY: 0 });
   const notesModalRef = useRef<HTMLDivElement>(null);
 
-  // Progress state
-  const [solvedIn20Min, setSolvedIn20Min] = useState(false);
-  const [completed, setCompleted] = useState(false);
+  // Progress panel state
+  const [isProgressOpen, setIsProgressOpen] = useState(false);
 
   // Tab state for left panel
   const [activeTab, setActiveTab] = useState<'description' | 'visualizer'>('description');
@@ -67,14 +74,8 @@ function ProblemPage() {
     setPrevSyncKey(syncKey);
 
     const savedCode = localStorage.getItem(`problem_${problemId}_code_${language}`);
-    const savedNotes = localStorage.getItem(`problem_${problemId}_notes`);
-    const savedCompleted = localStorage.getItem(`problem_${problemId}_completed`);
-    const savedSolvedIn20 = localStorage.getItem(`problem_${problemId}_solved_in_20`);
-
     setCode(savedCode ?? problem.starterCode[language]);
-    setNotes(savedNotes ?? '');
-    setCompleted(savedCompleted === 'true');
-    setSolvedIn20Min(savedSolvedIn20 === 'true');
+    setNotes(getProgress(Number(problemId)).notes);
     setActiveTab('description');
   }
 
@@ -86,12 +87,12 @@ function ProblemPage() {
     }
   }, [code, problemId, language, problem]);
 
-  // Save notes to localStorage whenever they change
+  // Save notes to tracker store whenever they change
   useEffect(() => {
-    if (notes) {
-      localStorage.setItem(`problem_${problemId}_notes`, notes);
+    if (notes !== progress.notes) {
+      updateProgress(Number(problemId), { notes });
     }
-  }, [notes, problemId]);
+  }, [notes, problemId, progress.notes, updateProgress]);
 
   // Timer logic
   useEffect(() => {
@@ -191,6 +192,10 @@ function ProblemPage() {
   }
 
   const startTimer = () => {
+    if (!timerStarted) {
+      // First start — increment attempt count
+      updateProgress(Number(problemId), { attemptCount: progress.attemptCount + 1 });
+    }
     setIsTimerRunning(true);
     setTimerStarted(true);
   };
@@ -300,19 +305,140 @@ function ProblemPage() {
         <div className="flex-1 bg-black p-8 flex flex-col relative">
           <div className="flex-1 flex flex-col">
             {/* Terminal Window */}
-            <div className="flex-1 bg-[#0d0d0d] border-2 border-[#1a1a1a] rounded-md shadow-2xl flex flex-col overflow-hidden">
+            <div className="flex-1 bg-[#0d0d0d] border-2 border-[#1a1a1a] rounded-md shadow-2xl flex flex-col overflow-hidden relative">
               {/* Terminal Title Bar */}
               <div className="bg-[#1a1a1a] px-4 py-2 border-b border-[#2a2a2a] flex items-center justify-between">
                 <span className="text-gray-500 text-xs font-mono">
                   terminal@algorithmviz/blind75/{problem.title.toLowerCase().replace(/\s+/g, '-')}
                 </span>
-                <Link 
+                <button
+                  onClick={() => setIsProgressOpen(!isProgressOpen)}
+                  className={`px-3 py-1 border rounded text-xs font-semibold font-mono transition ${
+                    isProgressOpen
+                      ? 'border-[#4af626] text-[#4af626] bg-[rgba(74,246,38,0.1)]'
+                      : 'border-gray-600 text-gray-400 hover:border-[#4af626] hover:text-[#4af626]'
+                  }`}
+                >
+                  Progress
+                </button>
+                <Link
                   to="/blind75"
                   className="text-gray-500 hover:text-[#4af626] text-xs transition"
                 >
                   ← Back to Problems
                 </Link>
               </div>
+
+              {/* Progress Overlay */}
+              {isProgressOpen && (
+                <div
+                  className="absolute inset-0 z-40 flex items-center justify-center"
+                  style={{ background: 'rgba(13, 13, 13, 0.85)', backdropFilter: 'blur(4px)' }}
+                  onClick={(e) => { if (e.target === e.currentTarget) setIsProgressOpen(false); }}
+                >
+                  <div className="w-full max-w-md mx-4 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg shadow-2xl font-mono overflow-hidden">
+                    {/* Overlay Header */}
+                    <div className="flex items-center justify-between px-5 py-3 border-b border-[#2a2a2a]">
+                      <h2 className="text-sm font-bold text-[#4af626]">Progress</h2>
+                      <button
+                        onClick={() => setIsProgressOpen(false)}
+                        className="p-1 text-gray-400 hover:text-red-500 transition"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    {/* Overlay Body — structured grid */}
+                    <div className="p-5 space-y-4">
+                      {/* Row 1: Status */}
+                      <div className="grid grid-cols-[100px_1fr] items-center">
+                        <span className="text-xs text-gray-500">Status</span>
+                        <div>
+                          <StatusEditDropdown
+                            currentStatus={progress.status}
+                            onStatusChange={(status) => updateProgress(Number(problemId), { status })}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="border-t border-[#2a2a2a]" />
+
+                      {/* Row 2: Confidence */}
+                      <div className="grid grid-cols-[100px_1fr] items-center">
+                        <span className="text-xs text-gray-500">Confidence</span>
+                        <div className="flex gap-1.5">
+                          {[1, 2, 3, 4, 5].map(n => (
+                            <button
+                              key={n}
+                              onClick={() => updateProgress(Number(problemId), { confidence: n })}
+                              className={`w-7 h-7 rounded text-xs font-bold transition ${
+                                progress.confidence >= n
+                                  ? 'bg-[#4af626] text-black'
+                                  : 'bg-[#2a2a2a] text-gray-500 hover:text-[#4af626]'
+                              }`}
+                            >
+                              {n}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="border-t border-[#2a2a2a]" />
+
+                      {/* Row 3 & 4: Checkboxes */}
+                      <div className="grid grid-cols-[100px_1fr] items-center">
+                        <span className="text-xs text-gray-500">Independent</span>
+                        <label className="flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={progress.solvedIndependently}
+                            onChange={(e) => updateProgress(Number(problemId), { solvedIndependently: e.target.checked })}
+                            className="w-4 h-4 accent-[#4af626]"
+                          />
+                          <span className="ml-2 text-xs text-gray-400">Solved without help</span>
+                        </label>
+                      </div>
+
+                      <div className="grid grid-cols-[100px_1fr] items-center">
+                        <span className="text-xs text-gray-500">Under 20 min</span>
+                        <label className="flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={progress.solvedIn20Min}
+                            onChange={(e) => updateProgress(Number(problemId), { solvedIn20Min: e.target.checked })}
+                            className="w-4 h-4 accent-[#4af626]"
+                          />
+                          <span className="ml-2 text-xs text-gray-400">Solved within time</span>
+                        </label>
+                      </div>
+
+                      <div className="border-t border-[#2a2a2a]" />
+
+                      {/* Row 5: Attempts */}
+                      <div className="grid grid-cols-[100px_1fr] items-center">
+                        <span className="text-xs text-gray-500">Attempts</span>
+                        <span className="text-xs text-gray-300">{progress.attemptCount}</span>
+                      </div>
+
+                      {/* Row 6: Last Attempted */}
+                      <div className="grid grid-cols-[100px_1fr] items-center">
+                        <span className="text-xs text-gray-500">Last Attempt</span>
+                        <span className="text-xs text-gray-300">{progress.lastAttempted || '—'}</span>
+                      </div>
+
+                      {/* Row 7: Pattern */}
+                      {blind75Problem && (
+                        <div className="grid grid-cols-[100px_1fr] items-center">
+                          <span className="text-xs text-gray-500">Pattern</span>
+                          <span className="text-xs text-gray-300">{blind75Problem.pattern}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Main Content Area */}
               <div className="flex-1 flex overflow-hidden">
@@ -451,38 +577,6 @@ function ProblemPage() {
                       </ul>
                     </div>
 
-                    {/* Progress Checkboxes */}
-                    <div className="mb-6 p-4 bg-[#1a1a1a] border border-[#2a2a2a] rounded">
-                      <h2 className="text-[#4af626] text-sm font-bold mb-3">Progress</h2>
-                      <div className="space-y-2">
-                        <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer hover:text-[#4af626] transition">
-                          <input
-                            type="checkbox"
-                            checked={completed}
-                            onChange={(e) => {
-                              const checked = e.target.checked;
-                              setCompleted(checked);
-                              localStorage.setItem(`problem_${problemId}_completed`, String(checked));
-                            }}
-                            className="w-4 h-4 accent-[#4af626]"
-                          />
-                          Completed
-                        </label>
-                        <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer hover:text-[#4af626] transition">
-                          <input
-                            type="checkbox"
-                            checked={solvedIn20Min}
-                            onChange={(e) => {
-                              const checked = e.target.checked;
-                              setSolvedIn20Min(checked);
-                              localStorage.setItem(`problem_${problemId}_solved_in_20`, String(checked));
-                            }}
-                            className="w-4 h-4 accent-[#4af626]"
-                          />
-                          Solved in 20 minutes
-                        </label>
-                      </div>
-                    </div>
 
                   </div>
                   </div>
@@ -544,6 +638,30 @@ function ProblemPage() {
                         tabSize: 2,
                       }}
                     />
+                  </div>
+
+                  {/* Complexity Bar */}
+                  <div className="flex items-center gap-4 px-4 py-2 border-t border-[#2a2a2a] bg-[#1a1a1a] shrink-0 font-mono">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-gray-500">Time</span>
+                      <input
+                        type="text"
+                        value={progress.timeComplexity}
+                        onChange={(e) => updateProgress(Number(problemId), { timeComplexity: e.target.value })}
+                        placeholder="O(n)"
+                        className="w-20 px-2 py-0.5 bg-[#0d0d0d] border border-[#2a2a2a] rounded text-xs text-gray-300 font-mono focus:outline-none focus:border-[#4af626]"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-gray-500">Space</span>
+                      <input
+                        type="text"
+                        value={progress.spaceComplexity}
+                        onChange={(e) => updateProgress(Number(problemId), { spaceComplexity: e.target.value })}
+                        placeholder="O(1)"
+                        className="w-20 px-2 py-0.5 bg-[#0d0d0d] border border-[#2a2a2a] rounded text-xs text-gray-300 font-mono focus:outline-none focus:border-[#4af626]"
+                      />
+                    </div>
                   </div>
 
                   {/* Test Output Panel */}
