@@ -95,7 +95,7 @@ function TreeCanvas({ root, currentNodeId, visitedNodeIds, foundNodeId, highligh
 
   if (!root) {
     return (
-      <div className="h-48 sm:h-56 lg:h-72 w-full flex items-center justify-center text-gray-500">
+      <div className="h-72 sm:h-96 lg:h-[500px] w-full flex items-center justify-center text-gray-500">
         <div className="text-center">
           <div className="text-4xl mb-2 opacity-30">Empty Tree</div>
           <div className="text-sm">Generate a tree to start</div>
@@ -105,7 +105,7 @@ function TreeCanvas({ root, currentNodeId, visitedNodeIds, foundNodeId, highligh
   }
 
   return (
-    <div className="h-48 sm:h-56 lg:h-72 w-full">
+    <div className="h-72 sm:h-96 lg:h-[500px] w-full">
       <svg
         viewBox={`0 0 ${width} ${height}`}
         preserveAspectRatio="xMidYMid meet"
