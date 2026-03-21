@@ -11,14 +11,16 @@ interface HashTableViewProps {
   hashComputationStep: string | null;
 }
 
-const BUCKET_W = 56;
+// Horizontal layout constants
+const BUCKET_W = 50;
 const BUCKET_H = 40;
-const BUCKET_GAP = 4;
-const CHAIN_NODE = 34;
-const CHAIN_GAP = 8;
-const ARROW_W = 20;
-const LEFT_PAD = 70;
+const BUCKET_GAP = 6;
+const CHAIN_NODE = 32;
+const CHAIN_GAP = 6;
+const ARROW_H = 16;
+const LEFT_PAD = 20;
 const TOP_PAD = 50;
+const INDEX_HEIGHT = 20;
 
 function HashTableView({
   buckets,
@@ -42,11 +44,11 @@ function HashTableView({
   }
 
   const maxChainLen = Math.max(...buckets.map(b => b.entries.length), 0);
-  const chainWidth = mode === 'chaining'
-    ? maxChainLen * (CHAIN_NODE + CHAIN_GAP + ARROW_W) + 40
+  const chainHeight = mode === 'chaining'
+    ? maxChainLen * (CHAIN_NODE + CHAIN_GAP + ARROW_H) + 30
     : 0;
-  const totalWidth = LEFT_PAD + BUCKET_W + chainWidth + 40;
-  const totalHeight = TOP_PAD + buckets.length * (BUCKET_H + BUCKET_GAP) + 10;
+  const totalWidth = LEFT_PAD * 2 + buckets.length * (BUCKET_W + BUCKET_GAP);
+  const totalHeight = TOP_PAD + INDEX_HEIGHT + BUCKET_H + chainHeight + 20;
 
   const getBucketStroke = (idx: number): string => {
     if (currentBucketIndex === idx) return '#eab308';
@@ -118,30 +120,29 @@ function HashTableView({
           </text>
         )}
 
-        {/* Buckets */}
+        {/* Buckets — horizontal row */}
         {buckets.map((bucket, i) => {
-          const y = TOP_PAD + i * (BUCKET_H + BUCKET_GAP);
-          const bucketX = LEFT_PAD;
+          const x = LEFT_PAD + i * (BUCKET_W + BUCKET_GAP);
+          const bucketY = TOP_PAD + INDEX_HEIGHT;
 
           return (
             <g key={i}>
-              {/* Index label */}
+              {/* Index label above bucket */}
               <text
-                x={LEFT_PAD - 10}
-                y={y + BUCKET_H / 2}
-                textAnchor="end"
-                dominantBaseline="central"
+                x={x + BUCKET_W / 2}
+                y={TOP_PAD + INDEX_HEIGHT - 6}
+                textAnchor="middle"
                 fill="#9ca3af"
-                fontSize={12}
+                fontSize={11}
                 fontFamily="monospace"
               >
-                [{i}]
+                {i}
               </text>
 
               {/* Bucket rectangle */}
               <rect
-                x={bucketX}
-                y={y}
+                x={x}
+                y={bucketY}
                 width={BUCKET_W}
                 height={BUCKET_H}
                 rx={4}
@@ -152,12 +153,12 @@ function HashTableView({
               />
 
               {mode === 'linear-probing' ? (
-                // Linear probing: show value inside bucket
+                // Linear probing: value inside bucket
                 bucket.entries.length > 0 ? (
                   <g>
                     <rect
-                      x={bucketX + 4}
-                      y={y + 4}
+                      x={x + 4}
+                      y={bucketY + 4}
                       width={BUCKET_W - 8}
                       height={BUCKET_H - 8}
                       rx={3}
@@ -166,12 +167,12 @@ function HashTableView({
                       strokeWidth={1.5}
                     />
                     <text
-                      x={bucketX + BUCKET_W / 2}
-                      y={y + BUCKET_H / 2}
+                      x={x + BUCKET_W / 2}
+                      y={bucketY + BUCKET_H / 2}
                       textAnchor="middle"
                       dominantBaseline="central"
                       fill="white"
-                      fontSize={13}
+                      fontSize={12}
                       fontWeight="bold"
                       fontFamily="monospace"
                     >
@@ -180,8 +181,8 @@ function HashTableView({
                   </g>
                 ) : bucket.isDeleted ? (
                   <text
-                    x={bucketX + BUCKET_W / 2}
-                    y={y + BUCKET_H / 2}
+                    x={x + BUCKET_W / 2}
+                    y={bucketY + BUCKET_H / 2}
                     textAnchor="middle"
                     dominantBaseline="central"
                     fill="#ef4444"
@@ -193,47 +194,46 @@ function HashTableView({
                   </text>
                 ) : (
                   <text
-                    x={bucketX + BUCKET_W / 2}
-                    y={y + BUCKET_H / 2}
+                    x={x + BUCKET_W / 2}
+                    y={bucketY + BUCKET_H / 2}
                     textAnchor="middle"
                     dominantBaseline="central"
                     fill="#4b5563"
-                    fontSize={10}
+                    fontSize={9}
                     fontFamily="monospace"
                   >
                     empty
                   </text>
                 )
               ) : (
-                // Chaining: show chain extending right
+                // Chaining: chain extends downward
                 <>
                   {bucket.entries.length === 0 ? (
                     <text
-                      x={bucketX + BUCKET_W + 12}
-                      y={y + BUCKET_H / 2}
-                      dominantBaseline="central"
+                      x={x + BUCKET_W / 2}
+                      y={bucketY + BUCKET_H + 16}
+                      textAnchor="middle"
                       fill="#4b5563"
-                      fontSize={10}
+                      fontSize={9}
                       fontFamily="monospace"
                     >
                       null
                     </text>
                   ) : (
                     <>
-                      {/* Arrow from bucket to first chain node */}
+                      {/* Arrow from bucket down to first chain node */}
                       <line
-                        x1={bucketX + BUCKET_W}
-                        y1={y + BUCKET_H / 2}
-                        x2={bucketX + BUCKET_W + ARROW_W}
-                        y2={y + BUCKET_H / 2}
+                        x1={x + BUCKET_W / 2}
+                        y1={bucketY + BUCKET_H}
+                        x2={x + BUCKET_W / 2}
+                        y2={bucketY + BUCKET_H + ARROW_H}
                         stroke="#4b5563"
                         strokeWidth={1.5}
-                        markerEnd="url(#htArrow)"
                       />
 
                       {bucket.entries.map((entry, ei) => {
-                        const cx = bucketX + BUCKET_W + ARROW_W + ei * (CHAIN_NODE + CHAIN_GAP + ARROW_W) + CHAIN_NODE / 2;
-                        const cy = y + BUCKET_H / 2;
+                        const cx = x + BUCKET_W / 2;
+                        const cy = bucketY + BUCKET_H + ARROW_H + ei * (CHAIN_NODE + CHAIN_GAP + ARROW_H) + CHAIN_NODE / 2;
 
                         return (
                           <g key={entry.id}>
@@ -254,7 +254,7 @@ function HashTableView({
                               textAnchor="middle"
                               dominantBaseline="central"
                               fill="white"
-                              fontSize={12}
+                              fontSize={11}
                               fontWeight="bold"
                               fontFamily="monospace"
                             >
@@ -264,20 +264,20 @@ function HashTableView({
                             {/* Arrow to next or null */}
                             {ei < bucket.entries.length - 1 ? (
                               <line
-                                x1={cx + CHAIN_NODE / 2}
-                                y1={cy}
-                                x2={cx + CHAIN_NODE / 2 + CHAIN_GAP + ARROW_W}
-                                y2={cy}
+                                x1={cx}
+                                y1={cy + CHAIN_NODE / 2}
+                                x2={cx}
+                                y2={cy + CHAIN_NODE / 2 + CHAIN_GAP + ARROW_H}
                                 stroke="#4b5563"
                                 strokeWidth={1.5}
                               />
                             ) : (
                               <text
-                                x={cx + CHAIN_NODE / 2 + 10}
-                                y={cy}
-                                dominantBaseline="central"
+                                x={cx}
+                                y={cy + CHAIN_NODE / 2 + 12}
+                                textAnchor="middle"
                                 fill="#4b5563"
-                                fontSize={10}
+                                fontSize={9}
                                 fontFamily="monospace"
                               >
                                 null
