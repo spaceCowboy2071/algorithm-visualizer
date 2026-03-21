@@ -1,5 +1,5 @@
 // Algorithm mode discriminator
-export type AlgorithmMode = 'sorting' | 'searching' | 'linked-list';
+export type AlgorithmMode = 'sorting' | 'searching' | 'linked-list' | 'tree';
 
 // Unified complexity info (shared by both sorting and searching)
 export interface ComplexityInfo {
@@ -66,8 +66,29 @@ export interface LinkedListHistoryState {
   operationResult: 'success' | 'not-found' | null;
 }
 
+// Tree node representation (BST)
+export interface TreeNodeData {
+  id: string;
+  value: number;
+  leftId: string | null;
+  rightId: string | null;
+}
+
+// History snapshot for tree operations
+export interface TreeHistoryState {
+  nodes: TreeNodeData[];
+  rootId: string | null;
+  currentNodeId: string | null;
+  visitedNodeIds: string[];
+  foundNodeId: string | null;
+  highlightedPath: string[];
+  currentLine: number | null;
+  message: string;
+  operationResult: 'success' | 'not-found' | null;
+}
+
 // Union type for history
-export type HistoryState = SortingHistoryState | SearchHistoryState | LinkedListHistoryState;
+export type HistoryState = SortingHistoryState | SearchHistoryState | LinkedListHistoryState | TreeHistoryState;
 
 // Control refs interface
 export interface VisualizationControlRefs {

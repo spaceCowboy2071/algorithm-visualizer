@@ -621,6 +621,397 @@ export const LINKED_LIST_REVERSE_INFO: ComplexityInfo = {
 };
 
 // ============================================
+// TREE ALGORITHMS
+// ============================================
+
+export const BST_INSERT_INFO: ComplexityInfo = {
+  name: "BST Insert",
+  timeComplexity: {
+    best: "O(log n)",
+    average: "O(log n)",
+    worst: "O(n)"
+  },
+  spaceComplexity: "O(1)",
+  explanations: {
+    how: "BST Insert starts at the root and compares the new value with the current node. If the new value is less, it moves to the left child; if greater, to the right child. This continues until an empty spot is found, where the new node is placed. The BST property (left < parent < right) is maintained automatically.",
+    when: "Use BST Insert when building a binary search tree from scratch or adding new elements to an existing BST. It's ideal when you need to maintain sorted order while supporting efficient search, insert, and delete operations.",
+    where: "BST Insert is used in database indexing, file system organization, symbol tables in compilers, auto-complete systems, and any application that needs a dynamic sorted collection with efficient lookups.",
+    why: "Choose BST Insert when: (1) you need O(log n) average-case insertion and lookup, (2) the data arrives in a reasonably random order, (3) you need in-order traversal for sorted output, or (4) you're building a foundation for more advanced trees (AVL, Red-Black)."
+  },
+  code: {
+    javascript: `function insert(root, value) {
+  const newNode = { value, left: null, right: null };
+
+  if (root === null) {
+    return newNode;
+  }
+
+  let current = root;
+  while (true) {
+    if (value < current.value) {
+      if (current.left === null) {
+        current.left = newNode;
+        return root;
+      }
+      current = current.left;
+    } else {
+      if (current.right === null) {
+        current.right = newNode;
+        return root;
+      }
+      current = current.right;
+    }
+  }
+}`,
+    python: `def insert(root, value):
+    new_node = TreeNode(value)
+
+    if root is None:
+        return new_node
+
+    current = root
+    while True:
+        if value < current.value:
+            if current.left is None:
+                current.left = new_node
+                return root
+            current = current.left
+        else:
+            if current.right is None:
+                current.right = new_node
+                return root
+            current = current.right`
+  }
+};
+
+export const BST_SEARCH_INFO: ComplexityInfo = {
+  name: "BST Search",
+  timeComplexity: {
+    best: "O(1)",
+    average: "O(log n)",
+    worst: "O(n)"
+  },
+  spaceComplexity: "O(1)",
+  explanations: {
+    how: "BST Search starts at the root and compares the target value with the current node. If the target equals the current value, the node is found. If the target is less, search continues in the left subtree; if greater, in the right subtree. This halves the search space at each step (in a balanced tree).",
+    when: "Use BST Search when you need to find a specific value in a binary search tree. It provides efficient lookup by exploiting the BST ordering property to eliminate half the remaining nodes at each comparison.",
+    where: "BST Search is used in dictionary lookups, database queries, spell checkers, IP routing tables, and any system that needs fast key-based retrieval from a dynamic dataset.",
+    why: "Choose BST Search when: (1) the data is stored in a BST, (2) you need O(log n) average-case lookups, (3) the tree is reasonably balanced, or (4) you need both search and ordered traversal capabilities."
+  },
+  code: {
+    javascript: `function search(root, target) {
+  let current = root;
+
+  while (current !== null) {
+    if (current.value === target) {
+      return current;
+    }
+
+    if (target < current.value) {
+      current = current.left;
+    } else {
+      current = current.right;
+    }
+  }
+
+  return null;
+}`,
+    python: `def search(root, target):
+    current = root
+
+    while current is not None:
+        if current.value == target:
+            return current
+
+        if target < current.value:
+            current = current.left
+        else:
+            current = current.right
+
+    return None`
+  }
+};
+
+export const BST_DELETE_INFO: ComplexityInfo = {
+  name: "BST Delete",
+  timeComplexity: {
+    best: "O(log n)",
+    average: "O(log n)",
+    worst: "O(n)"
+  },
+  spaceComplexity: "O(1)",
+  explanations: {
+    how: "BST Delete first searches for the target node. Once found, there are three cases: (1) Leaf node: simply remove it. (2) One child: replace the node with its child. (3) Two children: find the inorder successor (smallest value in the right subtree), copy its value to the target node, then delete the successor.",
+    when: "Use BST Delete when you need to remove elements from a binary search tree while maintaining the BST property. It's essential for any dynamic set that supports removal operations.",
+    where: "BST Delete is used in database systems (removing records), memory management (freeing allocations), cache eviction, and any application where elements need to be dynamically removed from a sorted structure.",
+    why: "Choose BST Delete when: (1) you need to maintain a dynamic sorted collection, (2) the tree supports frequent insertions and deletions, (3) you need O(log n) average-case removal, or (4) you need the tree to remain a valid BST after removal."
+  },
+  code: {
+    javascript: `function deleteNode(root, target) {
+  if (root === null) return null;
+
+  if (target < root.value) {
+    root.left = deleteNode(root.left, target);
+  } else if (target > root.value) {
+    root.right = deleteNode(root.right, target);
+  } else {
+    // Found the node to delete
+    if (root.left === null) return root.right;
+    if (root.right === null) return root.left;
+
+    // Two children: find inorder successor
+    let successor = root.right;
+    while (successor.left !== null) {
+      successor = successor.left;
+    }
+    root.value = successor.value;
+    root.right = deleteNode(root.right, successor.value);
+  }
+
+  return root;
+}`,
+    python: `def delete_node(root, target):
+    if root is None:
+        return None
+
+    if target < root.value:
+        root.left = delete_node(root.left, target)
+    elif target > root.value:
+        root.right = delete_node(root.right, target)
+    else:
+        # Found the node to delete
+        if root.left is None:
+            return root.right
+        if root.right is None:
+            return root.left
+
+        # Two children: find inorder successor
+        successor = root.right
+        while successor.left is not None:
+            successor = successor.left
+        root.value = successor.value
+        root.right = delete_node(root.right, successor.value)
+
+    return root`
+  }
+};
+
+export const INORDER_TRAVERSAL_INFO: ComplexityInfo = {
+  name: "Inorder Traversal",
+  timeComplexity: {
+    best: "O(n)",
+    average: "O(n)",
+    worst: "O(n)"
+  },
+  spaceComplexity: "O(n)",
+  explanations: {
+    how: "Inorder traversal visits nodes in the order: Left subtree, Current node, Right subtree. Using a stack, we push all left children first, then pop and visit a node, then move to its right child and repeat. For a BST, this produces values in sorted (ascending) order.",
+    when: "Use Inorder traversal when you need sorted output from a BST, need to validate BST properties, or need to process nodes in ascending order of their values.",
+    where: "Inorder traversal is used in expression tree evaluation (infix notation), BST validation, generating sorted sequences, database index scans, and range queries.",
+    why: "Choose Inorder traversal when: (1) you need sorted output from a BST, (2) you're validating a BST, (3) you need to process all nodes in value order, or (4) you're implementing range-based queries."
+  },
+  code: {
+    javascript: `function inorder(root) {
+  const result = [];
+  const stack = [];
+  let current = root;
+
+  while (current !== null || stack.length > 0) {
+    while (current !== null) {
+      stack.push(current);
+      current = current.left;
+    }
+
+    current = stack.pop();
+    result.push(current.value);
+    current = current.right;
+  }
+
+  return result;
+}`,
+    python: `def inorder(root):
+    result = []
+    stack = []
+    current = root
+
+    while current is not None or len(stack) > 0:
+        while current is not None:
+            stack.append(current)
+            current = current.left
+
+        current = stack.pop()
+        result.append(current.value)
+        current = current.right
+
+    return result`
+  }
+};
+
+export const PREORDER_TRAVERSAL_INFO: ComplexityInfo = {
+  name: "Preorder Traversal",
+  timeComplexity: {
+    best: "O(n)",
+    average: "O(n)",
+    worst: "O(n)"
+  },
+  spaceComplexity: "O(n)",
+  explanations: {
+    how: "Preorder traversal visits nodes in the order: Current node, Left subtree, Right subtree. Using a stack, we pop and visit a node, then push its right child followed by its left child (so left is processed first). The root is always visited first.",
+    when: "Use Preorder traversal when you need to process the root before its children, serialize/copy a tree, or create a prefix expression from an expression tree.",
+    where: "Preorder traversal is used in tree serialization/deserialization, creating copies of trees, prefix notation in expression trees, and generating tree structure representations (like directory listings).",
+    why: "Choose Preorder traversal when: (1) you need to serialize a tree for storage or transmission, (2) you're creating a deep copy, (3) you need prefix expression evaluation, or (4) you want to process parent nodes before their children."
+  },
+  code: {
+    javascript: `function preorder(root) {
+  if (root === null) return [];
+
+  const result = [];
+  const stack = [root];
+
+  while (stack.length > 0) {
+    const node = stack.pop();
+    result.push(node.value);
+
+    if (node.right) stack.push(node.right);
+    if (node.left) stack.push(node.left);
+  }
+
+  return result;
+}`,
+    python: `def preorder(root):
+    if root is None:
+        return []
+
+    result = []
+    stack = [root]
+
+    while len(stack) > 0:
+        node = stack.pop()
+        result.append(node.value)
+
+        if node.right:
+            stack.append(node.right)
+        if node.left:
+            stack.append(node.left)
+
+    return result`
+  }
+};
+
+export const POSTORDER_TRAVERSAL_INFO: ComplexityInfo = {
+  name: "Postorder Traversal",
+  timeComplexity: {
+    best: "O(n)",
+    average: "O(n)",
+    worst: "O(n)"
+  },
+  spaceComplexity: "O(n)",
+  explanations: {
+    how: "Postorder traversal visits nodes in the order: Left subtree, Right subtree, Current node. Using two stacks: push root to stack1, pop from stack1 and push to stack2 while pushing children to stack1. Then pop all from stack2 for the result. Children are always processed before their parent.",
+    when: "Use Postorder traversal when you need to process children before their parent, delete a tree safely, or evaluate postfix expressions from an expression tree.",
+    where: "Postorder traversal is used in tree deletion (delete children before parent), postfix expression evaluation, calculating directory sizes (need subtree sizes first), and dependency resolution.",
+    why: "Choose Postorder traversal when: (1) you need to delete/free a tree safely, (2) you're evaluating postfix expressions, (3) you need bottom-up computation (like subtree sizes), or (4) you need to process dependencies before dependents."
+  },
+  code: {
+    javascript: `function postorder(root) {
+  if (root === null) return [];
+
+  const result = [];
+  const stack1 = [root];
+  const stack2 = [];
+
+  while (stack1.length > 0) {
+    const node = stack1.pop();
+    stack2.push(node);
+
+    if (node.left) stack1.push(node.left);
+    if (node.right) stack1.push(node.right);
+  }
+
+  while (stack2.length > 0) {
+    result.push(stack2.pop().value);
+  }
+
+  return result;
+}`,
+    python: `def postorder(root):
+    if root is None:
+        return []
+
+    result = []
+    stack1 = [root]
+    stack2 = []
+
+    while len(stack1) > 0:
+        node = stack1.pop()
+        stack2.append(node)
+
+        if node.left:
+            stack1.append(node.left)
+        if node.right:
+            stack1.append(node.right)
+
+    while len(stack2) > 0:
+        result.append(stack2.pop().value)
+
+    return result`
+  }
+};
+
+export const LEVEL_ORDER_TRAVERSAL_INFO: ComplexityInfo = {
+  name: "Level-Order Traversal",
+  timeComplexity: {
+    best: "O(n)",
+    average: "O(n)",
+    worst: "O(n)"
+  },
+  spaceComplexity: "O(n)",
+  explanations: {
+    how: "Level-Order (BFS) traversal visits nodes level by level, left to right. Using a queue, we start with the root, dequeue a node, visit it, then enqueue its left and right children. This naturally processes nodes in breadth-first order.",
+    when: "Use Level-Order traversal when you need to process nodes level by level, find the shortest path in an unweighted tree, or print the tree structure by levels.",
+    where: "Level-Order traversal is used in tree pretty-printing, finding minimum depth, connecting nodes at the same level, serialization, and any problem that requires level-by-level processing.",
+    why: "Choose Level-Order traversal when: (1) you need BFS behavior on a tree, (2) you're finding shortest paths, (3) you need level-by-level processing, or (4) you want to find nodes at a specific depth."
+  },
+  code: {
+    javascript: `function levelOrder(root) {
+  if (root === null) return [];
+
+  const result = [];
+  const queue = [root];
+
+  while (queue.length > 0) {
+    const node = queue.shift();
+    result.push(node.value);
+
+    if (node.left) queue.push(node.left);
+    if (node.right) queue.push(node.right);
+  }
+
+  return result;
+}`,
+    python: `from collections import deque
+
+def level_order(root):
+    if root is None:
+        return []
+
+    result = []
+    queue = deque([root])
+
+    while len(queue) > 0:
+        node = queue.popleft()
+        result.append(node.value)
+
+        if node.left:
+            queue.append(node.left)
+        if node.right:
+            queue.append(node.right)
+
+    return result`
+  }
+};
+
+// ============================================
 // ALGORITHM REGISTRY
 // ============================================
 
@@ -645,26 +1036,27 @@ export const LINKED_LIST_ALGORITHMS: Record<string, ComplexityInfo> = {
   'Reverse': LINKED_LIST_REVERSE_INFO,
 };
 
+export const TREE_ALGORITHMS: Record<string, ComplexityInfo> = {
+  'BST Insert': BST_INSERT_INFO,
+  'BST Search': BST_SEARCH_INFO,
+  'BST Delete': BST_DELETE_INFO,
+  'Inorder Traversal': INORDER_TRAVERSAL_INFO,
+  'Preorder Traversal': PREORDER_TRAVERSAL_INFO,
+  'Postorder Traversal': POSTORDER_TRAVERSAL_INFO,
+  'Level-Order Traversal': LEVEL_ORDER_TRAVERSAL_INFO,
+};
+
+const ALGORITHM_REGISTRIES: Record<AlgorithmMode, Record<string, ComplexityInfo>> = {
+  'sorting': SORTING_ALGORITHMS,
+  'searching': SEARCHING_ALGORITHMS,
+  'linked-list': LINKED_LIST_ALGORITHMS,
+  'tree': TREE_ALGORITHMS,
+};
+
 export const getAlgorithmInfo = (mode: AlgorithmMode, name: string): ComplexityInfo | null => {
-  let algorithms: Record<string, ComplexityInfo>;
-  if (mode === 'sorting') {
-    algorithms = SORTING_ALGORITHMS;
-  } else if (mode === 'searching') {
-    algorithms = SEARCHING_ALGORITHMS;
-  } else {
-    algorithms = LINKED_LIST_ALGORITHMS;
-  }
-  return algorithms[name] || null;
+  return ALGORITHM_REGISTRIES[mode]?.[name] || null;
 };
 
 export const getAlgorithmNames = (mode: AlgorithmMode): string[] => {
-  let algorithms: Record<string, ComplexityInfo>;
-  if (mode === 'sorting') {
-    algorithms = SORTING_ALGORITHMS;
-  } else if (mode === 'searching') {
-    algorithms = SEARCHING_ALGORITHMS;
-  } else {
-    algorithms = LINKED_LIST_ALGORITHMS;
-  }
-  return Object.keys(algorithms);
+  return Object.keys(ALGORITHM_REGISTRIES[mode] || {});
 };
