@@ -1,6 +1,6 @@
 # Algorithm Visualizer
 
-An interactive web application for visualizing sorting and searching algorithms with real-time animations, step-by-step execution control, and live code visualization.
+An interactive web application for visualizing algorithms and data structures with real-time animations, step-by-step execution control, and live code visualization — wrapped in a retro IBM CRT terminal aesthetic with green/amber phosphor theme toggle.
 
 **Live Demo**: [https://algorithm-visualizer-swwu.vercel.app/](https://algorithm-visualizer-swwu.vercel.app/)
 
@@ -11,7 +11,7 @@ An interactive web application for visualizing sorting and searching algorithms 
 - **Playback Controls**: Play, pause, reset, step forward, and step back through algorithm execution
 - **History Navigation**: Travel backward through execution history to review previous steps
 - **Speed Control**: Adjustable animation speed (0.25x - 2x) for detailed analysis or quick demonstrations
-- **Visual Feedback**: Color-coded bars showing comparisons (yellow), sorted/found elements (green), eliminated elements (gray), and unsorted elements (blue)
+- **Visual Feedback**: Color-coded bars showing comparisons (yellow), sorted/found elements (green), eliminated elements (gray), and default elements (accent color)
 
 ### Algorithm Categories
 
@@ -29,8 +29,24 @@ An interactive web application for visualizing sorting and searching algorithms 
 ### Data Structure Visualizations
 
 #### Linked Lists
-- Interactive linked list operations and traversals
+- Interactive linked list operations (Insert Head/Tail, Delete, Search, Reverse)
 - Dynamically sized nodes based on container width
+
+#### Trees (BST)
+- Binary Search Tree operations (Insert, Search, Delete)
+- 4 traversal algorithms (Inorder, Preorder, Postorder, Level-Order)
+- SVG tree rendering with animated node highlighting
+
+#### Hash Tables
+- Two collision strategies: Chaining and Linear Probing
+- Insert, Search, Delete operations with step-by-step hash computation
+- SVG horizontal bucket layout
+
+#### Graphs
+- BFS, DFS, Dijkstra's Shortest Path, Topological Sort (Kahn's)
+- Directed/undirected and weighted/unweighted toggles
+- Start/target node selection, circular graph layout
+- SVG rendering with animated node/edge highlighting and distance labels
 
 ### Blind 75 Challenge
 A comprehensive LeetCode interview preparation platform featuring:
@@ -60,6 +76,15 @@ A comprehensive LeetCode interview preparation platform featuring:
 - **Array Size Control**: Adjustable array size with slider
 - **Random Array Generation**: Generate new random arrays (unsorted for sorting, sorted for searching)
 - **Language Toggle**: Switch between JavaScript and Python code examples
+
+### CRT Terminal Aesthetic
+- **IBM CRT Monitor** landing page with bezel, branded header, BIOS menu, and monitor stand (desktop)
+- **Flat CRT Screen** layout for mobile with scanlines and vignette overlays
+- **COLOR Button**: Toggle between green and amber phosphor theme (persisted in localStorage)
+- **CONTRAST Button**: Toggle CRT effects (scanlines + vignette) on/off
+- **Terminal Title Bars**: `terminal@algorithmviz/{page}` style on all pages
+- **Keyboard Navigation**: Arrow keys + Enter to navigate landing page menu
+- **Unified Dark Palette**: Consistent #0d1117 / #161b22 / #30363d across all pages
 
 ### Responsive Design
 - Mobile-friendly interface with adaptive layouts
@@ -111,10 +136,12 @@ The optimized build will be in the `dist/` folder.
 ## Project Status
 
 **Completed**:
+- All 5 data structure pages: Arrays, Linked Lists, Trees, Hash Tables, Graphs
 - Sorting algorithms: Bubble Sort, Quick Sort, Merge Sort
 - Searching algorithms: Binary Search, Linear Search, Jump Search, Interpolation Search
-- Unified ArrayVisualizer with mode switching (sorting/searching)
-- Linked Lists page with interactive visualization
+- Graph algorithms: BFS, DFS, Dijkstra's, Topological Sort
+- CRT terminal UI redesign — IBM monitor bezel landing page, green/amber theme toggle, scanlines/vignette toggle, unified dark palette, terminal title bars
+- Theme system — React context + CSS custom properties, localStorage persistence
 - Blind 75 study tracker with status/confidence/attempts/notes, dashboard overlay, and per-problem progress overlay
 - Monaco code editor with time/space complexity inputs on problem pages
 - 6 interactive HTML problem visualizers (Two Sum, Container With Most Water, Maximum Subarray, Product of Array Except Self, Clone Graph, Number of Islands)
@@ -131,9 +158,6 @@ The optimized build will be in the `dist/` folder.
 
 **Planned**:
 - Additional sorting algorithms (Insertion, Selection, Heap, Radix)
-- Tree visualizations (BST, traversals)
-- Graph algorithms (Dijkstra's, BFS, DFS, A*)
-- Hash Table visualizations
 - Firebase integration — user accounts, Firestore migration for tracker data (currently localStorage), spaced repetition reminders
 
 ## License
