@@ -19,6 +19,7 @@ export interface ComplexityInfo {
   code: {
     javascript: string;
     python: string;
+    pseudocode?: string;
   };
 }
 
@@ -26,7 +27,7 @@ export interface ComplexityInfo {
 export type InfoTab = 'complexity' | 'how' | 'when' | 'where' | 'why';
 
 // Language options for code viewer
-export type CodeLanguage = 'javascript' | 'python';
+export type CodeLanguage = 'javascript' | 'python' | 'pseudocode';
 
 // History snapshot for sorting
 export interface SortingHistoryState {

@@ -5,6 +5,7 @@ interface XRayCodeViewerProps {
   code: {
     javascript: string;
     python: string;
+    pseudocode?: string;
   };
   currentLine: number | null;
   variables: React.ReactNode;
@@ -12,6 +13,7 @@ interface XRayCodeViewerProps {
 
 function XRayCodeViewer({ code, currentLine, variables }: XRayCodeViewerProps) {
   const [currentLanguage, setCurrentLanguage] = useState<CodeLanguage>('python');
+  const activeCode = currentLanguage === 'pseudocode' && !code.pseudocode ? code.python : (code[currentLanguage] ?? code.python);
 
   return (
     <div className="bg-[#161b22] border border-[#30363d] rounded-xl shadow-xl overflow-hidden">
@@ -39,6 +41,18 @@ function XRayCodeViewer({ code, currentLine, variables }: XRayCodeViewerProps) {
           >
             Python
           </button>
+          {code.pseudocode && (
+            <button
+              onClick={() => setCurrentLanguage('pseudocode')}
+              className={`px-3 py-1.5 rounded text-xs font-semibold transition ${
+                currentLanguage === 'pseudocode'
+                  ? 'bg-[var(--accent)] text-white'
+                  : 'bg-[#21262d] text-gray-400 hover:bg-[#30363d]'
+              }`}
+            >
+              Pseudocode
+            </button>
+          )}
         </div>
       </div>
 
@@ -53,7 +67,7 @@ function XRayCodeViewer({ code, currentLine, variables }: XRayCodeViewerProps) {
       {/* Code */}
       <div className="overflow-auto p-3 bg-[#010409] max-h-96">
         <pre className="text-xs font-mono leading-relaxed">
-          {code[currentLanguage].split('\n').map((line, index) => {
+          {activeCode.split('\n').map((line, index) => {
             const lineNumber = index + 1;
             const isActive = currentLine === lineNumber;
 

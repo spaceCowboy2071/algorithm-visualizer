@@ -44,7 +44,17 @@ export const BUBBLE_SORT_INFO: ComplexityInfo = {
                 # Swap elements
                 arr[j], arr[j + 1] = arr[j + 1], arr[j]
 
-    return arr`
+    return arr`,
+    pseudocode: `FUNCTION bubbleSort(arr)
+    n ← length of arr
+
+    FOR i ← 0 TO n - 2
+        FOR j ← 0 TO n - i - 2
+            IF arr[j] > arr[j + 1] THEN
+                // Swap elements
+                SWAP arr[j] AND arr[j + 1]
+
+    RETURN arr`
   }
 };
 
@@ -108,7 +118,30 @@ def partition(arr, low, high):
             arr[i], arr[j] = arr[j], arr[i]
 
     arr[i + 1], arr[high] = arr[high], arr[i + 1]
-    return i + 1`
+    return i + 1`,
+    pseudocode: `FUNCTION quickSort(arr, low, high)
+    IF high is not set THEN
+        high ← length of arr - 1
+
+    IF low < high THEN
+        pivotIndex ← partition(arr, low, high)
+
+        quickSort(arr, low, pivotIndex - 1)
+        quickSort(arr, pivotIndex + 1, high)
+
+    RETURN arr
+
+FUNCTION partition(arr, low, high)
+    pivot ← arr[high]
+    i ← low - 1
+
+    FOR j ← low TO high - 1
+        IF arr[j] < pivot THEN
+            i ← i + 1
+            SWAP arr[i] AND arr[j]
+
+    SWAP arr[i + 1] AND arr[high]
+    RETURN i + 1`
   }
 };
 
@@ -199,7 +232,46 @@ def merge(arr, left, mid, right):
     while j < len(right_arr):
         arr[k] = right_arr[j]
         j += 1
-        k += 1`
+        k += 1`,
+    pseudocode: `FUNCTION mergeSort(arr, left, right)
+    IF right is not set THEN
+        right ← length of arr - 1
+
+    IF left < right THEN
+        mid ← floor((left + right) / 2)
+
+        mergeSort(arr, left, mid)
+        mergeSort(arr, mid + 1, right)
+
+        merge(arr, left, mid, right)
+
+    RETURN arr
+
+FUNCTION merge(arr, left, mid, right)
+    leftArr ← arr[left .. mid]
+    rightArr ← arr[mid + 1 .. right]
+
+    i ← 0, j ← 0
+    k ← left
+
+    WHILE i < length of leftArr AND j < length of rightArr
+        IF leftArr[i] <= rightArr[j] THEN
+            arr[k] ← leftArr[i]
+            i ← i + 1
+        ELSE
+            arr[k] ← rightArr[j]
+            j ← j + 1
+        k ← k + 1
+
+    WHILE i < length of leftArr
+        arr[k] ← leftArr[i]
+        i ← i + 1
+        k ← k + 1
+
+    WHILE j < length of rightArr
+        arr[k] ← rightArr[j]
+        j ← j + 1
+        k ← k + 1`
   }
 };
 
@@ -257,7 +329,23 @@ export const BINARY_SEARCH_INFO: ComplexityInfo = {
         else:
             right = mid - 1
 
-    return -1`
+    return -1`,
+    pseudocode: `FUNCTION binarySearch(arr, target)
+    SET left ← 0
+    SET right ← length(arr) - 1
+
+    WHILE left <= right
+        SET mid ← floor((left + right) / 2)
+
+        IF arr[mid] = target THEN
+            RETURN mid
+
+        IF arr[mid] < target THEN
+            SET left ← mid + 1
+        ELSE
+            SET right ← mid - 1
+
+    RETURN -1`
   }
 };
 
@@ -290,7 +378,13 @@ export const LINEAR_SEARCH_INFO: ComplexityInfo = {
         if arr[i] == target:
             return i
 
-    return -1`
+    return -1`,
+    pseudocode: `FUNCTION linearSearch(arr, target)
+    FOR i ← 0 TO length(arr) - 1
+        IF arr[i] = target THEN
+            RETURN i
+
+    RETURN -1`
   }
 };
 
@@ -346,7 +440,26 @@ export const JUMP_SEARCH_INFO: ComplexityInfo = {
 
     if arr[prev] == target:
         return prev
-    return -1`
+    return -1`,
+    pseudocode: `FUNCTION jumpSearch(arr, target)
+    SET n ← length(arr)
+    SET step ← floor(sqrt(n))
+    SET prev ← 0
+
+    WHILE arr[min(step, n) - 1] < target
+        SET prev ← step
+        SET step ← step + floor(sqrt(n))
+        IF prev >= n THEN
+            RETURN -1
+
+    WHILE arr[prev] < target
+        SET prev ← prev + 1
+        IF prev = min(step, n) THEN
+            RETURN -1
+
+    IF arr[prev] = target THEN
+        RETURN prev
+    RETURN -1`
   }
 };
 
@@ -409,7 +522,30 @@ export const INTERPOLATION_SEARCH_INFO: ComplexityInfo = {
         else:
             high = pos - 1
 
-    return -1`
+    return -1`,
+    pseudocode: `FUNCTION interpolationSearch(arr, target)
+    SET low ← 0
+    SET high ← length(arr) - 1
+
+    WHILE low <= high AND target >= arr[low] AND target <= arr[high]
+        IF low = high THEN
+            IF arr[low] = target THEN
+                RETURN low
+            RETURN -1
+
+        SET pos ← low + floor(
+            ((target - arr[low]) * (high - low)) /
+            (arr[high] - arr[low])
+        )
+
+        IF arr[pos] = target THEN
+            RETURN pos
+        IF arr[pos] < target THEN
+            SET low ← pos + 1
+        ELSE
+            SET high ← pos - 1
+
+    RETURN -1`
   }
 };
 
@@ -452,7 +588,16 @@ export const LINKED_LIST_SEARCH_INFO: ComplexityInfo = {
             return current
         current = current.next
 
-    return None`
+    return None`,
+    pseudocode: `FUNCTION search(head, target)
+    current ← head
+
+    WHILE current ≠ NULL
+        IF current.value = target THEN
+            RETURN current
+        current ← current.next
+
+    RETURN NULL`
   }
 };
 
@@ -478,7 +623,11 @@ export const LINKED_LIST_INSERT_HEAD_INFO: ComplexityInfo = {
     python: `def insert_at_head(head, value):
     new_node = Node(value)
     new_node.next = head
-    return new_node`
+    return new_node`,
+    pseudocode: `FUNCTION insert_at_head(head, value)
+    new_node ← NEW Node(value)
+    new_node.next ← head
+    RETURN new_node`
   }
 };
 
@@ -523,7 +672,19 @@ export const LINKED_LIST_INSERT_TAIL_INFO: ComplexityInfo = {
         current = current.next
     current.next = new_node
 
-    return head`
+    return head`,
+    pseudocode: `FUNCTION insert_at_tail(head, value)
+    new_node ← NEW Node(value)
+
+    IF head = NULL THEN
+        RETURN new_node
+
+    current ← head
+    WHILE current.next ≠ NULL
+        current ← current.next
+    current.next ← new_node
+
+    RETURN head`
   }
 };
 
@@ -574,7 +735,22 @@ export const LINKED_LIST_DELETE_INFO: ComplexityInfo = {
             return head
         current = current.next
 
-    return head`
+    return head`,
+    pseudocode: `FUNCTION delete_node(head, value)
+    IF head = NULL THEN
+        RETURN NULL
+
+    IF head.value = value THEN
+        RETURN head.next
+
+    current ← head
+    WHILE current.next ≠ NULL
+        IF current.next.value = value THEN
+            current.next ← current.next.next
+            RETURN head
+        current ← current.next
+
+    RETURN head`
   }
 };
 
@@ -616,7 +792,18 @@ export const LINKED_LIST_REVERSE_INFO: ComplexityInfo = {
         prev = current
         current = next_node
 
-    return prev`
+    return prev`,
+    pseudocode: `FUNCTION reverse(head)
+    prev ← NULL
+    current ← head
+
+    WHILE current ≠ NULL
+        next_node ← current.next
+        current.next ← prev
+        prev ← current
+        current ← next_node
+
+    RETURN prev`
   }
 };
 
@@ -680,7 +867,25 @@ export const BST_INSERT_INFO: ComplexityInfo = {
             if current.right is None:
                 current.right = new_node
                 return root
-            current = current.right`
+            current = current.right`,
+    pseudocode: `FUNCTION insert(root, value)
+    new_node ← NEW TreeNode(value)
+
+    IF root = NULL THEN
+        RETURN new_node
+
+    current ← root
+    WHILE TRUE
+        IF value < current.value THEN
+            IF current.left = NULL THEN
+                current.left ← new_node
+                RETURN root
+            current ← current.left
+        ELSE
+            IF current.right = NULL THEN
+                current.right ← new_node
+                RETURN root
+            current ← current.right`
   }
 };
 
@@ -728,7 +933,20 @@ export const BST_SEARCH_INFO: ComplexityInfo = {
         else:
             current = current.right
 
-    return None`
+    return None`,
+    pseudocode: `FUNCTION search(root, target)
+    current ← root
+
+    WHILE current ≠ NULL
+        IF current.value = target THEN
+            RETURN current
+
+        IF target < current.value THEN
+            current ← current.left
+        ELSE
+            current ← current.right
+
+    RETURN NULL`
   }
 };
 
@@ -792,7 +1010,30 @@ export const BST_DELETE_INFO: ComplexityInfo = {
         root.value = successor.value
         root.right = delete_node(root.right, successor.value)
 
-    return root`
+    return root`,
+    pseudocode: `FUNCTION delete_node(root, target)
+    IF root = NULL THEN
+        RETURN NULL
+
+    IF target < root.value THEN
+        root.left ← delete_node(root.left, target)
+    ELSE IF target > root.value THEN
+        root.right ← delete_node(root.right, target)
+    ELSE
+        // Found the node to delete
+        IF root.left = NULL THEN
+            RETURN root.right
+        IF root.right = NULL THEN
+            RETURN root.left
+
+        // Two children: find inorder successor
+        successor ← root.right
+        WHILE successor.left ≠ NULL
+            successor ← successor.left
+        root.value ← successor.value
+        root.right ← delete_node(root.right, successor.value)
+
+    RETURN root`
   }
 };
 
@@ -843,7 +1084,22 @@ export const INORDER_TRAVERSAL_INFO: ComplexityInfo = {
         result.append(current.value)
         current = current.right
 
-    return result`
+    return result`,
+    pseudocode: `FUNCTION inorder(root)
+    result ← []
+    stack ← []
+    current ← root
+
+    WHILE current ≠ NULL OR stack is not empty
+        WHILE current ≠ NULL
+            PUSH current onto stack
+            current ← current.left
+
+        current ← POP from stack
+        APPEND current.value to result
+        current ← current.right
+
+    RETURN result`
   }
 };
 
@@ -894,7 +1150,24 @@ export const PREORDER_TRAVERSAL_INFO: ComplexityInfo = {
         if node.left:
             stack.append(node.left)
 
-    return result`
+    return result`,
+    pseudocode: `FUNCTION preorder(root)
+    IF root = NULL THEN
+        RETURN []
+
+    result ← []
+    stack ← [root]
+
+    WHILE stack is not empty
+        node ← POP from stack
+        APPEND node.value to result
+
+        IF node.right ≠ NULL THEN
+            PUSH node.right onto stack
+        IF node.left ≠ NULL THEN
+            PUSH node.left onto stack
+
+    RETURN result`
   }
 };
 
@@ -954,7 +1227,28 @@ export const POSTORDER_TRAVERSAL_INFO: ComplexityInfo = {
     while len(stack2) > 0:
         result.append(stack2.pop().value)
 
-    return result`
+    return result`,
+    pseudocode: `FUNCTION postorder(root)
+    IF root = NULL THEN
+        RETURN []
+
+    result ← []
+    stack1 ← [root]
+    stack2 ← []
+
+    WHILE stack1 is not empty
+        node ← POP from stack1
+        PUSH node onto stack2
+
+        IF node.left ≠ NULL THEN
+            PUSH node.left onto stack1
+        IF node.right ≠ NULL THEN
+            PUSH node.right onto stack1
+
+    WHILE stack2 is not empty
+        APPEND POP(stack2).value to result
+
+    RETURN result`
   }
 };
 
@@ -1007,7 +1301,26 @@ def level_order(root):
         if node.right:
             queue.append(node.right)
 
-    return result`
+    return result`,
+    pseudocode: `// Use a queue for BFS
+
+FUNCTION level_order(root)
+    IF root = NULL THEN
+        RETURN []
+
+    result ← []
+    queue ← [root]
+
+    WHILE queue is not empty
+        node ← DEQUEUE from queue
+        APPEND node.value to result
+
+        IF node.left ≠ NULL THEN
+            ENQUEUE node.left into queue
+        IF node.right ≠ NULL THEN
+            ENQUEUE node.right into queue
+
+    RETURN result`
   }
 };
 
@@ -1032,7 +1345,10 @@ export const HASH_TABLE_INSERT_CHAINING_INFO: ComplexityInfo = {
 }`,
     python: `def insert(table, key):
     index = key % len(table)
-    table[index].append(key)`
+    table[index].append(key)`,
+    pseudocode: `FUNCTION insert(table, key)
+    index ← key MOD length(table)
+    APPEND key TO table[index]`
   }
 };
 
@@ -1067,7 +1383,16 @@ export const HASH_TABLE_SEARCH_CHAINING_INFO: ComplexityInfo = {
         if entry == key:
             return (index, i)
 
-    return None`
+    return None`,
+    pseudocode: `FUNCTION search(table, key)
+    index ← key MOD length(table)
+    chain ← table[index]
+
+    FOR i ← 0 TO length(chain) - 1
+        IF chain[i] = key THEN
+            RETURN (index, i)
+
+    RETURN NULL`
   }
 };
 
@@ -1104,7 +1429,17 @@ export const HASH_TABLE_DELETE_CHAINING_INFO: ComplexityInfo = {
             chain.pop(i)
             return True
 
-    return False`
+    return False`,
+    pseudocode: `FUNCTION remove(table, key)
+    index ← key MOD length(table)
+    chain ← table[index]
+
+    FOR i ← 0 TO length(chain) - 1
+        IF chain[i] = key THEN
+            REMOVE chain[i]
+            RETURN TRUE
+
+    RETURN FALSE`
   }
 };
 
@@ -1136,7 +1471,15 @@ export const HASH_TABLE_INSERT_PROBING_INFO: ComplexityInfo = {
     while table[index] is not None and table[index] != "DEL":
         index = (index + 1) % size
 
-    table[index] = key`
+    table[index] = key`,
+    pseudocode: `FUNCTION insert(table, key)
+    size ← length(table)
+    index ← key MOD size
+
+    WHILE table[index] ≠ NULL AND table[index] ≠ "DEL"
+        index ← (index + 1) MOD size
+
+    table[index] ← key`
   }
 };
 
@@ -1176,7 +1519,20 @@ export const HASH_TABLE_SEARCH_PROBING_INFO: ComplexityInfo = {
             return index
         index = (index + 1) % size
         if index == start:
-            return -1`
+            return -1`,
+    pseudocode: `FUNCTION search(table, key)
+    size ← length(table)
+    index ← key MOD size
+    start ← index
+
+    WHILE TRUE
+        IF table[index] = NULL THEN
+            RETURN -1
+        IF table[index] = key THEN
+            RETURN index
+        index ← (index + 1) MOD size
+        IF index = start THEN
+            RETURN -1`
   }
 };
 
@@ -1220,7 +1576,21 @@ export const HASH_TABLE_DELETE_PROBING_INFO: ComplexityInfo = {
             return True
         index = (index + 1) % size
         if index == start:
-            return False`
+            return False`,
+    pseudocode: `FUNCTION remove(table, key)
+    size ← length(table)
+    index ← key MOD size
+    start ← index
+
+    WHILE TRUE
+        IF table[index] = NULL THEN
+            RETURN FALSE
+        IF table[index] = key THEN
+            table[index] ← "DEL"
+            RETURN TRUE
+        index ← (index + 1) MOD size
+        IF index = start THEN
+            RETURN FALSE`
   }
 };
 
@@ -1272,7 +1642,20 @@ export const GRAPH_BFS_INFO: ComplexityInfo = {
         for neighbor in graph[node]:
             if neighbor not in visited:
                 visited.add(neighbor)
-                queue.append(neighbor)`
+                queue.append(neighbor)`,
+    pseudocode: `FUNCTION bfs(graph, start)
+    visited ← empty set
+    queue ← [start]
+    ADD start TO visited
+
+    WHILE queue is not empty
+        node ← DEQUEUE from queue
+        PROCESS(node)
+
+        FOR EACH neighbor IN graph[node]
+            IF neighbor NOT IN visited THEN
+                ADD neighbor TO visited
+                ENQUEUE neighbor INTO queue`
   }
 };
 
@@ -1323,7 +1706,22 @@ export const GRAPH_DFS_INFO: ComplexityInfo = {
 
         for neighbor in graph[node]:
             if neighbor not in visited:
-                stack.append(neighbor)`
+                stack.append(neighbor)`,
+    pseudocode: `FUNCTION dfs(graph, start)
+    visited ← empty set
+    stack ← [start]
+
+    WHILE stack is not empty
+        node ← POP from stack
+
+        IF node IN visited THEN
+            CONTINUE
+        ADD node TO visited
+        PROCESS(node)
+
+        FOR EACH neighbor IN graph[node]
+            IF neighbor NOT IN visited THEN
+                PUSH neighbor ONTO stack`
   }
 };
 
@@ -1387,7 +1785,28 @@ export const GRAPH_DIJKSTRA_INFO: ComplexityInfo = {
                 if alt < dist[v]:
                     dist[v] = alt
 
-    return dist`
+    return dist`,
+    pseudocode: `FUNCTION dijkstra(graph, start)
+    dist ← empty map
+    visited ← empty set
+
+    FOR EACH node IN graph.nodes
+        dist[node] ← INFINITY
+    dist[start] ← 0
+
+    WHILE size of visited < number of nodes
+        u ← GET_MIN_DIST_NODE(dist, visited)
+        IF u = NULL THEN
+            BREAK
+        ADD u TO visited
+
+        FOR EACH (v, weight) IN graph[u]
+            IF v NOT IN visited THEN
+                alt ← dist[u] + weight
+                IF alt < dist[v] THEN
+                    dist[v] ← alt
+
+    RETURN dist`
   }
 };
 
@@ -1458,7 +1877,30 @@ export const GRAPH_TOPOLOGICAL_SORT_INFO: ComplexityInfo = {
             if in_degree[neighbor] == 0:
                 queue.append(neighbor)
 
-    return result`
+    return result`,
+    pseudocode: `FUNCTION topologicalSort(graph)
+    inDegree ← empty map
+    FOR EACH node IN graph.nodes
+        inDegree[node] ← 0
+    FOR EACH (u, v) IN graph.edges
+        inDegree[v] ← inDegree[v] + 1
+
+    queue ← empty list
+    FOR EACH node IN graph.nodes
+        IF inDegree[node] = 0 THEN
+            ENQUEUE node INTO queue
+
+    result ← empty list
+    WHILE queue is not empty
+        node ← DEQUEUE from queue
+        APPEND node TO result
+
+        FOR EACH neighbor IN graph[node]
+            inDegree[neighbor] ← inDegree[neighbor] - 1
+            IF inDegree[neighbor] = 0 THEN
+                ENQUEUE neighbor INTO queue
+
+    RETURN result`
   }
 };
 
