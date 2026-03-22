@@ -781,17 +781,17 @@ function TreeVisualizer() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-[#0d1117]">
       {/* Top Navigation Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 px-4 sm:px-6 py-3 sm:py-4 bg-gray-800 border-b border-gray-700">
-        <Link to="/" className="text-blue-400 hover:text-blue-300 transition text-xs sm:text-sm whitespace-nowrap">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 px-4 sm:px-6 py-3 sm:py-4 bg-[#161b22] border-b border-[#30363d]">
+        <Link to="/" className="text-[var(--accent)] hover:text-[var(--accent-hover)] transition text-xs sm:text-sm whitespace-nowrap">
           ← Back to Home
         </Link>
 
         <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <span className="text-xs sm:text-sm text-gray-400 hidden sm:inline">Operation:</span>
           <select
-            className="bg-gray-700 text-white px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500 cursor-pointer text-xs sm:text-sm flex-1 sm:flex-none"
+            className="bg-[#21262d] text-white px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-[#30363d] focus:outline-none focus:border-[var(--accent)] cursor-pointer text-xs sm:text-sm flex-1 sm:flex-none"
             value={selectedOperation || ''}
             disabled={controls.isRunning}
             onChange={(e) => handleOperationChange(e.target.value)}
@@ -813,9 +813,9 @@ function TreeVisualizer() {
               value={treeSize}
               onChange={(e) => setTreeSize(Number(e.target.value))}
               disabled={controls.isRunning}
-              className="w-16 sm:w-20 h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed accent-blue-500"
+              className="w-16 sm:w-20 h-1.5 bg-[#21262d] rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed accent-[var(--accent)]"
             />
-            <span className="bg-gray-700 px-2 py-1 rounded text-xs font-mono w-6 text-center">{treeSize}</span>
+            <span className="bg-[#21262d] px-2 py-1 rounded text-xs font-mono w-6 text-center">{treeSize}</span>
           </div>
 
           {needsInput && (
@@ -826,7 +826,7 @@ function TreeVisualizer() {
                 value={inputValue}
                 onChange={(e) => setInputValue(Number(e.target.value))}
                 disabled={controls.isRunning}
-                className="w-16 sm:w-20 bg-gray-700 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500 text-xs sm:text-sm"
+                className="w-16 sm:w-20 bg-[#21262d] text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-[#30363d] focus:outline-none focus:border-[var(--accent)] text-xs sm:text-sm"
               />
             </div>
           )}
@@ -834,7 +834,7 @@ function TreeVisualizer() {
           <button
             onClick={generateTree}
             disabled={controls.isRunning}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold transition text-xs sm:text-sm whitespace-nowrap"
+            className="bg-[var(--accent)] hover:bg-[var(--accent-dim)] disabled:bg-gray-600 disabled:cursor-not-allowed px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold transition text-xs sm:text-sm whitespace-nowrap"
           >
             Generate Tree
           </button>
@@ -846,8 +846,7 @@ function TreeVisualizer() {
         {/* Left Side - Visualization and Controls */}
         <div className="w-full xl:w-[60%] space-y-6">
           {/* Tree Visualization */}
-          <div className="bg-gradient-to-br from-gray-800 via-gray-850 to-gray-900 border border-gray-700 rounded-xl shadow-2xl p-4 sm:p-6 lg:p-8 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent pointer-events-none rounded-xl"></div>
+          <div className="bg-[#161b22] border border-[#30363d] rounded-xl shadow-2xl p-4 sm:p-6 lg:p-8 relative overflow-hidden">
             <div className="relative z-10">
               <h2 className="text-xl font-bold text-center mb-4">
                 {selectedOperation ? `${selectedOperation}: BST Visualization` : 'Binary Search Tree Visualization'}
@@ -880,7 +879,7 @@ function TreeVisualizer() {
           </div>
 
           {/* Controls Panel */}
-          <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-xl p-6">
+          <div className="bg-[#161b22] border border-[#30363d] rounded-xl shadow-xl p-6">
             <PlaybackControls
               onStepBack={stepBack}
               onPlayPause={handlePlayPause}

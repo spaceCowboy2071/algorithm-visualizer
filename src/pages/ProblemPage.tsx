@@ -185,7 +185,7 @@ function ProblemPage() {
   // If problem is still loading, show loading state
   if (isLoading || !problem) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black text-[#4af626] font-mono">
+      <div className="min-h-screen flex items-center justify-center bg-[#0d1117] text-[var(--accent)] font-mono">
         <div>Loading problem...</div>
       </div>
     );
@@ -217,7 +217,7 @@ function ProblemPage() {
   };
 
   const getTimerColor = () => {
-    if (timeRemaining > 300) return 'text-[#4af626]'; // > 5 min: green
+    if (timeRemaining > 300) return 'text-[var(--accent)]'; // > 5 min: green
     if (timeRemaining > 60) return 'text-yellow-500'; // > 1 min: yellow
     return 'text-red-500'; // < 1 min: red
   };
@@ -295,19 +295,11 @@ function ProblemPage() {
   };
 
   return (
-    <div 
-      className="min-h-screen flex flex-col"
-      style={{ background: 'linear-gradient(180deg, #3d3d3d 0%, #2a2a2a 100%)' }}
-    >
-      {/* Monitor Container */}
-      <div className="flex-1 flex flex-col h-[calc(100vh-80px)]">
-        {/* Monitor Frame */}
-        <div className="flex-1 bg-black p-8 flex flex-col relative">
-          <div className="flex-1 flex flex-col">
-            {/* Terminal Window */}
-            <div className="flex-1 bg-[#0d0d0d] border-2 border-[#1a1a1a] rounded-md shadow-2xl flex flex-col overflow-hidden relative">
+    <div className="min-h-screen bg-[#0d1117] text-white font-mono flex flex-col">
+      {/* Terminal Window */}
+      <div className="flex-1 flex flex-col overflow-hidden relative">
               {/* Terminal Title Bar */}
-              <div className="bg-[#1a1a1a] px-4 py-2 border-b border-[#2a2a2a] flex items-center justify-between">
+              <div className="bg-[#161b22] px-4 py-2 border-b border-[#30363d] flex items-center justify-between">
                 <span className="text-gray-500 text-xs font-mono">
                   terminal@algorithmviz/blind75/{problem.title.toLowerCase().replace(/\s+/g, '-')}
                 </span>
@@ -315,15 +307,15 @@ function ProblemPage() {
                   onClick={() => setIsProgressOpen(!isProgressOpen)}
                   className={`px-3 py-1 border rounded text-xs font-semibold font-mono transition ${
                     isProgressOpen
-                      ? 'border-[#4af626] text-[#4af626] bg-[rgba(74,246,38,0.1)]'
-                      : 'border-gray-600 text-gray-400 hover:border-[#4af626] hover:text-[#4af626]'
+                      ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/10'
+                      : 'border-[#30363d] text-gray-400 hover:border-[var(--accent)] hover:text-[var(--accent)]'
                   }`}
                 >
                   Progress
                 </button>
                 <Link
                   to="/blind75"
-                  className="text-gray-500 hover:text-[#4af626] text-xs transition"
+                  className="text-gray-500 hover:text-[var(--accent)] text-xs transition"
                 >
                   ← Back to Problems
                 </Link>
@@ -333,13 +325,13 @@ function ProblemPage() {
               {isProgressOpen && (
                 <div
                   className="absolute inset-0 z-40 flex items-center justify-center"
-                  style={{ background: 'rgba(13, 13, 13, 0.85)', backdropFilter: 'blur(4px)' }}
+                  style={{ background: 'rgba(13, 17, 23, 0.85)', backdropFilter: 'blur(4px)' }}
                   onClick={(e) => { if (e.target === e.currentTarget) setIsProgressOpen(false); }}
                 >
-                  <div className="w-full max-w-md mx-4 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg shadow-2xl font-mono overflow-hidden">
+                  <div className="w-full max-w-md mx-4 bg-[#161b22] border border-[#30363d] rounded-lg shadow-2xl font-mono overflow-hidden">
                     {/* Overlay Header */}
-                    <div className="flex items-center justify-between px-5 py-3 border-b border-[#2a2a2a]">
-                      <h2 className="text-sm font-bold text-[#4af626]">Progress</h2>
+                    <div className="flex items-center justify-between px-5 py-3 border-b border-[#30363d]">
+                      <h2 className="text-sm font-bold text-[var(--accent)]">Progress</h2>
                       <button
                         onClick={() => setIsProgressOpen(false)}
                         className="p-1 text-gray-400 hover:text-red-500 transition"
@@ -363,7 +355,7 @@ function ProblemPage() {
                         </div>
                       </div>
 
-                      <div className="border-t border-[#2a2a2a]" />
+                      <div className="border-t border-[#30363d]" />
 
                       {/* Row 2: Confidence */}
                       <div className="grid grid-cols-[100px_1fr] items-center">
@@ -375,8 +367,8 @@ function ProblemPage() {
                               onClick={() => updateProgress(Number(problemId), { confidence: n })}
                               className={`w-7 h-7 rounded text-xs font-bold transition ${
                                 progress.confidence >= n
-                                  ? 'bg-[#4af626] text-black'
-                                  : 'bg-[#2a2a2a] text-gray-500 hover:text-[#4af626]'
+                                  ? 'bg-[var(--accent)] text-black'
+                                  : 'bg-[#21262d] text-gray-500 hover:text-[var(--accent)]'
                               }`}
                             >
                               {n}
@@ -385,7 +377,7 @@ function ProblemPage() {
                         </div>
                       </div>
 
-                      <div className="border-t border-[#2a2a2a]" />
+                      <div className="border-t border-[#30363d]" />
 
                       {/* Row 3 & 4: Checkboxes */}
                       <div className="grid grid-cols-[100px_1fr] items-center">
@@ -395,7 +387,7 @@ function ProblemPage() {
                             type="checkbox"
                             checked={progress.solvedIndependently}
                             onChange={(e) => updateProgress(Number(problemId), { solvedIndependently: e.target.checked })}
-                            className="w-4 h-4 accent-[#4af626]"
+                            className="w-4 h-4 accent-[var(--accent)]"
                           />
                           <span className="ml-2 text-xs text-gray-400">Solved without help</span>
                         </label>
@@ -408,13 +400,13 @@ function ProblemPage() {
                             type="checkbox"
                             checked={progress.solvedIn20Min}
                             onChange={(e) => updateProgress(Number(problemId), { solvedIn20Min: e.target.checked })}
-                            className="w-4 h-4 accent-[#4af626]"
+                            className="w-4 h-4 accent-[var(--accent)]"
                           />
                           <span className="ml-2 text-xs text-gray-400">Solved within time</span>
                         </label>
                       </div>
 
-                      <div className="border-t border-[#2a2a2a]" />
+                      <div className="border-t border-[#30363d]" />
 
                       {/* Row 5: Attempts */}
                       <div className="grid grid-cols-[100px_1fr] items-center">
@@ -443,15 +435,15 @@ function ProblemPage() {
               {/* Main Content Area */}
               <div className="flex-1 flex overflow-hidden">
                 {/* Left Panel - Problem Description / Visualizer */}
-                <div className="w-1/2 border-r border-[#2a2a2a] flex flex-col overflow-hidden">
+                <div className="w-1/2 border-r border-[#30363d] flex flex-col overflow-hidden">
                   {/* Tab Bar - only shown when a visualizer exists */}
                   {visualizerPath && (
-                    <div className="flex border-b border-[#2a2a2a] bg-[#1a1a1a] shrink-0">
+                    <div className="flex border-b border-[#30363d] bg-[#161b22] shrink-0">
                       <button
                         onClick={() => setActiveTab('description')}
                         className={`px-4 py-2 text-xs font-semibold font-mono transition ${
                           activeTab === 'description'
-                            ? 'text-[#4af626] border-b-2 border-[#4af626] bg-[#0d0d0d]'
+                            ? 'text-[var(--accent)] border-b-2 border-[var(--accent)] bg-[#0d1117]'
                             : 'text-gray-500 hover:text-gray-300'
                         }`}
                       >
@@ -461,7 +453,7 @@ function ProblemPage() {
                         onClick={() => setActiveTab('visualizer')}
                         className={`px-4 py-2 text-xs font-semibold font-mono transition ${
                           activeTab === 'visualizer'
-                            ? 'text-[#4af626] border-b-2 border-[#4af626] bg-[#0d0d0d]'
+                            ? 'text-[var(--accent)] border-b-2 border-[var(--accent)] bg-[#0d1117]'
                             : 'text-gray-500 hover:text-gray-300'
                         }`}
                       >
@@ -485,7 +477,7 @@ function ProblemPage() {
                       <div className="flex items-center justify-between gap-4 mb-2">
                         {/* Left side: Title + Difficulty */}
                         <div className="flex items-center gap-3">
-                          <h1 className="text-2xl font-bold text-[#4af626]">
+                          <h1 className="text-2xl font-bold text-[var(--accent)]">
                             {problem.title}
                           </h1>
                           <span className={`text-sm ${getDifficultyColor(problem.difficulty)}`}>
@@ -495,7 +487,7 @@ function ProblemPage() {
 
                         {/* Right side: Timer + Notes Icon */}
                         <div className="flex flex-col items-end gap-2">
-                          <div className="flex items-center gap-3 px-3 py-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded">
+                          <div className="flex items-center gap-3 px-3 py-2 bg-[#161b22] border border-[#30363d] rounded">
                             <span className={`text-xl font-bold font-mono ${getTimerColor()}`}>
                               {formatTime(timeRemaining)}
                             </span>
@@ -503,7 +495,7 @@ function ProblemPage() {
                               {!timerStarted ? (
                                 <button
                                   onClick={startTimer}
-                                  className="px-2 py-1 bg-[#4af626] text-black rounded hover:bg-[#3de515] transition text-xs font-semibold"
+                                  className="px-2 py-1 bg-[var(--accent)] text-black rounded hover:bg-[var(--accent-hover)] transition text-xs font-semibold"
                                 >
                                   Start
                                 </button>
@@ -511,13 +503,13 @@ function ProblemPage() {
                                 <>
                                   <button
                                     onClick={isTimerRunning ? pauseTimer : startTimer}
-                                    className="px-2 py-1 border border-[#4af626] text-[#4af626] rounded hover:bg-[rgba(74,246,38,0.1)] transition text-xs"
+                                    className="px-2 py-1 border border-[var(--accent)] text-[var(--accent)] rounded hover:bg-[var(--accent)]/10 transition text-xs"
                                   >
                                     {isTimerRunning ? 'Pause' : 'Resume'}
                                   </button>
                                   <button
                                     onClick={resetTimer}
-                                    className="px-2 py-1 border border-gray-600 text-gray-400 rounded hover:border-gray-400 transition text-xs"
+                                    className="px-2 py-1 border border-[#30363d] text-gray-400 rounded hover:border-gray-400 transition text-xs"
                                   >
                                     Reset
                                   </button>
@@ -528,7 +520,7 @@ function ProblemPage() {
                           {/* Notes Icon Button */}
                           <button
                             onClick={openNotesModal}
-                            className="flex items-center gap-1.5 px-2 py-1 bg-[#1a1a1a] border border-[#2a2a2a] rounded hover:border-[#4af626] hover:text-[#4af626] transition text-gray-400 text-xs"
+                            className="flex items-center gap-1.5 px-2 py-1 bg-[#161b22] border border-[#30363d] rounded hover:border-[var(--accent)] hover:text-[var(--accent)] transition text-gray-400 text-xs"
                             title="Open Personal Notes"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -543,7 +535,7 @@ function ProblemPage() {
 
                     {/* Problem Description */}
                     <div className="mb-6">
-                      <h2 className="text-[#4af626] text-sm font-bold mb-2">Description</h2>
+                      <h2 className="text-[var(--accent)] text-sm font-bold mb-2">Description</h2>
                       <p className="text-gray-300 text-xs leading-relaxed whitespace-pre-line">
                         {problem.description}
                       </p>
@@ -551,14 +543,14 @@ function ProblemPage() {
 
                     {/* Examples */}
                     <div className="mb-6">
-                      <h2 className="text-[#4af626] text-sm font-bold mb-2">Examples</h2>
+                      <h2 className="text-[var(--accent)] text-sm font-bold mb-2">Examples</h2>
                       {problem.examples.map((example, idx) => (
-                        <div key={idx} className="mb-4 p-3 bg-[#1a1a1a] border border-[#2a2a2a] rounded">
+                        <div key={idx} className="mb-4 p-3 bg-[#161b22] border border-[#30363d] rounded">
                           <p className="text-gray-400 text-xs mb-1">
-                            <span className="text-[#4af626]">Input:</span> {example.input}
+                            <span className="text-[var(--accent)]">Input:</span> {example.input}
                           </p>
                           <p className="text-gray-400 text-xs mb-1">
-                            <span className="text-[#4af626]">Output:</span> {example.output}
+                            <span className="text-[var(--accent)]">Output:</span> {example.output}
                           </p>
                           <p className="text-gray-500 text-xs">
                             <span className="text-gray-600">Explanation:</span> {example.explanation}
@@ -569,7 +561,7 @@ function ProblemPage() {
 
                     {/* Constraints */}
                     <div className="mb-6">
-                      <h2 className="text-[#4af626] text-sm font-bold mb-2">Constraints</h2>
+                      <h2 className="text-[var(--accent)] text-sm font-bold mb-2">Constraints</h2>
                       <ul className="text-gray-400 text-xs space-y-1">
                         {problem.constraints.map((constraint, idx) => (
                           <li key={idx}>• {constraint}</li>
@@ -586,14 +578,14 @@ function ProblemPage() {
                 {/* Right Panel - Code Editor */}
                 <div className="w-1/2 flex flex-col">
                   {/* Language Selector */}
-                  <div className="p-4 border-b border-[#2a2a2a] flex items-center justify-between">
+                  <div className="p-4 border-b border-[#30363d] flex items-center justify-between">
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleLanguageChange('javascript')}
                         className={`px-4 py-2 rounded text-xs font-semibold transition ${
                           language === 'javascript'
-                            ? 'bg-[#4af626] text-black'
-                            : 'bg-[#1a1a1a] text-gray-400 hover:text-[#4af626]'
+                            ? 'bg-[var(--accent)] text-black'
+                            : 'bg-[#161b22] text-gray-400 hover:text-[var(--accent)]'
                         }`}
                       >
                         JavaScript
@@ -602,8 +594,8 @@ function ProblemPage() {
                         onClick={() => handleLanguageChange('python')}
                         className={`px-4 py-2 rounded text-xs font-semibold transition ${
                           language === 'python'
-                            ? 'bg-[#4af626] text-black'
-                            : 'bg-[#1a1a1a] text-gray-400 hover:text-[#4af626]'
+                            ? 'bg-[var(--accent)] text-black'
+                            : 'bg-[#161b22] text-gray-400 hover:text-[var(--accent)]'
                         }`}
                       >
                         Python
@@ -611,7 +603,7 @@ function ProblemPage() {
                     </div>
                     <button
                       onClick={runTests}
-                      className="px-4 py-2 bg-[#4af626] text-black rounded hover:bg-[#3de515] transition text-xs font-semibold"
+                      className="px-4 py-2 bg-[var(--accent)] text-black rounded hover:bg-[var(--accent-hover)] transition text-xs font-semibold"
                     >
                       ▶ Run Tests
                     </button>
@@ -641,7 +633,7 @@ function ProblemPage() {
                   </div>
 
                   {/* Complexity Bar */}
-                  <div className="flex items-center gap-4 px-4 py-2 border-t border-[#2a2a2a] bg-[#1a1a1a] shrink-0 font-mono">
+                  <div className="flex items-center gap-4 px-4 py-2 border-t border-[#30363d] bg-[#161b22] shrink-0 font-mono">
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] text-gray-500">Time</span>
                       <input
@@ -649,7 +641,7 @@ function ProblemPage() {
                         value={progress.timeComplexity}
                         onChange={(e) => updateProgress(Number(problemId), { timeComplexity: e.target.value })}
                         placeholder="O(n)"
-                        className="w-20 px-2 py-0.5 bg-[#0d0d0d] border border-[#2a2a2a] rounded text-xs text-gray-300 font-mono focus:outline-none focus:border-[#4af626]"
+                        className="w-20 px-2 py-0.5 bg-[#0d1117] border border-[#30363d] rounded text-xs text-gray-300 font-mono focus:outline-none focus:border-[var(--accent)]"
                       />
                     </div>
                     <div className="flex items-center gap-2">
@@ -659,15 +651,15 @@ function ProblemPage() {
                         value={progress.spaceComplexity}
                         onChange={(e) => updateProgress(Number(problemId), { spaceComplexity: e.target.value })}
                         placeholder="O(1)"
-                        className="w-20 px-2 py-0.5 bg-[#0d0d0d] border border-[#2a2a2a] rounded text-xs text-gray-300 font-mono focus:outline-none focus:border-[#4af626]"
+                        className="w-20 px-2 py-0.5 bg-[#0d1117] border border-[#30363d] rounded text-xs text-gray-300 font-mono focus:outline-none focus:border-[var(--accent)]"
                       />
                     </div>
                   </div>
 
                   {/* Test Output Panel */}
                   {testOutput && (
-                    <div className="p-4 border-t border-[#2a2a2a] bg-[#1a1a1a] max-h-48 overflow-auto">
-                      <h3 className="text-[#4af626] text-xs font-bold mb-2">Test Output:</h3>
+                    <div className="p-4 border-t border-[#30363d] bg-[#161b22] max-h-48 overflow-auto">
+                      <h3 className="text-[var(--accent)] text-xs font-bold mb-2">Test Output:</h3>
                       <pre className="text-gray-400 text-xs font-mono whitespace-pre-wrap">
                         {testOutput}
                       </pre>
@@ -676,25 +668,6 @@ function ProblemPage() {
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Power LED */}
-          <div className="absolute bottom-2 right-2 w-1.5 h-1.5 bg-[#4af626] rounded-full shadow-[0_0_8px_rgba(74,246,38,0.8)] animate-pulse"></div>
-        </div>
-      </div>
-
-      {/* Monitor Stand */}
-      <div
-        className="h-20 flex justify-center items-start"
-        style={{ background: 'linear-gradient(180deg, #3d3d3d 0%, #2a2a2a 100%)' }}
-      >
-        <div
-          className="w-16 h-20 rounded-b shadow-md"
-          style={{
-            background: 'linear-gradient(180deg, #000000 0%, #2a2a2a 20%, #d4d4d4 60%, #a8a8a8 100%)'
-          }}
-        ></div>
-      </div>
 
       {/* Notes Modal */}
       {isNotesOpen && (
@@ -702,7 +675,7 @@ function ProblemPage() {
           {/* Modal */}
           <div
             ref={notesModalRef}
-            className={`pointer-events-auto flex flex-col bg-[#0d0d0d] border-2 border-[#2a2a2a] rounded-lg shadow-2xl overflow-hidden ${
+            className={`pointer-events-auto flex flex-col bg-[#0d1117] border-2 border-[#30363d] rounded-lg shadow-2xl overflow-hidden ${
               isDragging ? 'cursor-grabbing' : ''
             }`}
             style={isNotesFullscreen ? {
@@ -722,18 +695,18 @@ function ProblemPage() {
             onMouseDown={handleMouseDown}
           >
             {/* Modal Header */}
-            <div className="notes-header flex items-center justify-between px-4 py-3 bg-[#1a1a1a] border-b border-[#2a2a2a] cursor-grab select-none">
+            <div className="notes-header flex items-center justify-between px-4 py-3 bg-[#161b22] border-b border-[#30363d] cursor-grab select-none">
               <div className="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-[#4af626]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
-                <span className="text-[#4af626] text-sm font-bold font-mono">Personal Notes</span>
+                <span className="text-[var(--accent)] text-sm font-bold font-mono">Personal Notes</span>
               </div>
               <div className="flex items-center gap-2">
                 {/* Fullscreen Toggle */}
                 <button
                   onClick={toggleNotesFullscreen}
-                  className="p-1.5 text-gray-400 hover:text-[#4af626] transition rounded hover:bg-[#2a2a2a]"
+                  className="p-1.5 text-gray-400 hover:text-[var(--accent)] transition rounded hover:bg-[#21262d]"
                   title={isNotesFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
                 >
                   {isNotesFullscreen ? (
@@ -749,7 +722,7 @@ function ProblemPage() {
                 {/* Close Button */}
                 <button
                   onClick={closeNotesModal}
-                  className="p-1.5 text-gray-400 hover:text-red-500 transition rounded hover:bg-[#2a2a2a]"
+                  className="p-1.5 text-gray-400 hover:text-red-500 transition rounded hover:bg-[#21262d]"
                   title="Close"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -765,7 +738,7 @@ function ProblemPage() {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Add your notes, insights, or mistakes here..."
-                className="w-full h-full p-3 bg-[#1a1a1a] border border-[#2a2a2a] rounded text-gray-300 text-sm font-mono placeholder-gray-600 focus:outline-none focus:border-[#4af626] resize-none"
+                className="w-full h-full p-3 bg-[#161b22] border border-[#30363d] rounded text-gray-300 text-sm font-mono placeholder-gray-600 focus:outline-none focus:border-[var(--accent)] resize-none"
               />
             </div>
 

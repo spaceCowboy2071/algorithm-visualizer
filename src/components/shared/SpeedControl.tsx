@@ -14,7 +14,7 @@ function SpeedControl({ speed, onSpeedChange }: SpeedControlProps) {
         step="0.25"
         value={speed}
         onChange={(e) => onSpeedChange(Number(e.target.value))}
-        className="w-32 sm:w-48 lg:w-64 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+        className="w-32 sm:w-48 lg:w-64 h-2 bg-[#21262d] rounded-lg appearance-none cursor-pointer accent-[var(--accent)]"
       />
       <span className="text-xs sm:text-sm text-gray-400 font-mono w-8 sm:w-12">{speed.toFixed(2)}x</span>
     </div>

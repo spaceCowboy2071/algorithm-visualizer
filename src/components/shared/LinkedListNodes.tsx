@@ -235,7 +235,7 @@ function LinkedListNodes({
                   -
                 </span>
                 <div
-                  className="rounded-lg border-2 border-dashed border-gray-600 flex items-center justify-center bg-gray-800/50"
+                  className="rounded-lg border-2 border-dashed border-[#30363d] flex items-center justify-center bg-[#161b22]/50"
                   style={{ width: sizes.nodeSize, height: sizes.nodeSize }}
                 >
                   <span

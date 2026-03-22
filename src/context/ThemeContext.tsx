@@ -14,6 +14,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     localStorage.setItem('algoviz_color_theme', colorTheme);
+    const t = THEMES[colorTheme];
+    const root = document.documentElement;
+    root.style.setProperty('--accent', t.main);
+    root.style.setProperty('--accent-hover', t.hover);
+    root.style.setProperty('--accent-dim', t.dim);
   }, [colorTheme]);
 
   useEffect(() => {

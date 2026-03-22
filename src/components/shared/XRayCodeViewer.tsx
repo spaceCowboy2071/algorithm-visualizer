@@ -14,17 +14,17 @@ function XRayCodeViewer({ code, currentLine, variables }: XRayCodeViewerProps) {
   const [currentLanguage, setCurrentLanguage] = useState<CodeLanguage>('python');
 
   return (
-    <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-xl overflow-hidden">
+    <div className="bg-[#161b22] border border-[#30363d] rounded-xl shadow-xl overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b border-gray-700 bg-gradient-to-r from-purple-600/20 to-pink-600/20">
-        <h3 className="text-sm font-bold">X-Ray Code Viewer</h3>
+      <div className="flex items-center justify-between p-3 border-b border-[#30363d] bg-gradient-to-r from-[var(--accent)]/20 to-transparent">
+        <h3 className="text-sm font-bold text-[var(--accent)]">X-Ray Code Viewer</h3>
         <div className="flex gap-2">
           <button
             onClick={() => setCurrentLanguage('javascript')}
             className={`px-3 py-1.5 rounded text-xs font-semibold transition ${
               currentLanguage === 'javascript'
-                ? 'bg-yellow-600 text-white'
-                : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                ? 'bg-[var(--accent)] text-white'
+                : 'bg-[#21262d] text-gray-400 hover:bg-[#30363d]'
             }`}
           >
             JavaScript
@@ -33,8 +33,8 @@ function XRayCodeViewer({ code, currentLine, variables }: XRayCodeViewerProps) {
             onClick={() => setCurrentLanguage('python')}
             className={`px-3 py-1.5 rounded text-xs font-semibold transition ${
               currentLanguage === 'python'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                ? 'bg-[var(--accent)] text-white'
+                : 'bg-[#21262d] text-gray-400 hover:bg-[#30363d]'
             }`}
           >
             Python
@@ -43,7 +43,7 @@ function XRayCodeViewer({ code, currentLine, variables }: XRayCodeViewerProps) {
       </div>
 
       {/* Variables */}
-      <div className="bg-gray-900 border-b border-gray-700 px-3 py-2">
+      <div className="bg-[#0d1117] border-b border-[#30363d] px-3 py-2">
         <div className="flex items-start gap-3 text-xs">
           <div className="font-semibold text-gray-300 min-w-fit">Variables:</div>
           <div className="font-mono text-gray-400 flex-1">{variables}</div>
@@ -51,7 +51,7 @@ function XRayCodeViewer({ code, currentLine, variables }: XRayCodeViewerProps) {
       </div>
 
       {/* Code */}
-      <div className="overflow-auto p-3 bg-gray-950 max-h-96">
+      <div className="overflow-auto p-3 bg-[#010409] max-h-96">
         <pre className="text-xs font-mono leading-relaxed">
           {code[currentLanguage].split('\n').map((line, index) => {
             const lineNumber = index + 1;

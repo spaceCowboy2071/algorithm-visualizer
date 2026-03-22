@@ -529,23 +529,23 @@ function HashTableVisualizer() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-[#0d1117]">
       {/* Top Navigation Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 px-4 sm:px-6 py-3 sm:py-4 bg-gray-800 border-b border-gray-700">
-        <Link to="/" className="text-blue-400 hover:text-blue-300 transition text-xs sm:text-sm whitespace-nowrap">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 px-4 sm:px-6 py-3 sm:py-4 bg-[#161b22] border-b border-[#30363d]">
+        <Link to="/" className="text-[var(--accent)] hover:text-[var(--accent-hover)] transition text-xs sm:text-sm whitespace-nowrap">
           ← Back to Home
         </Link>
 
         {/* Mode Toggle + Operation Selector */}
         <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-          <div className="flex rounded-lg overflow-hidden border border-gray-600">
+          <div className="flex rounded-lg overflow-hidden border border-[#30363d]">
             <button
               onClick={() => handleModeChange('chaining')}
               disabled={controls.isRunning}
               className={`px-2 sm:px-3 py-1.5 text-xs font-semibold transition ${
                 collisionMode === 'chaining'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-700 text-gray-400 hover:text-white'
+                  ? 'bg-[var(--accent)] text-white'
+                  : 'bg-[#21262d] text-gray-400 hover:text-white'
               }`}
             >
               Chaining
@@ -555,8 +555,8 @@ function HashTableVisualizer() {
               disabled={controls.isRunning}
               className={`px-2 sm:px-3 py-1.5 text-xs font-semibold transition ${
                 collisionMode === 'linear-probing'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-700 text-gray-400 hover:text-white'
+                  ? 'bg-[var(--accent)] text-white'
+                  : 'bg-[#21262d] text-gray-400 hover:text-white'
               }`}
             >
               Linear Probing
@@ -564,7 +564,7 @@ function HashTableVisualizer() {
           </div>
 
           <select
-            className="bg-gray-700 text-white px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500 cursor-pointer text-xs sm:text-sm flex-1 sm:flex-none"
+            className="bg-[#21262d] text-white px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-[#30363d] focus:outline-none focus:border-[var(--accent)] cursor-pointer text-xs sm:text-sm flex-1 sm:flex-none"
             value={selectedOperation || ''}
             disabled={controls.isRunning}
             onChange={(e) => handleOperationChange(e.target.value)}
@@ -587,9 +587,9 @@ function HashTableVisualizer() {
               value={tableSize}
               onChange={(e) => setTableSize(Number(e.target.value))}
               disabled={controls.isRunning}
-              className="w-16 sm:w-20 h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed accent-blue-500"
+              className="w-16 sm:w-20 h-1.5 bg-[#21262d] rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed accent-[var(--accent)]"
             />
-            <span className="bg-gray-700 px-2 py-1 rounded text-xs font-mono w-6 text-center">{tableSize}</span>
+            <span className="bg-[#21262d] px-2 py-1 rounded text-xs font-mono w-6 text-center">{tableSize}</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -599,14 +599,14 @@ function HashTableVisualizer() {
               value={inputValue}
               onChange={(e) => setInputValue(Number(e.target.value))}
               disabled={controls.isRunning}
-              className="w-16 sm:w-20 bg-gray-700 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500 text-xs sm:text-sm"
+              className="w-16 sm:w-20 bg-[#21262d] text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-[#30363d] focus:outline-none focus:border-[var(--accent)] text-xs sm:text-sm"
             />
           </div>
 
           <button
             onClick={generateTable}
             disabled={controls.isRunning}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold transition text-xs sm:text-sm whitespace-nowrap"
+            className="bg-[var(--accent)] hover:bg-[var(--accent-dim)] disabled:bg-gray-600 disabled:cursor-not-allowed px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold transition text-xs sm:text-sm whitespace-nowrap"
           >
             Generate Table
           </button>
@@ -617,8 +617,7 @@ function HashTableVisualizer() {
       <div className="p-4 sm:p-6 flex flex-col xl:flex-row gap-6">
         {/* Left Side */}
         <div className="w-full xl:w-[60%] space-y-6">
-          <div className="bg-gradient-to-br from-gray-800 via-gray-850 to-gray-900 border border-gray-700 rounded-xl shadow-2xl p-4 sm:p-6 lg:p-8 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent pointer-events-none rounded-xl"></div>
+          <div className="bg-[#161b22] border border-[#30363d] rounded-xl shadow-2xl p-4 sm:p-6 lg:p-8 relative overflow-hidden">
             <div className="relative z-10">
               <h2 className="text-xl font-bold text-center mb-4">
                 {selectedOperation ? `${selectedOperation}: Hash Table` : 'Hash Table Visualization'}
@@ -653,7 +652,7 @@ function HashTableVisualizer() {
             </div>
           </div>
 
-          <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-xl p-6">
+          <div className="bg-[#161b22] border border-[#30363d] rounded-xl shadow-xl p-6">
             <PlaybackControls
               onStepBack={stepBack}
               onPlayPause={handlePlayPause}

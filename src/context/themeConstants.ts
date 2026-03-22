@@ -4,6 +4,8 @@ export type ColorTheme = 'green' | 'amber';
 
 export interface ThemeColors {
   main: string;
+  hover: string;
+  dim: string;
   bg: string;
   cursorBg: string;
   cursorText: string;
@@ -17,6 +19,8 @@ export interface ThemeColors {
 export const THEMES: Record<ColorTheme, ThemeColors> = {
   green: {
     main: '#3fb950',
+    hover: '#56d364',
+    dim: '#2ea043',
     bg: 'rgba(63,185,80,0.12)',
     cursorBg: '#3fb950',
     cursorText: '#0d1117',
@@ -28,6 +32,8 @@ export const THEMES: Record<ColorTheme, ThemeColors> = {
   },
   amber: {
     main: '#FFBF40',
+    hover: '#FFD06A',
+    dim: '#E0A830',
     bg: 'rgba(255,191,64,0.12)',
     cursorBg: '#FFBF40',
     cursorText: '#0d1117',
