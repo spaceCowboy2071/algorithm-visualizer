@@ -480,13 +480,10 @@ function LinkedListVisualizer() {
     <div className="min-h-screen bg-[#0d1117]">
       {/* Top Navigation Bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 px-4 sm:px-6 py-3 sm:py-4 bg-[#161b22] border-b border-[#30363d]">
-        {/* Left: Back to Home */}
-        <Link
-          to="/"
-          className="text-[var(--accent)] hover:text-[var(--accent-hover)] transition text-xs sm:text-sm whitespace-nowrap"
-        >
-          ← Back to Home
-        </Link>
+        {/* Left: Terminal Path */}
+        <span className="text-gray-500 text-xs font-mono whitespace-nowrap">
+          terminal@algorithmviz/linked-lists
+        </span>
 
         {/* Center: Operation Selector */}
         <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
@@ -546,6 +543,11 @@ function LinkedListVisualizer() {
             Generate List
           </button>
         </div>
+
+        {/* Right: Back Link */}
+        <Link to="/" className="text-gray-500 hover:text-[var(--accent)] text-xs transition whitespace-nowrap">
+          ← Back
+        </Link>
       </div>
 
       {/* Main Content Area */}
