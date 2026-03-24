@@ -6,7 +6,7 @@ import { getVisualizerPath } from '../data/problemVisualizers';
 import { PROBLEMS } from '../data/blind75Problems';
 import { useTrackerStore } from '../hooks/useTrackerStore';
 import StatusEditDropdown from '../components/blind75/StatusEditDropdown';
-import { executeCode } from '../services/codeRunner';
+import { executeCode, setPyodideStatusCallback } from '../services/codeRunner';
 import TestResults from '../components/shared/TestResults';
 import type { TestRunResult } from '../types/visualization';
 
@@ -52,6 +52,13 @@ function ProblemPage() {
   // Test execution state
   const [testResult, setTestResult] = useState<TestRunResult | null>(null);
   const [isRunning, setIsRunning] = useState(false);
+  const [pyodideStatus, setPyodideStatus] = useState<string | null>(null);
+
+  // Subscribe to Pyodide loading updates from the Web Worker
+  useEffect(() => {
+    setPyodideStatusCallback((status) => setPyodideStatus(status));
+    return () => setPyodideStatusCallback(null);
+  }, []);
 
   const timerIntervalRef = useRef<number | null>(null);
   
@@ -692,7 +699,9 @@ function ProblemPage() {
                     <div className="border-t border-[#30363d] bg-[#161b22] max-h-64 overflow-auto">
                       {isRunning ? (
                         <div className="p-4 text-xs text-gray-400 font-mono animate-pulse">
-                          Running tests against Judge0...
+                          {pyodideStatus === 'loading'
+                            ? 'Loading Python runtime (first time only)...'
+                            : 'Running tests...'}
                         </div>
                       ) : testResult ? (
                         <TestResults result={testResult} />
