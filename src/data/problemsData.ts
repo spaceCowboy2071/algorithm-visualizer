@@ -21,6 +21,10 @@ export interface Problem {
     args: any[];
     expected: any;
   }>;
+  // Harness metadata for Judge0 execution (only needed for tree/linked list problems)
+  argTypes?: string[];   // How to convert each arg: 'raw' | 'tree' | 'list' | 'lists' | 'list-cycle' | 'nodeValue'
+  returnType?: string;   // How to convert return value: 'raw' | 'tree' | 'list'
+  inPlace?: boolean;     // True if function modifies input in place (e.g., reorderList)
 }
 
 export const PROBLEMS_DATA: Record<number, Problem> = {
@@ -680,7 +684,8 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes is in the range [0, 10^4]'],
     starterCode: { javascript: `function hasCycle(head) {\n    // Write your solution here\n}`, python: `def has_cycle(head):\n    # Write your solution here\n    pass` },
-    testCases: [{ args: [[3,2,0,-4],1], expected: true }]
+        argTypes: ['list-cycle'],
+testCases: [{ args: [[3,2,0,-4],1], expected: true }]
   },
 
   43: {
@@ -692,7 +697,8 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['k == lists.length', '0 <= k <= 10^4'],
     starterCode: { javascript: `function mergeKLists(lists) {\n    // Write your solution here\n}`, python: `def merge_k_lists(lists):\n    # Write your solution here\n    pass` },
-    testCases: [{ args: [[[1,4,5],[1,3,4],[2,6]]], expected: [1,1,2,3,4,4,5,6] }]
+        argTypes: ['lists'], returnType: 'list',
+testCases: [{ args: [[[1,4,5],[1,3,4],[2,6]]], expected: [1,1,2,3,4,4,5,6] }]
   },
 
   44: {
@@ -704,7 +710,8 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes in both lists is in the range [0, 50]'],
     starterCode: { javascript: `function mergeTwoLists(list1, list2) {\n    // Write your solution here\n}`, python: `def merge_two_lists(list1, list2):\n    # Write your solution here\n    pass` },
-    testCases: [{ args: [[1,2,4],[1,3,4]], expected: [1,1,2,3,4,4] }]
+        argTypes: ['list', 'list'], returnType: 'list',
+testCases: [{ args: [[1,2,4],[1,3,4]], expected: [1,1,2,3,4,4] }]
   },
 
   45: {
@@ -717,7 +724,8 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes in the list is sz', '1 <= sz <= 30', '1 <= n <= sz'],
     starterCode: { javascript: `function removeNthFromEnd(head, n) {\n    // Write your solution here\n}`, python: `def remove_nth_from_end(head, n):\n    # Write your solution here\n    pass` },
-    testCases: [{ args: [[1,2,3,4,5],2], expected: [1,2,3,5] }]
+        argTypes: ['list', 'raw'], returnType: 'list',
+testCases: [{ args: [[1,2,3,4,5],2], expected: [1,2,3,5] }]
   },
 
   46: {
@@ -730,7 +738,8 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes is in the range [1, 5 * 10^4]'],
     starterCode: { javascript: `function reorderList(head) {\n    // Write your solution here\n}`, python: `def reorder_list(head):\n    # Write your solution here\n    pass` },
-    testCases: [{ args: [[1,2,3,4]], expected: [1,4,2,3] }]
+        argTypes: ['list'], returnType: 'list', inPlace: true,
+testCases: [{ args: [[1,2,3,4]], expected: [1,4,2,3] }]
   },
 
   47: {
@@ -743,7 +752,8 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes in the list is [0, 5000]'],
     starterCode: { javascript: `function reverseList(head) {\n    // Write your solution here\n}`, python: `def reverse_list(head):\n    # Write your solution here\n    pass` },
-    testCases: [{ args: [[1,2,3,4,5]], expected: [5,4,3,2,1] }]
+        argTypes: ['list'], returnType: 'list',
+testCases: [{ args: [[1,2,3,4,5]], expected: [5,4,3,2,1] }]
   },
 
   // MATRIX (48-51)
@@ -946,7 +956,8 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes is in [0, 2000]'],
     starterCode: { javascript: `function levelOrder(root) {\n    // Write your solution here\n}`, python: `def level_order(root):\n    # Write your solution here\n    pass` },
-    testCases: [{ args: [[3,9,20,null,null,15,7]], expected: [[3],[9,20],[15,7]] }]
+        argTypes: ['tree'],
+testCases: [{ args: [[3,9,20,null,null,15,7]], expected: [[3],[9,20],[15,7]] }]
   },
 
   64: {
@@ -958,7 +969,8 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes is in [1, 3 * 10^4]'],
     starterCode: { javascript: `function maxPathSum(root) {\n    // Write your solution here\n}`, python: `def max_path_sum(root):\n    # Write your solution here\n    pass` },
-    testCases: [{ args: [[-10,9,20,null,null,15,7]], expected: 42 }]
+        argTypes: ['tree'],
+testCases: [{ args: [[-10,9,20,null,null,15,7]], expected: 42 }]
   },
 
   65: {
@@ -970,7 +982,8 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= preorder.length <= 3000', 'preorder.length == inorder.length'],
     starterCode: { javascript: `function buildTree(preorder, inorder) {\n    // Write your solution here\n}`, python: `def build_tree(preorder, inorder):\n    # Write your solution here\n    pass` },
-    testCases: [{ args: [[3,9,20,15,7],[9,3,15,20,7]], expected: [3,9,20,null,null,15,7] }]
+        returnType: 'tree',
+testCases: [{ args: [[3,9,20,15,7],[9,3,15,20,7]], expected: [3,9,20,null,null,15,7] }]
   },
 
   66: {
@@ -994,7 +1007,8 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes is in [0, 100]'],
     starterCode: { javascript: `function invertTree(root) {\n    // Write your solution here\n}`, python: `def invert_tree(root):\n    # Write your solution here\n    pass` },
-    testCases: [{ args: [[4,2,7,1,3,6,9]], expected: [4,7,2,9,6,3,1] }]
+        argTypes: ['tree'], returnType: 'tree',
+testCases: [{ args: [[4,2,7,1,3,6,9]], expected: [4,7,2,9,6,3,1] }]
   },
 
   68: {
@@ -1007,7 +1021,8 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes is n', '1 <= k <= n <= 10^4'],
     starterCode: { javascript: `function kthSmallest(root, k) {\n    // Write your solution here\n}`, python: `def kth_smallest(root, k):\n    # Write your solution here\n    pass` },
-    testCases: [{ args: [[3,1,4,null,2],1], expected: 1 }]
+        argTypes: ['tree', 'raw'],
+testCases: [{ args: [[3,1,4,null,2],1], expected: 1 }]
   },
 
   69: {
@@ -1019,7 +1034,8 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes is in [2, 10^5]', 'All values are unique'],
     starterCode: { javascript: `function lowestCommonAncestor(root, p, q) {\n    // Write your solution here\n}`, python: `def lowest_common_ancestor(root, p, q):\n    # Write your solution here\n    pass` },
-    testCases: [{ args: [[6,2,8,0,4,7,9,null,null,3,5],2,8], expected: 6 }]
+        argTypes: ['tree', 'nodeValue', 'nodeValue'],
+testCases: [{ args: [[6,2,8,0,4,7,9,null,null,3,5],2,8], expected: 6 }]
   },
 
   70: {
@@ -1032,7 +1048,8 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes is in [0, 10^4]'],
     starterCode: { javascript: `function maxDepth(root) {\n    // Write your solution here\n}`, python: `def max_depth(root):\n    # Write your solution here\n    pass` },
-    testCases: [{ args: [[3,9,20,null,null,15,7]], expected: 3 }]
+        argTypes: ['tree'],
+testCases: [{ args: [[3,9,20,null,null,15,7]], expected: 3 }]
   },
 
   71: {
@@ -1045,7 +1062,8 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes is in [0, 100]'],
     starterCode: { javascript: `function isSameTree(p, q) {\n    // Write your solution here\n}`, python: `def is_same_tree(p, q):\n    # Write your solution here\n    pass` },
-    testCases: [{ args: [[1,2,3],[1,2,3]], expected: true }]
+        argTypes: ['tree', 'tree'],
+testCases: [{ args: [[1,2,3],[1,2,3]], expected: true }]
   },
 
   72: {
@@ -1069,7 +1087,8 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes in root is [1, 2000]', 'The number of nodes in subRoot is [1, 1000]'],
     starterCode: { javascript: `function isSubtree(root, subRoot) {\n    // Write your solution here\n}`, python: `def is_subtree(root, sub_root):\n    # Write your solution here\n    pass` },
-    testCases: [{ args: [[3,4,5,1,2],[4,1,2]], expected: true }]
+        argTypes: ['tree', 'tree'],
+testCases: [{ args: [[3,4,5,1,2],[4,1,2]], expected: true }]
   },
 
   74: {
@@ -1082,7 +1101,8 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes is in [1, 10^4]'],
     starterCode: { javascript: `function isValidBST(root) {\n    // Write your solution here\n}`, python: `def is_valid_bst(root):\n    # Write your solution here\n    pass` },
-    testCases: [{ args: [[2,1,3]], expected: true }, { args: [[5,1,4,null,null,3,6]], expected: false }]
+        argTypes: ['tree'],
+testCases: [{ args: [[2,1,3]], expected: true }, { args: [[5,1,4,null,null,3,6]], expected: false }]
   },
 
   75: {
