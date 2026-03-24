@@ -6,6 +6,9 @@ import { getVisualizerPath } from '../data/problemVisualizers';
 import { PROBLEMS } from '../data/blind75Problems';
 import { useTrackerStore } from '../hooks/useTrackerStore';
 import StatusEditDropdown from '../components/blind75/StatusEditDropdown';
+import { executeCode } from '../services/codeRunner';
+import TestResults from '../components/shared/TestResults';
+import type { TestRunResult } from '../types/visualization';
 
 function ProblemPage() {
   const { id } = useParams<{ id: string }>();
@@ -46,8 +49,9 @@ function ProblemPage() {
   // Tab state for left panel
   const [activeTab, setActiveTab] = useState<'description' | 'visualizer'>('description');
 
-  // Test output state
-  const [testOutput, setTestOutput] = useState('');
+  // Test execution state
+  const [testResult, setTestResult] = useState<TestRunResult | null>(null);
+  const [isRunning, setIsRunning] = useState(false);
 
   const timerIntervalRef = useRef<number | null>(null);
   
@@ -233,9 +237,26 @@ function ProblemPage() {
     }
   };
 
-  const runTests = () => {
-    // Simple test runner (placeholder - you'd implement actual execution)
-    setTestOutput('Test runner not yet implemented. This is a placeholder for running your code against test cases.');
+  const runTests = async () => {
+    if (!problem || isRunning) return;
+    setIsRunning(true);
+    setTestResult(null);
+    const result = await executeCode(code, language, problem);
+    setTestResult(result);
+    setIsRunning(false);
+  };
+
+  const submitCode = async () => {
+    if (!problem || isRunning) return;
+    setIsRunning(true);
+    setTestResult(null);
+    const result = await executeCode(code, language, problem);
+    setTestResult(result);
+    setIsRunning(false);
+    // Auto-update tracker on all-pass
+    if (result.allPassed) {
+      updateProgress(Number(problemId), { status: 'solved' });
+    }
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -601,12 +622,22 @@ function ProblemPage() {
                         Python
                       </button>
                     </div>
-                    <button
-                      onClick={runTests}
-                      className="px-4 py-2 bg-[var(--accent)] text-black rounded hover:bg-[var(--accent-hover)] transition text-xs font-semibold"
-                    >
-                      ▶ Run Tests
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={runTests}
+                        disabled={isRunning}
+                        className="px-4 py-2 bg-[#161b22] text-[var(--accent)] border border-[var(--accent)] rounded hover:bg-[var(--accent)] hover:text-black transition text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isRunning ? '⟳ Running...' : '▶ Run'}
+                      </button>
+                      <button
+                        onClick={submitCode}
+                        disabled={isRunning}
+                        className="px-4 py-2 bg-[var(--accent)] text-black rounded hover:bg-[var(--accent-hover)] transition text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isRunning ? '⟳ Running...' : '⏎ Submit'}
+                      </button>
+                    </div>
                   </div>
 
                   {/* Code Editor */}
@@ -657,12 +688,15 @@ function ProblemPage() {
                   </div>
 
                   {/* Test Output Panel */}
-                  {testOutput && (
-                    <div className="p-4 border-t border-[#30363d] bg-[#161b22] max-h-48 overflow-auto">
-                      <h3 className="text-[var(--accent)] text-xs font-bold mb-2">Test Output:</h3>
-                      <pre className="text-gray-400 text-xs font-mono whitespace-pre-wrap">
-                        {testOutput}
-                      </pre>
+                  {(testResult || isRunning) && (
+                    <div className="border-t border-[#30363d] bg-[#161b22] max-h-64 overflow-auto">
+                      {isRunning ? (
+                        <div className="p-4 text-xs text-gray-400 font-mono animate-pulse">
+                          Running tests against Judge0...
+                        </div>
+                      ) : testResult ? (
+                        <TestResults result={testResult} />
+                      ) : null}
                     </div>
                   )}
                 </div>
