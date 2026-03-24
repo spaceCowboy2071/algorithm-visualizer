@@ -24,11 +24,8 @@ async function ensurePyodide(): Promise<any> {
   if (pyodide) return pyodide;
   self.postMessage({ type: 'pyodide-status', status: 'loading' });
   try {
-    const mod = await import(
-      /* @vite-ignore */
-      'https://cdn.jsdelivr.net/pyodide/v0.27.0/full/pyodide.mjs'
-    );
-    pyodide = await mod.loadPyodide();
+    const { loadPyodide } = await import('pyodide');
+    pyodide = await loadPyodide();
     self.postMessage({ type: 'pyodide-status', status: 'loaded' });
     return pyodide;
   } catch (err: any) {
