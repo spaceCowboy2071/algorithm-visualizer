@@ -18,8 +18,8 @@ export interface Problem {
     python: string;
   };
   testCases: Array<{
-    input: string;
-    expectedOutput: string;
+    args: any[];
+    expected: any;
   }>;
 }
 
@@ -45,9 +45,9 @@ Notice that the solution set must not contain duplicate triplets.`,
       python: `def three_sum(nums):\n    # Write your solution here\n    pass`
     },
     testCases: [
-      { input: '[-1,0,1,2,-1,-4]', expectedOutput: '[[-1,-1,2],[-1,0,1]]' },
-      { input: '[0,1,1]', expectedOutput: '[]' },
-      { input: '[0,0,0]', expectedOutput: '[[0,0,0]]' }
+      { args: [[-1,0,1,2,-1,-4]], expected: [[-1,-1,2],[-1,0,1]] },
+      { args: [[0,1,1]], expected: [] },
+      { args: [[0,0,0]], expected: [[0,0,0]] }
     ]
   },
 
@@ -71,10 +71,7 @@ Return the maximum profit you can achieve from this transaction. If you cannot a
       javascript: `function maxProfit(prices) {\n    // Write your solution here\n    \n}`,
       python: `def max_profit(prices):\n    # Write your solution here\n    pass`
     },
-    testCases: [
-      { input: '[7,1,5,3,6,4]', expectedOutput: '5' },
-      { input: '[7,6,4,3,1]', expectedOutput: '0' }
-    ]
+    testCases: [{ args: [[7,1,5,3,6,4]], expected: 5 }, { args: [[7,6,4,3,1]], expected: 0 }]
   },
 
   3: {
@@ -97,10 +94,7 @@ Return the maximum amount of water a container can store.`,
       javascript: `function maxArea(height) {\n    // Write your solution here\n    \n}`,
       python: `def max_area(height):\n    # Write your solution here\n    pass`
     },
-    testCases: [
-      { input: '[1,8,6,2,5,4,8,3,7]', expectedOutput: '49' },
-      { input: '[1,1]', expectedOutput: '1' }
-    ]
+    testCases: [{ args: [[1,8,6,2,5,4,8,3,7]], expected: 49 }, { args: [[1,1]], expected: 1 }]
   },
 
   4: {
@@ -120,10 +114,7 @@ Return the maximum amount of water a container can store.`,
       javascript: `function containsDuplicate(nums) {\n    // Write your solution here\n    \n}`,
       python: `def contains_duplicate(nums):\n    # Write your solution here\n    pass`
     },
-    testCases: [
-      { input: '[1,2,3,1]', expectedOutput: 'true' },
-      { input: '[1,2,3,4]', expectedOutput: 'false' }
-    ]
+    testCases: [{ args: [[1,2,3,1]], expected: true }, { args: [[1,2,3,4]], expected: false }]
   },
 
   5: {
@@ -144,10 +135,7 @@ You must write an algorithm that runs in O(log n) time.`,
       javascript: `function findMin(nums) {\n    // Write your solution here\n    \n}`,
       python: `def find_min(nums):\n    # Write your solution here\n    pass`
     },
-    testCases: [
-      { input: '[3,4,5,1,2]', expectedOutput: '1' },
-      { input: '[4,5,6,7,0,1,2]', expectedOutput: '0' }
-    ]
+    testCases: [{ args: [[3,4,5,1,2]], expected: 1 }, { args: [[4,5,6,7,0,1,2]], expected: 0 }]
   },
 
   6: {
@@ -166,10 +154,7 @@ You must write an algorithm that runs in O(log n) time.`,
       javascript: `function maxProduct(nums) {\n    // Write your solution here\n    \n}`,
       python: `def max_product(nums):\n    # Write your solution here\n    pass`
     },
-    testCases: [
-      { input: '[2,3,-2,4]', expectedOutput: '6' },
-      { input: '[-2,0,-1]', expectedOutput: '0' }
-    ]
+    testCases: [{ args: [[2,3,-2,4]], expected: 6 }, { args: [[-2,0,-1]], expected: 0 }]
   },
 
   7: {
@@ -188,10 +173,7 @@ You must write an algorithm that runs in O(log n) time.`,
       javascript: `function maxSubArray(nums) {\n    // Write your solution here\n    \n}`,
       python: `def max_sub_array(nums):\n    # Write your solution here\n    pass`
     },
-    testCases: [
-      { input: '[-2,1,-3,4,-1,2,1,-5,4]', expectedOutput: '6' },
-      { input: '[1]', expectedOutput: '1' }
-    ]
+    testCases: [{ args: [[-2,1,-3,4,-1,2,1,-5,4]], expected: 6 }, { args: [[1]], expected: 1 }]
   },
 
   8: {
@@ -212,10 +194,7 @@ You must write an algorithm that runs in O(n) time and without using the divisio
       javascript: `function productExceptSelf(nums) {\n    // Write your solution here\n    \n}`,
       python: `def product_except_self(nums):\n    # Write your solution here\n    pass`
     },
-    testCases: [
-      { input: '[1,2,3,4]', expectedOutput: '[24,12,8,6]' },
-      { input: '[-1,1,0,-3,3]', expectedOutput: '[0,0,9,0,0]' }
-    ]
+    testCases: [{ args: [[1,2,3,4]], expected: [24,12,8,6] }, { args: [[-1,1,0,-3,3]], expected: [0,0,9,0,0] }]
   },
 
   9: {
@@ -236,10 +215,7 @@ You must write an algorithm with O(log n) runtime complexity.`,
       javascript: `function search(nums, target) {\n    // Write your solution here\n    \n}`,
       python: `def search(nums, target):\n    # Write your solution here\n    pass`
     },
-    testCases: [
-      { input: '[4,5,6,7,0,1,2], 0', expectedOutput: '4' },
-      { input: '[4,5,6,7,0,1,2], 3', expectedOutput: '-1' }
-    ]
+    testCases: [{ args: [[4,5,6,7,0,1,2],0], expected: 4 }, { args: [[4,5,6,7,0,1,2],3], expected: -1 }]
   },
 
   10: {
@@ -260,10 +236,7 @@ You may assume that each input would have exactly one solution, and you may not 
       javascript: `function twoSum(nums, target) {\n    // Write your solution here\n    \n}`,
       python: `def two_sum(nums, target):\n    # Write your solution here\n    pass`
     },
-    testCases: [
-      { input: '[2,7,11,15], 9', expectedOutput: '[0,1]' },
-      { input: '[3,2,4], 6', expectedOutput: '[1,2]' }
-    ]
+    testCases: [{ args: [[2,7,11,15],9], expected: [0,1] }, { args: [[3,2,4],6], expected: [1,2] }]
   },
 
   // BINARY PROBLEMS (11-15)
@@ -283,10 +256,7 @@ You may assume that each input would have exactly one solution, and you may not 
       javascript: `function countBits(n) {\n    // Write your solution here\n    \n}`,
       python: `def count_bits(n):\n    # Write your solution here\n    pass`
     },
-    testCases: [
-      { input: '2', expectedOutput: '[0,1,1]' },
-      { input: '5', expectedOutput: '[0,1,1,2,1,2]' }
-    ]
+    testCases: [{ args: [2], expected: [0,1,1] }, { args: [5], expected: [0,1,1,2,1,2] }]
   },
 
   12: {
@@ -305,10 +275,7 @@ You may assume that each input would have exactly one solution, and you may not 
       javascript: `function missingNumber(nums) {\n    // Write your solution here\n    \n}`,
       python: `def missing_number(nums):\n    # Write your solution here\n    pass`
     },
-    testCases: [
-      { input: '[3,0,1]', expectedOutput: '2' },
-      { input: '[0,1]', expectedOutput: '2' }
-    ]
+    testCases: [{ args: [[3,0,1]], expected: 2 }, { args: [[0,1]], expected: 2 }]
   },
 
   13: {
@@ -327,10 +294,7 @@ You may assume that each input would have exactly one solution, and you may not 
       javascript: `function hammingWeight(n) {\n    // Write your solution here\n    \n}`,
       python: `def hamming_weight(n):\n    # Write your solution here\n    pass`
     },
-    testCases: [
-      { input: '11', expectedOutput: '3' },
-      { input: '128', expectedOutput: '1' }
-    ]
+    testCases: [{ args: [11], expected: 3 }, { args: [128], expected: 1 }]
   },
 
   14: {
@@ -349,10 +313,7 @@ You may assume that each input would have exactly one solution, and you may not 
       javascript: `function reverseBits(n) {\n    // Write your solution here\n    \n}`,
       python: `def reverse_bits(n):\n    # Write your solution here\n    pass`
     },
-    testCases: [
-      { input: '43261596', expectedOutput: '964176192' },
-      { input: '4294967293', expectedOutput: '3221225471' }
-    ]
+    testCases: [{ args: [43261596], expected: 964176192 }, { args: [4294967293], expected: 3221225471 }]
   },
 
   15: {
@@ -371,10 +332,7 @@ You may assume that each input would have exactly one solution, and you may not 
       javascript: `function getSum(a, b) {\n    // Write your solution here\n    \n}`,
       python: `def get_sum(a, b):\n    # Write your solution here\n    pass`
     },
-    testCases: [
-      { input: '1, 2', expectedOutput: '3' },
-      { input: '2, 3', expectedOutput: '5' }
-    ]
+    testCases: [{ args: [1,2], expected: 3 }, { args: [2,3], expected: 5 }]
   },
 
   // DYNAMIC PROGRAMMING (16-26)
@@ -388,7 +346,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= n <= 45'],
     starterCode: { javascript: `function climbStairs(n) {\n    // Write your solution here\n}`, python: `def climb_stairs(n):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '2', expectedOutput: '2' }, { input: '3', expectedOutput: '3' }]
+    testCases: [{ args: [2], expected: 2 }, { args: [3], expected: 3 }]
   },
 
   17: {
@@ -401,7 +359,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= coins.length <= 12', '1 <= coins[i] <= 2^31 - 1', '0 <= amount <= 10^4'],
     starterCode: { javascript: `function coinChange(coins, amount) {\n    // Write your solution here\n}`, python: `def coin_change(coins, amount):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[1,2,5], 11', expectedOutput: '3' }, { input: '[2], 3', expectedOutput: '-1' }]
+    testCases: [{ args: [[1,2,5],11], expected: 3 }, { args: [[2],3], expected: -1 }]
   },
 
   18: {
@@ -413,7 +371,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= candidates.length <= 30', '2 <= candidates[i] <= 40', '1 <= target <= 40'],
     starterCode: { javascript: `function combinationSum(candidates, target) {\n    // Write your solution here\n}`, python: `def combination_sum(candidates, target):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[2,3,6,7], 7', expectedOutput: '[[2,2,3],[7]]' }]
+    testCases: [{ args: [[2,3,6,7],7], expected: [[2,2,3],[7]] }]
   },
 
   19: {
@@ -426,7 +384,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= s.length <= 100', 's contains only digits'],
     starterCode: { javascript: `function numDecodings(s) {\n    // Write your solution here\n}`, python: `def num_decodings(s):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '"12"', expectedOutput: '2' }, { input: '"226"', expectedOutput: '3' }]
+    testCases: [{ args: ["12"], expected: 2 }, { args: ["226"], expected: 3 }]
   },
 
   20: {
@@ -439,7 +397,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= nums.length <= 100', '0 <= nums[i] <= 400'],
     starterCode: { javascript: `function rob(nums) {\n    // Write your solution here\n}`, python: `def rob(nums):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[1,2,3,1]', expectedOutput: '4' }, { input: '[2,7,9,3,1]', expectedOutput: '12' }]
+    testCases: [{ args: [[1,2,3,1]], expected: 4 }, { args: [[2,7,9,3,1]], expected: 12 }]
   },
 
   21: {
@@ -452,7 +410,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= nums.length <= 100', '0 <= nums[i] <= 1000'],
     starterCode: { javascript: `function rob(nums) {\n    // Write your solution here\n}`, python: `def rob(nums):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[2,3,2]', expectedOutput: '3' }, { input: '[1,2,3,1]', expectedOutput: '4' }]
+    testCases: [{ args: [[2,3,2]], expected: 3 }, { args: [[1,2,3,1]], expected: 4 }]
   },
 
   22: {
@@ -465,7 +423,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= nums.length <= 10^4', '0 <= nums[i] <= 10^5'],
     starterCode: { javascript: `function canJump(nums) {\n    // Write your solution here\n}`, python: `def can_jump(nums):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[2,3,1,1,4]', expectedOutput: 'true' }, { input: '[3,2,1,0,4]', expectedOutput: 'false' }]
+    testCases: [{ args: [[2,3,1,1,4]], expected: true }, { args: [[3,2,1,0,4]], expected: false }]
   },
 
   23: {
@@ -478,7 +436,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= text1.length, text2.length <= 1000'],
     starterCode: { javascript: `function longestCommonSubsequence(text1, text2) {\n    // Write your solution here\n}`, python: `def longest_common_subsequence(text1, text2):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '"abcde", "ace"', expectedOutput: '3' }, { input: '"abc", "def"', expectedOutput: '0' }]
+    testCases: [{ args: ["abcde","ace"], expected: 3 }, { args: ["abc","def"], expected: 0 }]
   },
 
   24: {
@@ -491,7 +449,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= nums.length <= 2500', '-10^4 <= nums[i] <= 10^4'],
     starterCode: { javascript: `function lengthOfLIS(nums) {\n    // Write your solution here\n}`, python: `def length_of_lis(nums):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[10,9,2,5,3,7,101,18]', expectedOutput: '4' }]
+    testCases: [{ args: [[10,9,2,5,3,7,101,18]], expected: 4 }]
   },
 
   25: {
@@ -504,7 +462,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= m, n <= 100'],
     starterCode: { javascript: `function uniquePaths(m, n) {\n    // Write your solution here\n}`, python: `def unique_paths(m, n):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '3, 7', expectedOutput: '28' }, { input: '3, 2', expectedOutput: '3' }]
+    testCases: [{ args: [3,7], expected: 28 }, { args: [3,2], expected: 3 }]
   },
 
   26: {
@@ -517,7 +475,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= s.length <= 300', '1 <= wordDict.length <= 1000'],
     starterCode: { javascript: `function wordBreak(s, wordDict) {\n    // Write your solution here\n}`, python: `def word_break(s, word_dict):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '"leetcode", ["leet","code"]', expectedOutput: 'true' }]
+    testCases: [{ args: ["leetcode",["leet","code"]], expected: true }]
   },
 
   // GRAPH (27-34)
@@ -530,7 +488,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= words.length <= 100', '1 <= words[i].length <= 100'],
     starterCode: { javascript: `function alienOrder(words) {\n    // Write your solution here\n}`, python: `def alien_order(words):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '["wrt","wrf","er","ett","rftt"]', expectedOutput: '"wertf"' }]
+    testCases: [{ args: [["wrt","wrf","er","ett","rftt"]], expected: "wertf" }]
   },
 
   28: {
@@ -542,7 +500,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes is in range [0, 100]', '1 <= Node.val <= 100'],
     starterCode: { javascript: `function cloneGraph(node) {\n    // Write your solution here\n}`, python: `def clone_graph(node):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[[2,4],[1,3],[2,4],[1,3]]', expectedOutput: '[[2,4],[1,3],[2,4],[1,3]]' }]
+    testCases: [{ args: [[[2,4],[1,3],[2,4],[1,3]]], expected: [[2,4],[1,3],[2,4],[1,3]] }]
   },
 
   29: {
@@ -555,7 +513,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= numCourses <= 2000', '0 <= prerequisites.length <= 5000'],
     starterCode: { javascript: `function canFinish(numCourses, prerequisites) {\n    // Write your solution here\n}`, python: `def can_finish(num_courses, prerequisites):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '2, [[1,0]]', expectedOutput: 'true' }, { input: '2, [[1,0],[0,1]]', expectedOutput: 'false' }]
+    testCases: [{ args: [2,[[1,0]]], expected: true }, { args: [2,[[1,0],[0,1]]], expected: false }]
   },
 
   30: {
@@ -568,7 +526,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= n <= 2000', '0 <= edges.length <= 5000'],
     starterCode: { javascript: `function validTree(n, edges) {\n    // Write your solution here\n}`, python: `def valid_tree(n, edges):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '5, [[0,1],[0,2],[0,3],[1,4]]', expectedOutput: 'true' }]
+    testCases: [{ args: [5,[[0,1],[0,2],[0,3],[1,4]]], expected: true }]
   },
 
   31: {
@@ -581,7 +539,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['0 <= nums.length <= 10^5', '-10^9 <= nums[i] <= 10^9'],
     starterCode: { javascript: `function longestConsecutive(nums) {\n    // Write your solution here\n}`, python: `def longest_consecutive(nums):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[100,4,200,1,3,2]', expectedOutput: '4' }]
+    testCases: [{ args: [[100,4,200,1,3,2]], expected: 4 }]
   },
 
   32: {
@@ -593,7 +551,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= n <= 2000', '1 <= edges.length <= 5000'],
     starterCode: { javascript: `function countComponents(n, edges) {\n    // Write your solution here\n}`, python: `def count_components(n, edges):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '5, [[0,1],[1,2],[3,4]]', expectedOutput: '2' }]
+    testCases: [{ args: [5,[[0,1],[1,2],[3,4]]], expected: 2 }]
   },
 
   33: {
@@ -605,7 +563,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['m == grid.length', 'n == grid[i].length', '1 <= m, n <= 300'],
     starterCode: { javascript: `function numIslands(grid) {\n    // Write your solution here\n}`, python: `def num_islands(grid):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[["1","1","0"],["1","1","0"],["0","0","1"]]', expectedOutput: '2' }]
+    testCases: [{ args: [[["1","1","0"],["1","1","0"],["0","0","1"]]], expected: 2 }]
   },
 
   34: {
@@ -617,7 +575,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['m == heights.length', 'n == heights[i].length', '1 <= m, n <= 200'],
     starterCode: { javascript: `function pacificAtlantic(heights) {\n    // Write your solution here\n}`, python: `def pacific_atlantic(heights):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[[1,2,2,3,5],[3,2,3,4,4],[2,4,5,3,1],[6,7,1,4,5],[5,1,1,2,4]]', expectedOutput: '[[0,4],[1,3],[1,4],[2,2],[3,0],[3,1],[4,0]]' }]
+    testCases: [{ args: [[[1,2,2,3,5],[3,2,3,4,4],[2,4,5,3,1],[6,7,1,4,5],[5,1,1,2,4]]], expected: [[0,4],[1,3],[1,4],[2,2],[3,0],[3,1],[4,0]] }]
   },
 
   // HEAP (35-36)
@@ -630,7 +588,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['-10^5 <= num <= 10^5', 'At most 5 * 10^4 calls'],
     starterCode: { javascript: `class MedianFinder {\n    constructor() {\n        // Initialize\n    }\n    addNum(num) {\n        // Add number\n    }\n    findMedian() {\n        // Return median\n    }\n}`, python: `class MedianFinder:\n    def __init__(self):\n        pass\n    def add_num(self, num):\n        pass\n    def find_median(self):\n        pass` },
-    testCases: [{ input: '[[],[1],[2],[],[3],[]]', expectedOutput: '[null,null,null,1.5,null,2.0]' }]
+    testCases: [{ args: [[[],[1],[2],[],[3],[]]], expected: [null,null,null,1.5,null,2] }]
   },
 
   36: {
@@ -643,7 +601,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= nums.length <= 10^5', '-10^4 <= nums[i] <= 10^4', 'k is in range [1, number of unique elements]'],
     starterCode: { javascript: `function topKFrequent(nums, k) {\n    // Write your solution here\n}`, python: `def top_k_frequent(nums, k):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[1,1,1,2,2,3], 2', expectedOutput: '[1,2]' }]
+    testCases: [{ args: [[1,1,1,2,2,3],2], expected: [1,2] }]
   },
 
   // INTERVAL (37-41)
@@ -656,7 +614,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['0 <= intervals.length <= 10^4', 'intervals[i].length == 2'],
     starterCode: { javascript: `function insert(intervals, newInterval) {\n    // Write your solution here\n}`, python: `def insert(intervals, new_interval):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[[1,3],[6,9]], [2,5]', expectedOutput: '[[1,5],[6,9]]' }]
+    testCases: [{ args: [[[1,3],[6,9]],[2,5]], expected: [[1,5],[6,9]] }]
   },
 
   38: {
@@ -669,7 +627,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['0 <= intervals.length <= 10^4'],
     starterCode: { javascript: `function canAttendMeetings(intervals) {\n    // Write your solution here\n}`, python: `def can_attend_meetings(intervals):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[[0,30],[5,10],[15,20]]', expectedOutput: 'false' }, { input: '[[7,10],[2,4]]', expectedOutput: 'true' }]
+    testCases: [{ args: [[[0,30],[5,10],[15,20]]], expected: false }, { args: [[[7,10],[2,4]]], expected: true }]
   },
 
   39: {
@@ -682,7 +640,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= intervals.length <= 10^4'],
     starterCode: { javascript: `function minMeetingRooms(intervals) {\n    // Write your solution here\n}`, python: `def min_meeting_rooms(intervals):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[[0,30],[5,10],[15,20]]', expectedOutput: '2' }]
+    testCases: [{ args: [[[0,30],[5,10],[15,20]]], expected: 2 }]
   },
 
   40: {
@@ -695,7 +653,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= intervals.length <= 10^4', 'intervals[i].length == 2'],
     starterCode: { javascript: `function merge(intervals) {\n    // Write your solution here\n}`, python: `def merge(intervals):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[[1,3],[2,6],[8,10],[15,18]]', expectedOutput: '[[1,6],[8,10],[15,18]]' }]
+    testCases: [{ args: [[[1,3],[2,6],[8,10],[15,18]]], expected: [[1,6],[8,10],[15,18]] }]
   },
 
   41: {
@@ -708,7 +666,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= intervals.length <= 10^5'],
     starterCode: { javascript: `function eraseOverlapIntervals(intervals) {\n    // Write your solution here\n}`, python: `def erase_overlap_intervals(intervals):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[[1,2],[2,3],[3,4],[1,3]]', expectedOutput: '1' }]
+    testCases: [{ args: [[[1,2],[2,3],[3,4],[1,3]]], expected: 1 }]
   },
 
   // LINKED LIST (42-47)
@@ -722,7 +680,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes is in the range [0, 10^4]'],
     starterCode: { javascript: `function hasCycle(head) {\n    // Write your solution here\n}`, python: `def has_cycle(head):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[3,2,0,-4], pos=1', expectedOutput: 'true' }]
+    testCases: [{ args: [[3,2,0,-4],1], expected: true }]
   },
 
   43: {
@@ -734,7 +692,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['k == lists.length', '0 <= k <= 10^4'],
     starterCode: { javascript: `function mergeKLists(lists) {\n    // Write your solution here\n}`, python: `def merge_k_lists(lists):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[[1,4,5],[1,3,4],[2,6]]', expectedOutput: '[1,1,2,3,4,4,5,6]' }]
+    testCases: [{ args: [[[1,4,5],[1,3,4],[2,6]]], expected: [1,1,2,3,4,4,5,6] }]
   },
 
   44: {
@@ -746,7 +704,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes in both lists is in the range [0, 50]'],
     starterCode: { javascript: `function mergeTwoLists(list1, list2) {\n    // Write your solution here\n}`, python: `def merge_two_lists(list1, list2):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[1,2,4], [1,3,4]', expectedOutput: '[1,1,2,3,4,4]' }]
+    testCases: [{ args: [[1,2,4],[1,3,4]], expected: [1,1,2,3,4,4] }]
   },
 
   45: {
@@ -759,7 +717,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes in the list is sz', '1 <= sz <= 30', '1 <= n <= sz'],
     starterCode: { javascript: `function removeNthFromEnd(head, n) {\n    // Write your solution here\n}`, python: `def remove_nth_from_end(head, n):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[1,2,3,4,5], 2', expectedOutput: '[1,2,3,5]' }]
+    testCases: [{ args: [[1,2,3,4,5],2], expected: [1,2,3,5] }]
   },
 
   46: {
@@ -772,7 +730,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes is in the range [1, 5 * 10^4]'],
     starterCode: { javascript: `function reorderList(head) {\n    // Write your solution here\n}`, python: `def reorder_list(head):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[1,2,3,4]', expectedOutput: '[1,4,2,3]' }]
+    testCases: [{ args: [[1,2,3,4]], expected: [1,4,2,3] }]
   },
 
   47: {
@@ -785,7 +743,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes in the list is [0, 5000]'],
     starterCode: { javascript: `function reverseList(head) {\n    // Write your solution here\n}`, python: `def reverse_list(head):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[1,2,3,4,5]', expectedOutput: '[5,4,3,2,1]' }]
+    testCases: [{ args: [[1,2,3,4,5]], expected: [5,4,3,2,1] }]
   },
 
   // MATRIX (48-51)
@@ -798,7 +756,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['n == matrix.length == matrix[i].length', '1 <= n <= 20'],
     starterCode: { javascript: `function rotate(matrix) {\n    // Write your solution here\n}`, python: `def rotate(matrix):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[[1,2,3],[4,5,6],[7,8,9]]', expectedOutput: '[[7,4,1],[8,5,2],[9,6,3]]' }]
+    testCases: [{ args: [[[1,2,3],[4,5,6],[7,8,9]]], expected: [[7,4,1],[8,5,2],[9,6,3]] }]
   },
 
   49: {
@@ -810,7 +768,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['m == matrix.length', 'n == matrix[0].length', '1 <= m, n <= 200'],
     starterCode: { javascript: `function setZeroes(matrix) {\n    // Write your solution here\n}`, python: `def set_zeroes(matrix):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[[1,1,1],[1,0,1],[1,1,1]]', expectedOutput: '[[1,0,1],[0,0,0],[1,0,1]]' }]
+    testCases: [{ args: [[[1,1,1],[1,0,1],[1,1,1]]], expected: [[1,0,1],[0,0,0],[1,0,1]] }]
   },
 
   50: {
@@ -822,7 +780,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['m == matrix.length', 'n == matrix[i].length', '1 <= m, n <= 10'],
     starterCode: { javascript: `function spiralOrder(matrix) {\n    // Write your solution here\n}`, python: `def spiral_order(matrix):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[[1,2,3],[4,5,6],[7,8,9]]', expectedOutput: '[1,2,3,6,9,8,7,4,5]' }]
+    testCases: [{ args: [[[1,2,3],[4,5,6],[7,8,9]]], expected: [1,2,3,6,9,8,7,4,5] }]
   },
 
   51: {
@@ -834,7 +792,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['m == board.length', 'n = board[i].length', '1 <= m, n <= 6', '1 <= word.length <= 15'],
     starterCode: { javascript: `function exist(board, word) {\n    // Write your solution here\n}`, python: `def exist(board, word):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], "ABCCED"', expectedOutput: 'true' }]
+    testCases: [{ args: [[["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]],"ABCCED"], expected: true }]
   },
 
   // STRING (52-61)
@@ -847,7 +805,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= strs.length <= 200', '0 <= strs[i].length <= 200'],
     starterCode: { javascript: `function encode(strs) {\n    // Encode\n}\nfunction decode(s) {\n    // Decode\n}`, python: `def encode(strs):\n    pass\ndef decode(s):\n    pass` },
-    testCases: [{ input: '["Hello","World"]', expectedOutput: '["Hello","World"]' }]
+    testCases: [{ args: [["Hello","World"]], expected: ["Hello","World"] }]
   },
 
   53: {
@@ -859,7 +817,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= strs.length <= 10^4', '0 <= strs[i].length <= 100'],
     starterCode: { javascript: `function groupAnagrams(strs) {\n    // Write your solution here\n}`, python: `def group_anagrams(strs):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '["eat","tea","tan","ate","nat","bat"]', expectedOutput: '[["bat"],["nat","tan"],["ate","eat","tea"]]' }]
+    testCases: [{ args: [["eat","tea","tan","ate","nat","bat"]], expected: [["bat"],["nat","tan"],["ate","eat","tea"]] }]
   },
 
   54: {
@@ -872,7 +830,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= s.length <= 1000'],
     starterCode: { javascript: `function longestPalindrome(s) {\n    // Write your solution here\n}`, python: `def longest_palindrome(s):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '"babad"', expectedOutput: '"bab"' }]
+    testCases: [{ args: ["babad"], expected: "bab" }]
   },
 
   55: {
@@ -885,7 +843,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= s.length <= 10^5', '0 <= k <= s.length'],
     starterCode: { javascript: `function characterReplacement(s, k) {\n    // Write your solution here\n}`, python: `def character_replacement(s, k):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '"ABAB", 2', expectedOutput: '4' }]
+    testCases: [{ args: ["ABAB",2], expected: 4 }]
   },
 
   56: {
@@ -898,7 +856,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['0 <= s.length <= 5 * 10^4'],
     starterCode: { javascript: `function lengthOfLongestSubstring(s) {\n    // Write your solution here\n}`, python: `def length_of_longest_substring(s):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '"abcabcbb"', expectedOutput: '3' }]
+    testCases: [{ args: ["abcabcbb"], expected: 3 }]
   },
 
   57: {
@@ -910,7 +868,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= s.length, t.length <= 10^5'],
     starterCode: { javascript: `function minWindow(s, t) {\n    // Write your solution here\n}`, python: `def min_window(s, t):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '"ADOBECODEBANC", "ABC"', expectedOutput: '"BANC"' }]
+    testCases: [{ args: ["ADOBECODEBANC","ABC"], expected: "BANC" }]
   },
 
   58: {
@@ -923,7 +881,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= s.length <= 1000'],
     starterCode: { javascript: `function countSubstrings(s) {\n    // Write your solution here\n}`, python: `def count_substrings(s):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '"abc"', expectedOutput: '3' }]
+    testCases: [{ args: ["abc"], expected: 3 }]
   },
 
   59: {
@@ -936,7 +894,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= s.length, t.length <= 5 * 10^4'],
     starterCode: { javascript: `function isAnagram(s, t) {\n    // Write your solution here\n}`, python: `def is_anagram(s, t):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '"anagram", "nagaram"', expectedOutput: 'true' }]
+    testCases: [{ args: ["anagram","nagaram"], expected: true }]
   },
 
   60: {
@@ -949,7 +907,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= s.length <= 2 * 10^5'],
     starterCode: { javascript: `function isPalindrome(s) {\n    // Write your solution here\n}`, python: `def is_palindrome(s):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '"A man, a plan, a canal: Panama"', expectedOutput: 'true' }]
+    testCases: [{ args: ["A man, a plan, a canal: Panama"], expected: true }]
   },
 
   61: {
@@ -963,7 +921,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= s.length <= 10^4'],
     starterCode: { javascript: `function isValid(s) {\n    // Write your solution here\n}`, python: `def is_valid(s):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '"()"', expectedOutput: 'true' }, { input: '"(]"', expectedOutput: 'false' }]
+    testCases: [{ args: ["()"], expected: true }, { args: ["(]"], expected: false }]
   },
 
   // TREE (62-75)
@@ -976,7 +934,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= word.length <= 25', 'At most 10^4 calls'],
     starterCode: { javascript: `class WordDictionary {\n    addWord(word) {}\n    search(word) {}\n}`, python: `class WordDictionary:\n    def add_word(self, word):\n        pass\n    def search(self, word):\n        pass` },
-    testCases: [{ input: '["bad"], "b.d"', expectedOutput: 'true' }]
+    testCases: [{ args: [["bad"],"b.d"], expected: true }]
   },
 
   63: {
@@ -988,7 +946,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes is in [0, 2000]'],
     starterCode: { javascript: `function levelOrder(root) {\n    // Write your solution here\n}`, python: `def level_order(root):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[3,9,20,null,null,15,7]', expectedOutput: '[[3],[9,20],[15,7]]' }]
+    testCases: [{ args: [[3,9,20,null,null,15,7]], expected: [[3],[9,20],[15,7]] }]
   },
 
   64: {
@@ -1000,7 +958,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes is in [1, 3 * 10^4]'],
     starterCode: { javascript: `function maxPathSum(root) {\n    // Write your solution here\n}`, python: `def max_path_sum(root):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[-10,9,20,null,null,15,7]', expectedOutput: '42' }]
+    testCases: [{ args: [[-10,9,20,null,null,15,7]], expected: 42 }]
   },
 
   65: {
@@ -1012,7 +970,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= preorder.length <= 3000', 'preorder.length == inorder.length'],
     starterCode: { javascript: `function buildTree(preorder, inorder) {\n    // Write your solution here\n}`, python: `def build_tree(preorder, inorder):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[3,9,20,15,7], [9,3,15,20,7]', expectedOutput: '[3,9,20,null,null,15,7]' }]
+    testCases: [{ args: [[3,9,20,15,7],[9,3,15,20,7]], expected: [3,9,20,null,null,15,7] }]
   },
 
   66: {
@@ -1024,7 +982,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= word.length, prefix.length <= 2000'],
     starterCode: { javascript: `class Trie {\n    insert(word) {}\n    search(word) {}\n    startsWith(prefix) {}\n}`, python: `class Trie:\n    def insert(self, word):\n        pass\n    def search(self, word):\n        pass\n    def starts_with(self, prefix):\n        pass` },
-    testCases: [{ input: '["apple"], "apple", "app"', expectedOutput: '[null,true,true]' }]
+    testCases: [{ args: [["apple"],"apple","app"], expected: [null,true,true] }]
   },
 
   67: {
@@ -1036,7 +994,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes is in [0, 100]'],
     starterCode: { javascript: `function invertTree(root) {\n    // Write your solution here\n}`, python: `def invert_tree(root):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[4,2,7,1,3,6,9]', expectedOutput: '[4,7,2,9,6,3,1]' }]
+    testCases: [{ args: [[4,2,7,1,3,6,9]], expected: [4,7,2,9,6,3,1] }]
   },
 
   68: {
@@ -1049,7 +1007,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes is n', '1 <= k <= n <= 10^4'],
     starterCode: { javascript: `function kthSmallest(root, k) {\n    // Write your solution here\n}`, python: `def kth_smallest(root, k):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[3,1,4,null,2], 1', expectedOutput: '1' }]
+    testCases: [{ args: [[3,1,4,null,2],1], expected: 1 }]
   },
 
   69: {
@@ -1061,7 +1019,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes is in [2, 10^5]', 'All values are unique'],
     starterCode: { javascript: `function lowestCommonAncestor(root, p, q) {\n    // Write your solution here\n}`, python: `def lowest_common_ancestor(root, p, q):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[6,2,8,0,4,7,9,null,null,3,5], 2, 8', expectedOutput: '6' }]
+    testCases: [{ args: [[6,2,8,0,4,7,9,null,null,3,5],2,8], expected: 6 }]
   },
 
   70: {
@@ -1074,7 +1032,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes is in [0, 10^4]'],
     starterCode: { javascript: `function maxDepth(root) {\n    // Write your solution here\n}`, python: `def max_depth(root):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[3,9,20,null,null,15,7]', expectedOutput: '3' }]
+    testCases: [{ args: [[3,9,20,null,null,15,7]], expected: 3 }]
   },
 
   71: {
@@ -1087,7 +1045,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes is in [0, 100]'],
     starterCode: { javascript: `function isSameTree(p, q) {\n    // Write your solution here\n}`, python: `def is_same_tree(p, q):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[1,2,3], [1,2,3]', expectedOutput: 'true' }]
+    testCases: [{ args: [[1,2,3],[1,2,3]], expected: true }]
   },
 
   72: {
@@ -1099,7 +1057,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes is in [0, 10^4]'],
     starterCode: { javascript: `function serialize(root) {}\nfunction deserialize(data) {}`, python: `def serialize(root):\n    pass\ndef deserialize(data):\n    pass` },
-    testCases: [{ input: '[1,2,3,null,null,4,5]', expectedOutput: '[1,2,3,null,null,4,5]' }]
+    testCases: [{ args: [[1,2,3,null,null,4,5]], expected: [1,2,3,null,null,4,5] }]
   },
 
   73: {
@@ -1111,7 +1069,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes in root is [1, 2000]', 'The number of nodes in subRoot is [1, 1000]'],
     starterCode: { javascript: `function isSubtree(root, subRoot) {\n    // Write your solution here\n}`, python: `def is_subtree(root, sub_root):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[3,4,5,1,2], [4,1,2]', expectedOutput: 'true' }]
+    testCases: [{ args: [[3,4,5,1,2],[4,1,2]], expected: true }]
   },
 
   74: {
@@ -1124,7 +1082,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes is in [1, 10^4]'],
     starterCode: { javascript: `function isValidBST(root) {\n    // Write your solution here\n}`, python: `def is_valid_bst(root):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[2,1,3]', expectedOutput: 'true' }, { input: '[5,1,4,null,null,3,6]', expectedOutput: 'false' }]
+    testCases: [{ args: [[2,1,3]], expected: true }, { args: [[5,1,4,null,null,3,6]], expected: false }]
   },
 
   75: {
@@ -1136,7 +1094,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['m == board.length', 'n == board[i].length', '1 <= m, n <= 12', '1 <= words.length <= 3 * 10^4'],
     starterCode: { javascript: `function findWords(board, words) {\n    // Write your solution here\n}`, python: `def find_words(board, words):\n    # Write your solution here\n    pass` },
-    testCases: [{ input: '[["o","a","a","n"],["e","t","a","e"],["i","h","k","r"],["i","f","l","v"]], ["oath","pea","eat","rain"]', expectedOutput: '["eat","oath"]' }]
+    testCases: [{ args: [[["o","a","a","n"],["e","t","a","e"],["i","h","k","r"],["i","f","l","v"]],["oath","pea","eat","rain"]], expected: ["eat","oath"] }]
   }
 };
 

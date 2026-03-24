@@ -175,3 +175,45 @@ export interface AlgorithmDefinition {
   info: ComplexityInfo;
   mode: AlgorithmMode;
 }
+
+// --- Judge0 Code Execution Types ---
+
+// Maps Judge0's numeric status IDs to readable names
+export type SubmissionStatus =
+  | 'queued'
+  | 'processing'
+  | 'accepted'
+  | 'wrong-answer'
+  | 'time-limit-exceeded'
+  | 'compilation-error'
+  | 'runtime-error-sigsegv'
+  | 'runtime-error-sigxfsz'
+  | 'runtime-error-sigfpe'
+  | 'runtime-error-sigabrt'
+  | 'runtime-error-nzec'
+  | 'runtime-error-other'
+  | 'internal-error'
+  | 'exec-format-error';
+
+// Result for a single test case execution
+export interface TestCaseResult {
+  args: any[];
+  expected: any;
+  actual: any | null;
+  passed: boolean;
+  status: SubmissionStatus;
+  stdout: string;
+  stderr: string;
+  compileOutput: string | null;
+  time: string | null;      // Execution time in seconds (e.g., "0.012")
+  memory: number | null;    // Memory used in KB
+}
+
+// Aggregate result for running all test cases
+export interface TestRunResult {
+  results: TestCaseResult[];
+  passed: number;
+  total: number;
+  allPassed: boolean;
+  error: string | null;     // Network/API-level error (not per-test)
+}
