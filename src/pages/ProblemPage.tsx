@@ -84,19 +84,10 @@ function ProblemPage() {
   if (problem && syncKey !== prevSyncKey) {
     setPrevSyncKey(syncKey);
 
-    const savedCode = localStorage.getItem(`problem_${problemId}_code_${language}`);
-    setCode(savedCode ?? problem.starterCode[language]);
+    setCode(problem.starterCode[language]);
     setNotes(getProgress(Number(problemId)).notes);
     setActiveTab('description');
   }
-
-  // Save code to localStorage whenever it changes
-  useEffect(() => {
-    if (!problem) return;
-    if (code && code !== problem.starterCode[language]) {
-      localStorage.setItem(`problem_${problemId}_code_${language}`, code);
-    }
-  }, [code, problemId, language, problem]);
 
   // Save notes to tracker store whenever they change
   useEffect(() => {
@@ -235,13 +226,7 @@ function ProblemPage() {
 
   const handleLanguageChange = (newLang: 'javascript' | 'python') => {
     setLanguage(newLang);
-    // Load saved code for this language, or use starter code
-    const savedCode = localStorage.getItem(`problem_${problemId}_code_${newLang}`);
-    if (savedCode) {
-      setCode(savedCode);
-    } else {
-      setCode(problem.starterCode[newLang]);
-    }
+    setCode(problem.starterCode[newLang]);
   };
 
   const runTests = async () => {
