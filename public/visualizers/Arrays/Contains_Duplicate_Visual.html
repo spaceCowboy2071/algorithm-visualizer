@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contains Duplicate — Hash Set Visual Walkthrough</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--surface2:#1c2333;--border:#30363d;--text:#e6edf3;--text-dim:#8b949e;--accent:#58a6ff;--green:#2ea043;--green-glow:#3fb950;--orange:#f0883e;--red:#f78166;--purple:#d2a8ff;--cyan:#79c0ff;--yellow:#e3b341;--code-bg:#0d1117;--highlight:rgba(88,166,255,0.1);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.6;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+header{text-align:center;padding:3rem 0 2rem;position:relative;}
+header::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(46,160,67,0.08) 0%,transparent 70%);pointer-events:none;}
+h1{font-size:2.4rem;font-weight:700;letter-spacing:-0.03em;background:linear-gradient(135deg,var(--green-glow),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.25rem;}
+.subtitle{color:var(--text-dim);font-size:0.95rem;}
+.tag{display:inline-block;padding:0.2rem 0.65rem;border-radius:99px;font-size:0.75rem;font-weight:600;margin:0.75rem 0.2rem 0;}
+.tag-pattern{background:rgba(46,160,67,0.15);color:var(--green-glow);}
+.tag-easy{background:rgba(0,135,90,0.15);color:#00875A;}
+.tag-array{background:rgba(121,192,255,0.15);color:var(--cyan);}
+section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;margin:1.5rem 0;position:relative;overflow:hidden;}
+section::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green-glow),var(--accent),var(--purple));border-radius:12px 12px 0 0;}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:1rem;}
+h3{font-size:1.1rem;font-weight:600;margin:1.25rem 0 0.5rem;color:var(--accent);}
+p{margin-bottom:0.75rem;font-size:0.95rem;}
+.dim{color:var(--text-dim);}
+code{font-family:'JetBrains Mono',monospace;font-size:0.85em;background:var(--surface2);padding:0.1rem 0.4rem;border-radius:4px;}
+.callout{background:rgba(240,136,62,0.08);border-left:3px solid var(--orange);padding:0.75rem 1rem;border-radius:0 8px 8px 0;margin:1rem 0;font-size:0.9rem;}
+.callout strong{color:var(--orange);}
+.callout-green{background:rgba(46,160,67,0.08);border-left-color:var(--green);}
+.callout-green strong{color:var(--green-glow);}
+
+.array-row{display:flex;gap:4px;justify-content:center;align-items:center;margin:0.75rem 0;flex-wrap:wrap;}
+.arr-label{font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--text-dim);font-weight:600;min-width:70px;text-align:right;margin-right:8px;}
+.arr-cell{width:68px;height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;border-radius:8px;border:2px solid var(--border);background:var(--surface2);transition:all 0.4s ease;position:relative;}
+.arr-cell .val{font-size:1.1rem;font-weight:700;}
+.arr-cell .idx{font-size:0.6rem;color:var(--text-dim);position:absolute;bottom:2px;}
+.arr-cell.active{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 14px rgba(121,192,255,0.4);animation:cellPulse 1s ease-in-out infinite;}
+.arr-cell.in-set{border-color:var(--purple);background:rgba(210,168,255,0.1);color:var(--purple);}
+.arr-cell.duplicate{border-color:var(--red);color:var(--red);background:rgba(247,129,102,0.2);box-shadow:0 0 16px rgba(247,129,102,0.5);animation:dupPulse 0.6s ease;}
+.arr-cell.scanned{border-color:#484f58;color:var(--text-dim);opacity:0.5;}
+@keyframes cellPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
+@keyframes dupPulse{0%{transform:scale(1);}50%{transform:scale(1.12);}100%{transform:scale(1);}}
+
+.set-area{margin:1rem 0;}
+.set-label{font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.35rem;}
+.set-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;min-height:40px;align-items:center;}
+.set-item{display:inline-flex;align-items:center;justify-content:center;width:48px;height:40px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.95rem;font-weight:700;color:var(--purple);transition:all 0.3s;}
+.set-item.new{border-color:var(--purple);box-shadow:0 0 12px rgba(210,168,255,0.4);}
+.set-item.match{border-color:var(--red);color:var(--red);background:rgba(247,129,102,0.15);box-shadow:0 0 12px rgba(247,129,102,0.4);}
+.set-empty{color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:0.82rem;}
+
+.check-box{display:flex;justify-content:center;margin:1rem 0;}
+.check-inner{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:0.5rem 1.5rem;font-family:'JetBrains Mono',monospace;font-size:0.95rem;text-align:center;min-width:240px;transition:all 0.3s;}
+.check-inner.checking{border-color:var(--cyan);color:var(--cyan);}
+.check-inner.safe{border-color:var(--green);color:var(--green-glow);}
+.check-inner.found-dup{border-color:var(--red);color:var(--red);box-shadow:0 0 15px rgba(247,129,102,0.3);}
+.check-inner.no-dup{border-color:var(--green);color:var(--green-glow);}
+
+.result-box{text-align:center;margin:1rem 0;font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:700;padding:0.5rem;border-radius:8px;transition:all 0.3s;}
+.result-box.true{color:var(--red);background:rgba(247,129,102,0.1);border:1px solid var(--red);}
+.result-box.false{color:var(--green-glow);background:rgba(46,160,67,0.1);border:1px solid var(--green);}
+
+.status-bar{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;font-family:'JetBrains Mono',monospace;font-size:0.78rem;line-height:1.7;min-height:80px;max-height:200px;overflow-y:auto;margin:0.75rem 0;}
+.log-check{color:var(--cyan);}.log-add{color:var(--purple);}.log-found{color:var(--red);font-weight:700;}.log-done{color:var(--green-glow);font-weight:700;}.log-init{color:var(--text-dim);}
+
+.controls{display:flex;gap:0.75rem;justify-content:center;align-items:center;margin:1rem 0;flex-wrap:wrap;}
+button{font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;padding:0.5rem 1.25rem;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;transition:all 0.2s;}
+button:hover{background:rgba(88,166,255,0.1);border-color:var(--accent);color:var(--accent);}
+button.primary{background:rgba(46,160,67,0.15);border-color:var(--green);color:var(--green-glow);}
+button:disabled{opacity:0.3;cursor:not-allowed;}
+.ex-tab{transition:all 0.2s;}.ex-tab.active{background:rgba(46,160,67,0.2);border-color:var(--green);color:var(--green-glow);}
+.step-counter{font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text-dim);min-width:100px;text-align:center;}
+
+.code-block{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;font-family:'JetBrains Mono',monospace;font-size:0.8rem;line-height:1.8;overflow-x:auto;counter-reset:line;margin:1rem 0;}
+.code-line{display:block;padding:0 0.5rem;border-radius:3px;white-space:pre;transition:background 0.3s;}
+.code-line::before{counter-increment:line;content:counter(line);display:inline-block;width:2rem;margin-right:1rem;text-align:right;color:#484f58;font-size:0.72rem;}
+.code-line.highlight{background:var(--highlight);}
+.kw{color:#ff7b72;}.fn{color:#d2a8ff;}.num{color:#79c0ff;}.cmt{color:#484f58;font-style:italic;}
+
+.complexity-grid{display:flex;gap:2rem;flex-wrap:wrap;margin:1rem 0;}
+.complexity-item{flex:1;min-width:200px;}
+.complexity-item h3{margin-top:0;}
+
+@media(max-width:700px){h1{font-size:1.8rem;}section{padding:1.25rem;}.arr-cell{width:55px;height:48px;}.arr-cell .val{font-size:0.95rem;}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+<h1>Contains Duplicate</h1>
+<p class="subtitle">LeetCode #217 — Hash Set Visual Walkthrough</p>
+<div>
+  <span class="tag tag-pattern">Hash Set</span>
+  <span class="tag tag-easy">Easy</span>
+  <span class="tag tag-array">Arrays</span>
+</div>
+</header>
+
+<section>
+<h2>1 — What's the Problem?</h2>
+<p>Given an array <code>nums</code>, return <code>True</code> if any value appears at least twice. Return <code>False</code> if every element is distinct.</p>
+<div class="callout callout-green">
+<strong>Core idea:</strong> Scan through the array. For each element, check if it's already in a set. If yes → duplicate found, return True. If no → add it and move on. If you finish the loop without finding one, return False.
+</div>
+<div class="callout">
+<strong>Python gotcha:</strong> <code>{}</code> creates an empty <em>dict</em>, not a set. Use <code>set()</code> for an empty set. Sets use <code>.add()</code>, dicts use <code>.append()</code> — mixing them up causes AttributeError.
+</div>
+</section>
+
+<section>
+<h2>2 — Step Through It</h2>
+<p class="dim">Watch the set build up. The moment we find a value already in the set, we're done.</p>
+
+<div style="display:flex;justify-content:center;gap:1.5rem;margin:0.5rem 0;font-size:0.72rem;font-family:'JetBrains Mono',monospace;flex-wrap:wrap;">
+  <span><span style="display:inline-block;width:12px;height:12px;border-radius:3px;border:2px solid var(--cyan);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--cyan);">Checking</span></span>
+  <span><span style="display:inline-block;width:12px;height:12px;border-radius:3px;border:2px solid var(--purple);background:rgba(210,168,255,0.1);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--purple);">In set</span></span>
+  <span><span style="display:inline-block;width:12px;height:12px;border-radius:3px;border:2px solid var(--red);background:rgba(247,129,102,0.2);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--red);">Duplicate!</span></span>
+</div>
+
+<div style="display:flex;gap:0.5rem;justify-content:center;margin:1rem 0;">
+  <button class="ex-tab active" data-ex="ex1" onclick="switchExample('ex1')" style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;">Example 1: [1, 2, 3, 1]</button>
+  <button class="ex-tab" data-ex="ex2" onclick="switchExample('ex2')" style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;">Example 2: [1, 2, 3, 4]</button>
+</div>
+
+<div id="sim-area">
+  <div class="array-row" id="arr-row"></div>
+  <div class="check-box"><div class="check-inner" id="check">—</div></div>
+  <div class="set-area">
+    <div class="set-label">seen = set()</div>
+    <div class="set-row" id="set-row"><span class="set-empty">{ empty }</span></div>
+  </div>
+  <div class="result-box" id="result" style="visibility:hidden;">—</div>
+</div>
+
+<div class="status-bar" id="log"></div>
+
+<div class="controls">
+  <button onclick="resetSim()">Reset</button>
+  <button onclick="stepBack()" id="btn-prev">← Back</button>
+  <span class="step-counter" id="step-label">Step 0 / 0</span>
+  <button class="primary" onclick="stepForward()" id="btn-next">Next →</button>
+  <button onclick="togglePlay()" id="btn-play">▶ Auto</button>
+</div>
+</section>
+
+<section>
+<h2>3 — Complete Implementation</h2>
+<div class="code-block" id="code-display">
+<span class="code-line" data-line="1"><span class="kw">def</span> <span class="fn">containsDuplicate</span>(self, nums: List[<span class="num">int</span>]) -> <span class="num">bool</span>:</span>
+<span class="code-line" data-line="2">    seen = <span class="fn">set</span>()                  <span class="cmt"># NOT {} — that's a dict</span></span>
+<span class="code-line" data-line="3"></span>
+<span class="code-line" data-line="4">    <span class="kw">for</span> n <span class="kw">in</span> nums:</span>
+<span class="code-line" data-line="5">        <span class="kw">if</span> n <span class="kw">in</span> seen:              <span class="cmt"># check BEFORE adding</span></span>
+<span class="code-line" data-line="6">            <span class="kw">return</span> <span class="num">True</span></span>
+<span class="code-line" data-line="7">        seen.<span class="fn">add</span>(n)                <span class="cmt"># .add() for sets, not .append()</span></span>
+<span class="code-line" data-line="8"></span>
+<span class="code-line" data-line="9">    <span class="kw">return</span> <span class="num">False</span></span>
+</div>
+<p class="dim" style="font-size:0.85rem;">One-liner alternative: <code>return len(nums) != len(set(nums))</code></p>
+
+<div class="complexity-grid">
+  <div class="complexity-item">
+    <h3>Time: O(n)</h3>
+    <p class="dim" style="font-size:0.85rem;">Single pass. Set lookup is O(1) average.</p>
+  </div>
+  <div class="complexity-item">
+    <h3>Space: O(n)</h3>
+    <p class="dim" style="font-size:0.85rem;">Set stores up to n elements in the no-duplicate worst case.</p>
+  </div>
+</div>
+
+<div class="callout callout-green">
+<strong>Pattern connection:</strong> The "check set membership before adding" pattern is the simplest form of the hash-based lookup you used in Two Sum (check map before storing). Same idea, simpler problem.
+</div>
+</section>
+
+</div>
+
+<script>
+const EXAMPLES = {
+  ex1: { nums: [1, 2, 3, 1], label: '[1, 2, 3, 1]', hasDup: true },
+  ex2: { nums: [1, 2, 3, 4], label: '[1, 2, 3, 4]', hasDup: false },
+};
+
+let activeEx = 'ex1';
+let NUMS, NN;
+
+function loadExample() { NUMS = EXAMPLES[activeEx].nums; NN = NUMS.length; }
+loadExample();
+
+function computeSteps() {
+  const steps = [];
+  const seen = new Set();
+
+  steps.push({ i:-1, seen:new Set(), checkVal:null, status:'init', result:null,
+    log:`Initialize: seen = set()`, lines:[2] });
+
+  for (let i = 0; i < NN; i++) {
+    const n = NUMS[i];
+    const inSet = seen.has(n);
+
+    // Check step
+    steps.push({ i, seen:new Set(seen), checkVal:n, status: inSet ? 'found' : 'checking', result:null,
+      log:`n=${n}: ${n} in seen? ${inSet ? 'YES → DUPLICATE!' : 'NO'}`,
+      lines: inSet ? [4,5,6] : [4,5] });
+
+    if (inSet) {
+      steps.push({ i, seen:new Set(seen), checkVal:n, status:'found', result:true,
+        log:`Return True — duplicate found!`, lines:[6] });
+      return steps;
+    }
+
+    // Add step
+    seen.add(n);
+    steps.push({ i, seen:new Set(seen), checkVal:null, status:'added', result:null, newItem:n,
+      log:`  Add ${n} to seen → {${[...seen].join(', ')}}`, lines:[7] });
+  }
+
+  steps.push({ i:NN, seen:new Set(seen), checkVal:null, status:'done', result:false,
+    log:`Loop complete — no duplicates. Return False`, lines:[9] });
+
+  return steps;
+}
+
+let steps = computeSteps();
+let current = 0;
+let playInterval = null;
+
+function switchExample(key) {
+  if (playInterval) togglePlay();
+  activeEx = key;
+  loadExample();
+  steps = computeSteps();
+  current = 0;
+  document.querySelectorAll('.ex-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.ex-tab[data-ex="${key}"]`).classList.add('active');
+  render();
+}
+
+function render() {
+  const step = steps[current];
+
+  // Array
+  const arrRow = document.getElementById('arr-row');
+  let arrHtml = '<span class="arr-label">nums[]</span>';
+  for (let i = 0; i < NN; i++) {
+    let cls = 'arr-cell';
+    if (step.status === 'found' && i === step.i) cls += ' duplicate';
+    else if (i === step.i && step.status === 'checking') cls += ' active';
+    else if (step.seen.has(NUMS[i]) && i < step.i) cls += ' in-set';
+    else if (i < (step.i >= 0 ? step.i : 0)) cls += ' in-set';
+    arrHtml += `<div class="${cls}"><span class="val">${NUMS[i]}</span><span class="idx">${i}</span></div>`;
+  }
+  arrRow.innerHTML = arrHtml;
+
+  // Check box
+  const checkEl = document.getElementById('check');
+  checkEl.className = 'check-inner';
+  if (step.status === 'checking') { checkEl.textContent = `${step.checkVal} in seen? NO`; checkEl.classList.add('safe'); }
+  else if (step.status === 'found') { checkEl.textContent = `${step.checkVal} in seen? YES — DUPLICATE!`; checkEl.classList.add('found-dup'); }
+  else if (step.status === 'added') { checkEl.textContent = `Added ${step.newItem} to seen`; checkEl.classList.add('checking'); }
+  else if (step.status === 'done') { checkEl.textContent = 'No duplicates found'; checkEl.classList.add('no-dup'); }
+  else { checkEl.textContent = '—'; }
+
+  // Set display
+  const setRow = document.getElementById('set-row');
+  if (step.seen.size === 0) {
+    setRow.innerHTML = '<span class="set-empty">{ empty }</span>';
+  } else {
+    setRow.innerHTML = [...step.seen].map(v => {
+      let cls = 'set-item';
+      if (step.status === 'added' && step.newItem === v) cls += ' new';
+      if (step.status === 'found' && step.checkVal === v) cls += ' match';
+      return `<div class="${cls}">${v}</div>`;
+    }).join('');
+  }
+
+  // Result
+  const resultEl = document.getElementById('result');
+  if (step.result === true) { resultEl.textContent = 'return True'; resultEl.className = 'result-box true'; resultEl.style.visibility = 'visible'; }
+  else if (step.result === false) { resultEl.textContent = 'return False'; resultEl.className = 'result-box false'; resultEl.style.visibility = 'visible'; }
+  else { resultEl.style.visibility = 'hidden'; }
+
+  // Code
+  document.querySelectorAll('.code-line').forEach(el => el.classList.remove('highlight'));
+  if (step.lines) step.lines.forEach(n => {
+    const line = document.querySelector(`.code-line[data-line="${n}"]`);
+    if (line) line.classList.add('highlight');
+  });
+
+  // Log
+  const logEl = document.getElementById('log');
+  let logHtml = '';
+  for (let i = 0; i <= current; i++) {
+    const s = steps[i];
+    let cls = 'log-init';
+    if (s.status === 'found') cls = 'log-found';
+    else if (s.status === 'added') cls = 'log-add';
+    else if (s.status === 'checking') cls = 'log-check';
+    else if (s.status === 'done') cls = 'log-done';
+    logHtml += `<div class="${cls}">${s.log}</div>`;
+  }
+  logEl.innerHTML = logHtml;
+  logEl.scrollTop = logEl.scrollHeight;
+
+  document.getElementById('step-label').textContent = `Step ${current} / ${steps.length - 1}`;
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current >= steps.length - 1;
+}
+
+function stepForward() { if (current < steps.length - 1) { current++; render(); } else if (playInterval) togglePlay(); }
+function stepBack() { if (current > 0) { current--; render(); } }
+function resetSim() { if (playInterval) togglePlay(); current = 0; render(); }
+function togglePlay() {
+  if (playInterval) { clearInterval(playInterval); playInterval = null; document.getElementById('btn-play').textContent = '▶ Auto'; }
+  else { document.getElementById('btn-play').textContent = '⏸ Pause'; playInterval = setInterval(() => { if (current >= steps.length - 1) { togglePlay(); return; } stepForward(); }, 1000); }
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); stepForward(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); stepBack(); }
+  if (e.key === 'r') resetSim();
+});
+render();
+</script>
+</body>
+</html>
