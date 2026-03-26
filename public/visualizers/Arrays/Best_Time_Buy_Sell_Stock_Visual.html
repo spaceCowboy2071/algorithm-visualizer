@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Best Time to Buy and Sell Stock — Visual Walkthrough</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--surface2:#1c2333;--border:#30363d;--text:#e6edf3;--text-dim:#8b949e;--accent:#58a6ff;--green:#2ea043;--green-glow:#3fb950;--orange:#f0883e;--red:#f78166;--purple:#d2a8ff;--cyan:#79c0ff;--yellow:#e3b341;--code-bg:#0d1117;--highlight:rgba(88,166,255,0.1);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.6;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+header{text-align:center;padding:3rem 0 2rem;position:relative;}
+header::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(46,160,67,0.08) 0%,transparent 70%);pointer-events:none;}
+h1{font-size:2.4rem;font-weight:700;letter-spacing:-0.03em;background:linear-gradient(135deg,var(--green-glow),var(--yellow));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.25rem;}
+.subtitle{color:var(--text-dim);font-size:0.95rem;}
+.tag{display:inline-block;padding:0.2rem 0.65rem;border-radius:99px;font-size:0.75rem;font-weight:600;margin:0.75rem 0.2rem 0;}
+.tag-pattern{background:rgba(46,160,67,0.15);color:var(--green-glow);}
+.tag-easy{background:rgba(0,135,90,0.15);color:#00875A;}
+.tag-array{background:rgba(121,192,255,0.15);color:var(--cyan);}
+section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;margin:1.5rem 0;position:relative;overflow:hidden;}
+section::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green-glow),var(--yellow),var(--orange));border-radius:12px 12px 0 0;}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:1rem;}
+h3{font-size:1.1rem;font-weight:600;margin:1.25rem 0 0.5rem;color:var(--accent);}
+p{margin-bottom:0.75rem;font-size:0.95rem;}
+.dim{color:var(--text-dim);}
+code{font-family:'JetBrains Mono',monospace;font-size:0.85em;background:var(--surface2);padding:0.1rem 0.4rem;border-radius:4px;}
+.callout{background:rgba(240,136,62,0.08);border-left:3px solid var(--orange);padding:0.75rem 1rem;border-radius:0 8px 8px 0;margin:1rem 0;font-size:0.9rem;}
+.callout strong{color:var(--orange);}
+.callout-green{background:rgba(46,160,67,0.08);border-left-color:var(--green);}
+.callout-green strong{color:var(--green-glow);}
+
+/* Chart */
+.chart-container{position:relative;width:100%;max-width:700px;height:300px;margin:1.5rem auto;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:20px 30px 40px 50px;}
+.chart-area{position:relative;width:100%;height:100%;}
+.bar{position:absolute;bottom:0;border-radius:4px 4px 0 0;transition:all 0.4s ease;display:flex;flex-direction:column;align-items:center;}
+.bar-fill{width:100%;border-radius:4px 4px 0 0;transition:all 0.4s;position:absolute;bottom:0;}
+.bar-default{background:rgba(88,166,255,0.25);border:1px solid rgba(88,166,255,0.4);}
+.bar-current{background:rgba(121,192,255,0.4);border:1px solid var(--cyan);box-shadow:0 0 12px rgba(121,192,255,0.3);}
+.bar-min{background:rgba(46,160,67,0.35);border:1px solid var(--green);box-shadow:0 0 10px rgba(46,160,67,0.25);}
+.bar-sell{background:rgba(227,179,65,0.35);border:1px solid var(--yellow);box-shadow:0 0 10px rgba(227,179,65,0.25);}
+.bar-best-buy{background:rgba(46,160,67,0.5);border:2px solid var(--green-glow);box-shadow:0 0 14px rgba(46,160,67,0.4);}
+.bar-best-sell{background:rgba(227,179,65,0.5);border:2px solid var(--yellow);box-shadow:0 0 14px rgba(227,179,65,0.4);}
+.bar-scanned{background:rgba(88,166,255,0.1);border:1px solid rgba(88,166,255,0.15);opacity:0.4;}
+.bar-val{font-family:'JetBrains Mono',monospace;font-size:0.78rem;font-weight:700;position:absolute;transition:color 0.3s;}
+.bar-idx{position:absolute;bottom:-22px;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--text-dim);}
+.bar-label{position:absolute;font-family:'JetBrains Mono',monospace;font-size:0.6rem;font-weight:700;bottom:-36px;}
+.profit-line{position:absolute;border-left:2px dashed var(--yellow);pointer-events:none;transition:all 0.4s;}
+.profit-bracket{position:absolute;pointer-events:none;font-family:'JetBrains Mono',monospace;font-size:0.75rem;font-weight:700;color:var(--yellow);transition:all 0.4s;}
+
+/* Variables */
+.var-display{display:flex;gap:1.25rem;justify-content:center;flex-wrap:wrap;margin:1rem 0;}
+.var-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0.5rem 1rem;font-family:'JetBrains Mono',monospace;text-align:center;min-width:120px;transition:all 0.3s;}
+.var-box .var-name{font-size:0.65rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;}
+.var-box .var-val{font-size:1.2rem;font-weight:700;margin-top:0.1rem;}
+.var-box.v-min{border-color:var(--green);}.var-box.v-min .var-val{color:var(--green-glow);}
+.var-box.v-profit{border-color:var(--yellow);}.var-box.v-profit .var-val{color:var(--yellow);}
+.var-box.v-price{border-color:var(--cyan);}.var-box.v-price .var-val{color:var(--cyan);}
+.var-box.v-calc{border-color:var(--accent);min-width:200px;}.var-box.v-calc .var-val{color:var(--accent);font-size:0.85rem;}
+.var-box.new-max{animation:maxFlash 0.6s ease;}
+@keyframes maxFlash{0%{box-shadow:0 0 0 rgba(227,179,65,0);}50%{box-shadow:0 0 20px rgba(227,179,65,0.5);}100%{box-shadow:0 0 0 rgba(227,179,65,0);}}
+
+/* Log */
+.status-bar{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;font-family:'JetBrains Mono',monospace;font-size:0.78rem;line-height:1.7;min-height:80px;max-height:200px;overflow-y:auto;margin:0.75rem 0;}
+.log-min{color:var(--green-glow);font-weight:600;}.log-profit{color:var(--yellow);font-weight:600;}.log-scan{color:var(--cyan);}.log-done{color:var(--accent);font-weight:700;}.log-init{color:var(--text-dim);}
+
+/* Controls */
+.controls{display:flex;gap:0.75rem;justify-content:center;align-items:center;margin:1rem 0;flex-wrap:wrap;}
+button{font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;padding:0.5rem 1.25rem;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;transition:all 0.2s;}
+button:hover{background:rgba(88,166,255,0.1);border-color:var(--accent);color:var(--accent);}
+button.primary{background:rgba(46,160,67,0.15);border-color:var(--green);color:var(--green-glow);}
+button:disabled{opacity:0.3;cursor:not-allowed;}
+.step-counter{font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text-dim);min-width:100px;text-align:center;}
+
+/* Code */
+.code-block{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;font-family:'JetBrains Mono',monospace;font-size:0.8rem;line-height:1.8;overflow-x:auto;counter-reset:line;margin:1rem 0;}
+.code-line{display:block;padding:0 0.5rem;border-radius:3px;white-space:pre;transition:background 0.3s;}
+.code-line::before{counter-increment:line;content:counter(line);display:inline-block;width:2rem;margin-right:1rem;text-align:right;color:#484f58;font-size:0.72rem;}
+.code-line.highlight{background:var(--highlight);}
+.kw{color:#ff7b72;}.fn{color:#d2a8ff;}.num{color:#79c0ff;}.cmt{color:#484f58;font-style:italic;}
+
+.complexity-grid{display:flex;gap:2rem;flex-wrap:wrap;margin:1rem 0;}
+.complexity-item{flex:1;min-width:200px;}
+.complexity-item h3{margin-top:0;}
+
+@media(max-width:700px){h1{font-size:1.8rem;}section{padding:1.25rem;}.chart-container{height:240px;padding:15px 15px 35px 35px;}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+<h1>Best Time to Buy and Sell Stock</h1>
+<p class="subtitle">LeetCode #121 — Single Pass Min-Tracker Visual Walkthrough</p>
+<div>
+  <span class="tag tag-pattern">Greedy / Simplified Kadane's</span>
+  <span class="tag tag-easy">Easy</span>
+  <span class="tag tag-array">Arrays</span>
+</div>
+</header>
+
+<section>
+<h2>1 — What's the problem?</h2>
+<p>Given stock prices over time, find the <strong>maximum profit</strong> from one buy and one sell. You must buy before you sell. If no profit is possible, return 0.</p>
+<p>The question at every position: "If I sold today, and I bought at the cheapest price I've seen <em>so far</em>, what's my profit?"</p>
+
+<div class="callout callout-green">
+<strong>Two running variables:</strong> <code>min_price</code> — the best buy point seen so far. <code>max_profit</code> — the best profit seen so far. At each price: update the min if this price is lower, then check if selling here beats the current best profit.
+</div>
+
+<div class="callout">
+<strong>Python loop tip:</strong> Use <code>for price in prices</code> to iterate values directly. Do NOT use <code>for i in prices</code> then <code>prices[i]</code> — that treats values as indices and crashes with IndexError.
+</div>
+</section>
+
+<section>
+<h2>2 — Step through it</h2>
+<p class="dim">Watch min_price (green) track the lowest buy point while max_profit (yellow) tracks the best sell opportunity.</p>
+
+<div style="display:flex;justify-content:center;gap:1.5rem;margin:0.5rem 0;font-size:0.72rem;font-family:'JetBrains Mono',monospace;flex-wrap:wrap;">
+  <span><span style="display:inline-block;width:12px;height:12px;border-radius:3px;border:2px solid var(--cyan);background:rgba(121,192,255,0.3);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--cyan);">Current price</span></span>
+  <span><span style="display:inline-block;width:12px;height:12px;border-radius:3px;border:2px solid var(--green);background:rgba(46,160,67,0.35);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--green-glow);">Min price (buy)</span></span>
+  <span><span style="display:inline-block;width:12px;height:12px;border-radius:3px;border:2px solid var(--yellow);background:rgba(227,179,65,0.35);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--yellow);">Best sell</span></span>
+</div>
+
+<div class="chart-container" id="chart">
+  <div class="chart-area" id="chart-area"></div>
+</div>
+
+<div class="var-display">
+  <div class="var-box v-price" id="vprice"><div class="var-name">Current price</div><div class="var-val" id="vprice-val">—</div></div>
+  <div class="var-box v-min" id="vmin"><div class="var-name">min_price</div><div class="var-val" id="vmin-val">7</div></div>
+  <div class="var-box v-profit" id="vprofit"><div class="var-name">max_profit</div><div class="var-val" id="vprofit-val">0</div></div>
+  <div class="var-box v-calc" id="vcalc"><div class="var-name">Calculation</div><div class="var-val" id="vcalc-val">—</div></div>
+</div>
+
+<div class="status-bar" id="log"></div>
+
+<div class="controls">
+  <button onclick="resetSim()">Reset</button>
+  <button onclick="stepBack()" id="btn-prev">← Back</button>
+  <span class="step-counter" id="step-label">Step 0 / 0</span>
+  <button class="primary" onclick="stepForward()" id="btn-next">Next →</button>
+  <button onclick="togglePlay()" id="btn-play">▶ Auto</button>
+</div>
+</section>
+
+<section>
+<h2>3 — Complete implementation</h2>
+<div class="code-block" id="code-display">
+<span class="code-line" data-line="1"><span class="kw">def</span> <span class="fn">maxProfit</span>(self, prices: List[<span class="num">int</span>]) -> <span class="num">int</span>:</span>
+<span class="code-line" data-line="2">    min_price = prices[<span class="num">0</span>]</span>
+<span class="code-line" data-line="3">    max_profit = <span class="num">0</span></span>
+<span class="code-line" data-line="4"></span>
+<span class="code-line" data-line="5">    <span class="kw">for</span> price <span class="kw">in</span> prices:          <span class="cmt"># iterate VALUES, not indices</span></span>
+<span class="code-line" data-line="6">        <span class="kw">if</span> price < min_price:</span>
+<span class="code-line" data-line="7">            min_price = price       <span class="cmt"># new lowest buy point</span></span>
+<span class="code-line" data-line="8">        max_profit = <span class="fn">max</span>(max_profit, price - min_price)</span>
+<span class="code-line" data-line="9"></span>
+<span class="code-line" data-line="10">    <span class="kw">return</span> max_profit</span>
+</div>
+
+<div class="complexity-grid">
+  <div class="complexity-item">
+    <h3>Time: O(n)</h3>
+    <p class="dim" style="font-size:0.85rem;">Single pass through the array.</p>
+  </div>
+  <div class="complexity-item">
+    <h3>Space: O(1)</h3>
+    <p class="dim" style="font-size:0.85rem;">Two variables: min_price and max_profit.</p>
+  </div>
+</div>
+
+<div class="callout callout-green">
+<strong>Pattern connection:</strong> This is a simplified Kadane's algorithm. In Maximum Subarray, you decide "extend or restart" based on whether the running sum is negative. Here, you decide "update min" based on whether the current price is a new low. Both scan left to right tracking a running state and a global best.
+</div>
+</section>
+
+</div>
+
+<script>
+const PRICES = [7, 1, 5, 3, 6, 4];
+const N = PRICES.length;
+const MAX_P = Math.max(...PRICES);
+
+function computeSteps() {
+  const steps = [];
+  let minPrice = PRICES[0];
+  let maxProfit = 0;
+  let bestBuyIdx = 0, bestSellIdx = 0;
+  let minIdx = 0;
+
+  steps.push({ i:-1, price:null, minPrice:PRICES[0], maxProfit:0, newMin:false, newProfit:false,
+    minIdx:0, bestBuyIdx:0, bestSellIdx:0, calc:'—',
+    log:`Initialize: min_price = ${PRICES[0]}, max_profit = 0`, lines:[2,3] });
+
+  for (let i = 0; i < N; i++) {
+    const price = PRICES[i];
+    let newMin = false, newProfit = false;
+    let calc = '';
+
+    if (price < minPrice) {
+      minPrice = price;
+      minIdx = i;
+      newMin = true;
+      calc = `${price} < min(${minPrice}) → new min_price = ${price}`;
+    }
+
+    const profit = price - minPrice;
+    if (profit > maxProfit) {
+      maxProfit = profit;
+      bestBuyIdx = minIdx;
+      bestSellIdx = i;
+      newProfit = true;
+    }
+
+    if (newMin) {
+      calc = `New low! min_price = ${price}`;
+      if (profit > 0) calc += ` | profit = ${price} - ${minPrice} = ${profit}`;
+    } else {
+      calc = `${price} - ${minPrice} = ${profit}`;
+      if (newProfit) calc += ` → NEW MAX!`;
+    }
+
+    let logMsg = `price=${price}: `;
+    if (newMin) logMsg += `new min_price=${minPrice}. `;
+    logMsg += `profit=${price}-${minPrice}=${profit}`;
+    if (newProfit) logMsg += ` → max_profit=${maxProfit}`;
+    else logMsg += ` | max_profit=${maxProfit}`;
+
+    steps.push({ i, price, minPrice, maxProfit, newMin, newProfit,
+      minIdx, bestBuyIdx, bestSellIdx, calc,
+      log: logMsg,
+      lines: newMin ? [5,6,7,8] : [5,6,8] });
+  }
+
+  steps.push({ i:N, price:null, minPrice, maxProfit, newMin:false, newProfit:false,
+    minIdx, bestBuyIdx, bestSellIdx,
+    calc:`Buy at ${PRICES[bestBuyIdx]} (day ${bestBuyIdx}), sell at ${PRICES[bestSellIdx]} (day ${bestSellIdx})`,
+    log:`Done! Max profit = ${maxProfit}. Buy at day ${bestBuyIdx} (${PRICES[bestBuyIdx]}), sell at day ${bestSellIdx} (${PRICES[bestSellIdx]}).`,
+    lines:[10] });
+
+  return steps;
+}
+
+let steps = computeSteps();
+let current = 0;
+let playInterval = null;
+
+function render() {
+  const step = steps[current];
+  const chartArea = document.getElementById('chart-area');
+  const areaW = chartArea.offsetWidth || 600;
+  const areaH = chartArea.offsetHeight || 220;
+  const barW = Math.min(56, (areaW - 20) / N - 8);
+  const gap = (areaW - barW * N) / (N + 1);
+  const hScale = (areaH - 20) / MAX_P;
+
+  let html = '';
+
+  // Profit visualization line between best buy and best sell
+  if (step.maxProfit > 0 && step.i >= 0) {
+    const buyX = gap + step.bestBuyIdx * (barW + gap) + barW/2;
+    const sellX = gap + step.bestSellIdx * (barW + gap) + barW/2;
+    const buyH = PRICES[step.bestBuyIdx] * hScale;
+    const sellH = PRICES[step.bestSellIdx] * hScale;
+    if (step.bestSellIdx > step.bestBuyIdx) {
+      html += `<div style="position:absolute;bottom:${buyH}px;left:${buyX}px;width:${sellX-buyX}px;height:${sellH-buyH}px;border:2px dashed rgba(227,179,65,0.3);border-radius:4px;pointer-events:none;"></div>`;
+      html += `<div style="position:absolute;bottom:${sellH+4}px;left:${(buyX+sellX)/2}px;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:0.75rem;font-weight:700;color:var(--yellow);">+${step.maxProfit}</div>`;
+    }
+  }
+
+  for (let i = 0; i < N; i++) {
+    const x = gap + i * (barW + gap);
+    const h = PRICES[i] * hScale;
+    let barClass = 'bar-default';
+    let valColor = 'var(--accent)';
+
+    if (step.i === N) {
+      // Done state
+      if (i === step.bestBuyIdx) { barClass = 'bar-best-buy'; valColor = 'var(--green-glow)'; }
+      else if (i === step.bestSellIdx) { barClass = 'bar-best-sell'; valColor = 'var(--yellow)'; }
+      else { barClass = 'bar-scanned'; valColor = 'var(--text-dim)'; }
+    } else if (i === step.i) {
+      barClass = 'bar-current'; valColor = 'var(--cyan)';
+    } else if (i === step.minIdx && step.i >= 0) {
+      barClass = 'bar-min'; valColor = 'var(--green-glow)';
+    } else if (i < step.i) {
+      barClass = 'bar-scanned'; valColor = 'var(--text-dim)';
+    }
+
+    html += `<div class="bar" style="left:${x}px;width:${barW}px;height:${areaH}px;">`;
+    html += `<div class="bar-fill ${barClass}" style="height:${h}px;"></div>`;
+    html += `<span class="bar-val" style="color:${valColor};top:${areaH - h - 18}px;">${PRICES[i]}</span>`;
+    html += `<span class="bar-idx">${i}</span>`;
+
+    if (step.i === N && i === step.bestBuyIdx) html += `<span class="bar-label" style="color:var(--green-glow);">BUY</span>`;
+    if (step.i === N && i === step.bestSellIdx) html += `<span class="bar-label" style="color:var(--yellow);">SELL</span>`;
+
+    html += `</div>`;
+  }
+
+  chartArea.innerHTML = html;
+
+  // Variables
+  document.getElementById('vprice-val').textContent = step.price !== null ? step.price : '—';
+  document.getElementById('vmin-val').textContent = step.minPrice;
+  document.getElementById('vprofit-val').textContent = step.maxProfit;
+  document.getElementById('vcalc-val').textContent = step.calc;
+
+  const vprofitBox = document.getElementById('vprofit');
+  if (step.newProfit) { vprofitBox.classList.remove('new-max'); void vprofitBox.offsetWidth; vprofitBox.classList.add('new-max'); }
+
+  // Code
+  document.querySelectorAll('.code-line').forEach(el => el.classList.remove('highlight'));
+  if (step.lines) step.lines.forEach(n => {
+    const line = document.querySelector(`.code-line[data-line="${n}"]`);
+    if (line) line.classList.add('highlight');
+  });
+
+  // Log
+  const logEl = document.getElementById('log');
+  let logHtml = '';
+  for (let i = 0; i <= current; i++) {
+    const s = steps[i];
+    let cls = 'log-init';
+    if (s.newProfit) cls = 'log-profit';
+    else if (s.newMin) cls = 'log-min';
+    else if (s.i >= 0 && s.i < N) cls = 'log-scan';
+    if (s.i === N) cls = 'log-done';
+    logHtml += `<div class="${cls}">${s.log}</div>`;
+  }
+  logEl.innerHTML = logHtml;
+  logEl.scrollTop = logEl.scrollHeight;
+
+  document.getElementById('step-label').textContent = `Step ${current} / ${steps.length - 1}`;
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current >= steps.length - 1;
+}
+
+function stepForward() { if (current < steps.length - 1) { current++; render(); } else if (playInterval) togglePlay(); }
+function stepBack() { if (current > 0) { current--; render(); } }
+function resetSim() { if (playInterval) togglePlay(); current = 0; render(); }
+function togglePlay() {
+  if (playInterval) { clearInterval(playInterval); playInterval = null; document.getElementById('btn-play').textContent = '▶ Auto'; }
+  else { document.getElementById('btn-play').textContent = '⏸ Pause'; playInterval = setInterval(() => { if (current >= steps.length - 1) { togglePlay(); return; } stepForward(); }, 1200); }
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); stepForward(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); stepBack(); }
+  if (e.key === 'r') resetSim();
+});
+window.addEventListener('resize', () => render());
+render();
+</script>
+</body>
+</html>

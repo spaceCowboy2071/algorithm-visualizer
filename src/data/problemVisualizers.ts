@@ -9,6 +9,7 @@ const VISUALIZER_PATHS: Record<number, string> = {
   33: '/visualizers/Graphs/Number_of_Islands_BFS_Visual.html',
   4: '/visualizers/Arrays/Contains_Duplicate_Visual.html',
   1: '/visualizers/Arrays/3Sum_Visual.html',
+  2: '/visualizers/Arrays/Best_Time_Buy_Sell_Stock_Visual.html',
 };
 
 export function getVisualizerPath(problemId: number): string | null {
