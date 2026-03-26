@@ -8,6 +8,7 @@ import { useTrackerStore } from '../hooks/useTrackerStore';
 import StatusEditDropdown from '../components/blind75/StatusEditDropdown';
 import { executeCode, setPyodideStatusCallback } from '../services/codeRunner';
 import TestResults from '../components/shared/TestResults';
+import SubmitResultModal from '../components/shared/SubmitResultModal';
 import type { TestRunResult } from '../types/visualization';
 
 function ProblemPage() {
@@ -51,7 +52,9 @@ function ProblemPage() {
 
   // Test execution state
   const [testResult, setTestResult] = useState<TestRunResult | null>(null);
+  const [submitResult, setSubmitResult] = useState<TestRunResult | null>(null);
   const [isRunning, setIsRunning] = useState(false);
+  const [runningAction, setRunningAction] = useState<'run' | 'submit' | null>(null);
   const [pyodideStatus, setPyodideStatus] = useState<string | null>(null);
 
   // Subscribe to Pyodide loading updates from the Web Worker
@@ -232,19 +235,23 @@ function ProblemPage() {
   const runTests = async () => {
     if (!problem || isRunning) return;
     setIsRunning(true);
+    setRunningAction('run');
     setTestResult(null);
     const result = await executeCode(code, language, problem);
     setTestResult(result);
     setIsRunning(false);
+    setRunningAction(null);
   };
 
   const submitCode = async () => {
     if (!problem || isRunning) return;
     setIsRunning(true);
-    setTestResult(null);
+    setRunningAction('submit');
+    setSubmitResult(null);
     const result = await executeCode(code, language, problem);
-    setTestResult(result);
+    setSubmitResult(result);
     setIsRunning(false);
+    setRunningAction(null);
     // Auto-update tracker on all-pass
     if (result.allPassed) {
       updateProgress(Number(problemId), { status: 'solved' });
@@ -308,7 +315,7 @@ function ProblemPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0d1117] text-white font-mono flex flex-col">
+    <div className="h-screen bg-[#0d1117] text-white font-mono flex flex-col overflow-hidden">
       {/* Terminal Window */}
       <div className="flex-1 flex flex-col overflow-hidden relative">
               {/* Terminal Title Bar */}
@@ -589,7 +596,7 @@ function ProblemPage() {
                 </div>
 
                 {/* Right Panel - Code Editor */}
-                <div className="w-1/2 flex flex-col">
+                <div className="w-1/2 flex flex-col overflow-hidden">
                   {/* Language Selector */}
                   <div className="p-4 border-b border-[#30363d] flex items-center justify-between">
                     <div className="flex gap-2">
@@ -620,20 +627,20 @@ function ProblemPage() {
                         disabled={isRunning}
                         className="px-4 py-2 bg-[#161b22] text-[var(--accent)] border border-[var(--accent)] rounded hover:bg-[var(--accent)] hover:text-black transition text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {isRunning ? '⟳ Running...' : '▶ Run'}
+                        {runningAction === 'run' ? '⟳ Running...' : '▶ Run'}
                       </button>
                       <button
                         onClick={submitCode}
                         disabled={isRunning}
                         className="px-4 py-2 bg-[var(--accent)] text-black rounded hover:bg-[var(--accent-hover)] transition text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {isRunning ? '⟳ Running...' : '⏎ Submit'}
+                        {runningAction === 'submit' ? '⟳ Submitting...' : '⏎ Submit'}
                       </button>
                     </div>
                   </div>
 
                   {/* Code Editor */}
-                  <div className="flex-1 overflow-hidden">
+                  <div className="flex-1 overflow-hidden min-h-0">
                     <Editor
                       height="100%"
                       language={language}
@@ -681,10 +688,10 @@ function ProblemPage() {
                     </div>
                   </div>
 
-                  {/* Test Output Panel */}
-                  {(testResult || isRunning) && (
-                    <div className="border-t border-[#30363d] bg-[#161b22] max-h-64 overflow-auto">
-                      {isRunning ? (
+                  {/* Test Output Panel (Run only — Submit uses modal) */}
+                  {(testResult || runningAction === 'run') && (
+                    <div className="border-t border-[#30363d] bg-[#161b22] max-h-64 overflow-auto shrink-0">
+                      {runningAction === 'run' ? (
                         <div className="p-4 text-xs text-gray-400 font-mono animate-pulse">
                           {pyodideStatus === 'loading'
                             ? 'Loading Python runtime (first time only)...'
@@ -698,6 +705,14 @@ function ProblemPage() {
                 </div>
               </div>
             </div>
+
+      {/* Submit Result Modal */}
+      {submitResult && (
+        <SubmitResultModal
+          result={submitResult}
+          onClose={() => setSubmitResult(null)}
+        />
+      )}
 
       {/* Notes Modal */}
       {isNotesOpen && (
