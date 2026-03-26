@@ -1,6 +1,6 @@
 // src/services/codeRunner.ts
 // Manages a Web Worker that executes user code in an isolated thread.
-// Replaces the old fetch-based Judge0 proxy with zero-cost browser execution.
+// Runs user code in an isolated Web Worker — JS natively, Python via Pyodide.
 
 import type { TestRunResult, TestCaseResult, SubmissionStatus } from '../types/visualization';
 import type { Problem } from '../data/problemsData';

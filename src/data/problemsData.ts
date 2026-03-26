@@ -21,10 +21,16 @@ export interface Problem {
     args: any[];
     expected: any;
   }>;
-  // Harness metadata for Judge0 execution (only needed for tree/linked list problems)
+  // Harness metadata for code execution (only needed for tree/linked list problems)
   argTypes?: string[];   // How to convert each arg: 'raw' | 'tree' | 'list' | 'lists' | 'list-cycle' | 'nodeValue'
   returnType?: string;   // How to convert return value: 'raw' | 'tree' | 'list'
   inPlace?: boolean;     // True if function modifies input in place (e.g., reorderList)
+  // Accepted time/space complexity pairs for validation (one per known approach)
+  acceptedComplexities?: Array<{
+    time: string;
+    space: string;
+    approach?: string;
+  }>;
 }
 
 export const PROBLEMS_DATA: Record<number, Problem> = {
@@ -48,6 +54,10 @@ Notice that the solution set must not contain duplicate triplets.`,
       javascript: `/**\n * @param {number[]} nums\n * @return {number[][]}\n */\nfunction threeSum(nums) {\n    // Write your solution here\n    \n}`,
       python: `def three_sum(nums: list[int]) -> list[list[int]]:\n    # Write your solution here\n    pass`
     },
+    acceptedComplexities: [
+      { time: 'O(n^2)', space: 'O(1)', approach: 'Sort + Two Pointers' },
+      { time: 'O(n^2)', space: 'O(n)', approach: 'Hash Set' },
+    ],
     testCases: [
       { args: [[-1,0,1,2,-1,-4]], expected: [[-1,-1,2],[-1,0,1]] },
       { args: [[0,1,1]], expected: [] },
@@ -75,6 +85,9 @@ Return the maximum profit you can achieve from this transaction. If you cannot a
       javascript: `/**\n * @param {number[]} prices\n * @return {number}\n */\nfunction maxProfit(prices) {\n    // Write your solution here\n    \n}`,
       python: `def max_profit(prices: list[int]) -> int:\n    # Write your solution here\n    pass`
     },
+    acceptedComplexities: [
+      { time: 'O(n)', space: 'O(1)', approach: 'One Pass (Track Min)' },
+    ],
     testCases: [{ args: [[7,1,5,3,6,4]], expected: 5 }, { args: [[7,6,4,3,1]], expected: 0 }]
   },
 
@@ -98,6 +111,9 @@ Return the maximum amount of water a container can store.`,
       javascript: `/**\n * @param {number[]} height\n * @return {number}\n */\nfunction maxArea(height) {\n    // Write your solution here\n    \n}`,
       python: `def max_area(height: list[int]) -> int:\n    # Write your solution here\n    pass`
     },
+    acceptedComplexities: [
+      { time: 'O(n)', space: 'O(1)', approach: 'Two Pointers' },
+    ],
     testCases: [{ args: [[1,8,6,2,5,4,8,3,7]], expected: 49 }, { args: [[1,1]], expected: 1 }]
   },
 
@@ -118,6 +134,10 @@ Return the maximum amount of water a container can store.`,
       javascript: `/**\n * @param {number[]} nums\n * @return {boolean}\n */\nfunction containsDuplicate(nums) {\n    // Write your solution here\n    \n}`,
       python: `def contains_duplicate(nums: list[int]) -> bool:\n    # Write your solution here\n    pass`
     },
+    acceptedComplexities: [
+      { time: 'O(n)', space: 'O(n)', approach: 'Hash Set' },
+      { time: 'O(n log n)', space: 'O(1)', approach: 'Sorting' },
+    ],
     testCases: [{ args: [[1,2,3,1]], expected: true }, { args: [[1,2,3,4]], expected: false }]
   },
 
@@ -139,6 +159,9 @@ You must write an algorithm that runs in O(log n) time.`,
       javascript: `/**\n * @param {number[]} nums\n * @return {number}\n */\nfunction findMin(nums) {\n    // Write your solution here\n    \n}`,
       python: `def find_min(nums: list[int]) -> int:\n    # Write your solution here\n    pass`
     },
+    acceptedComplexities: [
+      { time: 'O(log n)', space: 'O(1)', approach: 'Binary Search' },
+    ],
     testCases: [{ args: [[3,4,5,1,2]], expected: 1 }, { args: [[4,5,6,7,0,1,2]], expected: 0 }]
   },
 
@@ -158,6 +181,9 @@ You must write an algorithm that runs in O(log n) time.`,
       javascript: `/**\n * @param {number[]} nums\n * @return {number}\n */\nfunction maxProduct(nums) {\n    // Write your solution here\n    \n}`,
       python: `def max_product(nums: list[int]) -> int:\n    # Write your solution here\n    pass`
     },
+    acceptedComplexities: [
+      { time: 'O(n)', space: 'O(1)', approach: 'Track Min/Max Product' },
+    ],
     testCases: [{ args: [[2,3,-2,4]], expected: 6 }, { args: [[-2,0,-1]], expected: 0 }]
   },
 
@@ -177,6 +203,10 @@ You must write an algorithm that runs in O(log n) time.`,
       javascript: `/**\n * @param {number[]} nums\n * @return {number}\n */\nfunction maxSubArray(nums) {\n    // Write your solution here\n    \n}`,
       python: `def max_sub_array(nums: list[int]) -> int:\n    # Write your solution here\n    pass`
     },
+    acceptedComplexities: [
+      { time: 'O(n)', space: 'O(1)', approach: "Kadane's Algorithm" },
+      { time: 'O(n log n)', space: 'O(log n)', approach: 'Divide and Conquer' },
+    ],
     testCases: [{ args: [[-2,1,-3,4,-1,2,1,-5,4]], expected: 6 }, { args: [[1]], expected: 1 }]
   },
 
@@ -198,6 +228,10 @@ You must write an algorithm that runs in O(n) time and without using the divisio
       javascript: `/**\n * @param {number[]} nums\n * @return {number[]}\n */\nfunction productExceptSelf(nums) {\n    // Write your solution here\n    \n}`,
       python: `def product_except_self(nums: list[int]) -> list[int]:\n    # Write your solution here\n    pass`
     },
+    acceptedComplexities: [
+      { time: 'O(n)', space: 'O(1)', approach: 'Prefix/Suffix In-Place' },
+      { time: 'O(n)', space: 'O(n)', approach: 'Prefix + Suffix Arrays' },
+    ],
     testCases: [{ args: [[1,2,3,4]], expected: [24,12,8,6] }, { args: [[-1,1,0,-3,3]], expected: [0,0,9,0,0] }]
   },
 
@@ -219,6 +253,9 @@ You must write an algorithm with O(log n) runtime complexity.`,
       javascript: `/**\n * @param {number[]} nums\n * @param {number} target\n * @return {number}\n */\nfunction search(nums, target) {\n    // Write your solution here\n    \n}`,
       python: `def search(nums: list[int], target: int) -> int:\n    # Write your solution here\n    pass`
     },
+    acceptedComplexities: [
+      { time: 'O(log n)', space: 'O(1)', approach: 'Modified Binary Search' },
+    ],
     testCases: [{ args: [[4,5,6,7,0,1,2],0], expected: 4 }, { args: [[4,5,6,7,0,1,2],3], expected: -1 }]
   },
 
@@ -240,6 +277,10 @@ You may assume that each input would have exactly one solution, and you may not 
       javascript: `/**\n * @param {number[]} nums\n * @param {number} target\n * @return {number[]}\n */\nfunction twoSum(nums, target) {\n    // Write your solution here\n    \n}`,
       python: `def two_sum(nums: list[int], target: int) -> list[int]:\n    # Write your solution here\n    pass`
     },
+    acceptedComplexities: [
+      { time: 'O(n)', space: 'O(n)', approach: 'Hash Map' },
+      { time: 'O(n log n)', space: 'O(n)', approach: 'Sort + Two Pointers' },
+    ],
     testCases: [{ args: [[2,7,11,15],9], expected: [0,1] }, { args: [[3,2,4],6], expected: [1,2] }]
   },
 
@@ -260,6 +301,7 @@ You may assume that each input would have exactly one solution, and you may not 
       javascript: `/**\n * @param {number} n\n * @return {number[]}\n */\nfunction countBits(n) {\n    // Write your solution here\n    \n}`,
       python: `def count_bits(n: int) -> list[int]:\n    # Write your solution here\n    pass`
     },
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(n)', approach: 'DP (Bit Manipulation)' }],
     testCases: [{ args: [2], expected: [0,1,1] }, { args: [5], expected: [0,1,1,2,1,2] }]
   },
 
@@ -279,6 +321,7 @@ You may assume that each input would have exactly one solution, and you may not 
       javascript: `/**\n * @param {number[]} nums\n * @return {number}\n */\nfunction missingNumber(nums) {\n    // Write your solution here\n    \n}`,
       python: `def missing_number(nums: list[int]) -> int:\n    # Write your solution here\n    pass`
     },
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(1)', approach: 'XOR' }, { time: 'O(n)', space: 'O(1)', approach: 'Gauss Sum' }],
     testCases: [{ args: [[3,0,1]], expected: 2 }, { args: [[0,1]], expected: 2 }]
   },
 
@@ -298,6 +341,7 @@ You may assume that each input would have exactly one solution, and you may not 
       javascript: `/**\n * @param {number} n\n * @return {number}\n */\nfunction hammingWeight(n) {\n    // Write your solution here\n    \n}`,
       python: `def hamming_weight(n: int) -> int:\n    # Write your solution here\n    pass`
     },
+    acceptedComplexities: [{ time: 'O(1)', space: 'O(1)', approach: 'Bit Manipulation (n & n-1)' }],
     testCases: [{ args: [11], expected: 3 }, { args: [128], expected: 1 }]
   },
 
@@ -317,6 +361,7 @@ You may assume that each input would have exactly one solution, and you may not 
       javascript: `/**\n * @param {number} n\n * @return {number}\n */\nfunction reverseBits(n) {\n    // Write your solution here\n    \n}`,
       python: `def reverse_bits(n: int) -> int:\n    # Write your solution here\n    pass`
     },
+    acceptedComplexities: [{ time: 'O(1)', space: 'O(1)', approach: 'Bit Manipulation' }],
     testCases: [{ args: [43261596], expected: 964176192 }, { args: [4294967293], expected: 3221225471 }]
   },
 
@@ -336,6 +381,7 @@ You may assume that each input would have exactly one solution, and you may not 
       javascript: `/**\n * @param {number} a\n * @param {number} b\n * @return {number}\n */\nfunction getSum(a, b) {\n    // Write your solution here\n    \n}`,
       python: `def get_sum(a: int, b: int) -> int:\n    # Write your solution here\n    pass`
     },
+    acceptedComplexities: [{ time: 'O(1)', space: 'O(1)', approach: 'Bit Manipulation (XOR + Carry)' }],
     testCases: [{ args: [1,2], expected: 3 }, { args: [2,3], expected: 5 }]
   },
 
@@ -350,6 +396,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= n <= 45'],
     starterCode: { javascript: `/**\n * @param {number} n\n * @return {number}\n */\nfunction climbStairs(n) {\n    // Write your solution here\n}`, python: `def climb_stairs(n: int) -> int:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(1)', approach: 'Fibonacci (Two Variables)' }, { time: 'O(n)', space: 'O(n)', approach: 'DP Array' }],
     testCases: [{ args: [2], expected: 2 }, { args: [3], expected: 3 }]
   },
 
@@ -363,6 +410,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= coins.length <= 12', '1 <= coins[i] <= 2^31 - 1', '0 <= amount <= 10^4'],
     starterCode: { javascript: `/**\n * @param {number[]} coins\n * @param {number} amount\n * @return {number}\n */\nfunction coinChange(coins, amount) {\n    // Write your solution here\n}`, python: `def coin_change(coins: list[int], amount: int) -> int:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n*amount)', space: 'O(amount)', approach: 'Bottom-Up DP' }],
     testCases: [{ args: [[1,2,5],11], expected: 3 }, { args: [[2],3], expected: -1 }]
   },
 
@@ -375,6 +423,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= candidates.length <= 30', '2 <= candidates[i] <= 40', '1 <= target <= 40'],
     starterCode: { javascript: `/**\n * @param {number[]} candidates\n * @param {number} target\n * @return {number[][]}\n */\nfunction combinationSum(candidates, target) {\n    // Write your solution here\n}`, python: `def combination_sum(candidates: list[int], target: int) -> list[list[int]]:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(2^n)', space: 'O(n)', approach: 'Backtracking' }],
     testCases: [{ args: [[2,3,6,7],7], expected: [[2,2,3],[7]] }]
   },
 
@@ -388,6 +437,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= s.length <= 100', 's contains only digits'],
     starterCode: { javascript: `/**\n * @param {string} s\n * @return {number}\n */\nfunction numDecodings(s) {\n    // Write your solution here\n}`, python: `def num_decodings(s: str) -> int:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(1)', approach: 'DP (Two Variables)' }, { time: 'O(n)', space: 'O(n)', approach: 'DP Array' }],
     testCases: [{ args: ["12"], expected: 2 }, { args: ["226"], expected: 3 }]
   },
 
@@ -401,6 +451,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= nums.length <= 100', '0 <= nums[i] <= 400'],
     starterCode: { javascript: `/**\n * @param {number[]} nums\n * @return {number}\n */\nfunction rob(nums) {\n    // Write your solution here\n}`, python: `def rob(nums: list[int]) -> int:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(1)', approach: 'DP (Two Variables)' }, { time: 'O(n)', space: 'O(n)', approach: 'DP Array' }],
     testCases: [{ args: [[1,2,3,1]], expected: 4 }, { args: [[2,7,9,3,1]], expected: 12 }]
   },
 
@@ -414,6 +465,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= nums.length <= 100', '0 <= nums[i] <= 1000'],
     starterCode: { javascript: `/**\n * @param {number[]} nums\n * @return {number}\n */\nfunction rob(nums) {\n    // Write your solution here\n}`, python: `def rob(nums: list[int]) -> int:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(1)', approach: 'Two-Pass DP' }, { time: 'O(n)', space: 'O(n)', approach: 'DP Array (Two Passes)' }],
     testCases: [{ args: [[2,3,2]], expected: 3 }, { args: [[1,2,3,1]], expected: 4 }]
   },
 
@@ -427,6 +479,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= nums.length <= 10^4', '0 <= nums[i] <= 10^5'],
     starterCode: { javascript: `/**\n * @param {number[]} nums\n * @return {boolean}\n */\nfunction canJump(nums) {\n    // Write your solution here\n}`, python: `def can_jump(nums: list[int]) -> bool:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(1)', approach: 'Greedy' }],
     testCases: [{ args: [[2,3,1,1,4]], expected: true }, { args: [[3,2,1,0,4]], expected: false }]
   },
 
@@ -440,6 +493,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= text1.length, text2.length <= 1000'],
     starterCode: { javascript: `/**\n * @param {string} text1\n * @param {string} text2\n * @return {number}\n */\nfunction longestCommonSubsequence(text1, text2) {\n    // Write your solution here\n}`, python: `def longest_common_subsequence(text1: str, text2: str) -> int:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(mn)', space: 'O(mn)', approach: '2D DP' }, { time: 'O(mn)', space: 'O(min(m,n))', approach: 'Space-Optimized DP' }],
     testCases: [{ args: ["abcde","ace"], expected: 3 }, { args: ["abc","def"], expected: 0 }]
   },
 
@@ -453,6 +507,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= nums.length <= 2500', '-10^4 <= nums[i] <= 10^4'],
     starterCode: { javascript: `/**\n * @param {number[]} nums\n * @return {number}\n */\nfunction lengthOfLIS(nums) {\n    // Write your solution here\n}`, python: `def length_of_lis(nums: list[int]) -> int:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n^2)', space: 'O(n)', approach: 'DP' }, { time: 'O(n log n)', space: 'O(n)', approach: 'Binary Search + Patience Sorting' }],
     testCases: [{ args: [[10,9,2,5,3,7,101,18]], expected: 4 }]
   },
 
@@ -466,6 +521,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= m, n <= 100'],
     starterCode: { javascript: `/**\n * @param {number} m\n * @param {number} n\n * @return {number}\n */\nfunction uniquePaths(m, n) {\n    // Write your solution here\n}`, python: `def unique_paths(m: int, n: int) -> int:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(mn)', space: 'O(mn)', approach: '2D DP' }, { time: 'O(mn)', space: 'O(n)', approach: 'Space-Optimized DP' }],
     testCases: [{ args: [3,7], expected: 28 }, { args: [3,2], expected: 3 }]
   },
 
@@ -479,6 +535,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= s.length <= 300', '1 <= wordDict.length <= 1000'],
     starterCode: { javascript: `/**\n * @param {string} s\n * @param {string[]} wordDict\n * @return {boolean}\n */\nfunction wordBreak(s, wordDict) {\n    // Write your solution here\n}`, python: `def word_break(s: str, word_dict: list[str]) -> bool:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n^2)', space: 'O(n)', approach: 'DP' }],
     testCases: [{ args: ["leetcode",["leet","code"]], expected: true }]
   },
 
@@ -492,6 +549,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= words.length <= 100', '1 <= words[i].length <= 100'],
     starterCode: { javascript: `/**\n * @param {string[]} words\n * @return {string}\n */\nfunction alienOrder(words) {\n    // Write your solution here\n}`, python: `def alien_order(words: list[str]) -> str:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(V+E)', space: 'O(V+E)', approach: 'Topological Sort' }],
     testCases: [{ args: [["wrt","wrf","er","ett","rftt"]], expected: "wertf" }]
   },
 
@@ -504,6 +562,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['The number of nodes is in range [0, 100]', '1 <= Node.val <= 100'],
     starterCode: { javascript: `/**\n * @param {Node} node\n * @return {Node}\n */\nfunction cloneGraph(node) {\n    // Write your solution here\n}`, python: `def clone_graph(node: 'Node') -> 'Node':\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(V+E)', space: 'O(V)', approach: 'DFS + Hash Map' }, { time: 'O(V+E)', space: 'O(V)', approach: 'BFS + Hash Map' }],
     testCases: [{ args: [[[2,4],[1,3],[2,4],[1,3]]], expected: [[2,4],[1,3],[2,4],[1,3]] }]
   },
 
@@ -517,6 +576,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= numCourses <= 2000', '0 <= prerequisites.length <= 5000'],
     starterCode: { javascript: `/**\n * @param {number} numCourses\n * @param {number[][]} prerequisites\n * @return {boolean}\n */\nfunction canFinish(numCourses, prerequisites) {\n    // Write your solution here\n}`, python: `def can_finish(num_courses: int, prerequisites: list[list[int]]) -> bool:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(V+E)', space: 'O(V+E)', approach: 'Topological Sort (BFS)' }, { time: 'O(V+E)', space: 'O(V+E)', approach: 'DFS Cycle Detection' }],
     testCases: [{ args: [2,[[1,0]]], expected: true }, { args: [2,[[1,0],[0,1]]], expected: false }]
   },
 
@@ -530,6 +590,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= n <= 2000', '0 <= edges.length <= 5000'],
     starterCode: { javascript: `/**\n * @param {number} n\n * @param {number[][]} edges\n * @return {boolean}\n */\nfunction validTree(n, edges) {\n    // Write your solution here\n}`, python: `def valid_tree(n: int, edges: list[list[int]]) -> bool:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(V+E)', space: 'O(V+E)', approach: 'BFS/DFS' }, { time: 'O(V+E)', space: 'O(V)', approach: 'Union Find' }],
     testCases: [{ args: [5,[[0,1],[0,2],[0,3],[1,4]]], expected: true }]
   },
 
@@ -543,6 +604,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['0 <= nums.length <= 10^5', '-10^9 <= nums[i] <= 10^9'],
     starterCode: { javascript: `/**\n * @param {number[]} nums\n * @return {number}\n */\nfunction longestConsecutive(nums) {\n    // Write your solution here\n}`, python: `def longest_consecutive(nums: list[int]) -> int:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(n)', approach: 'Hash Set' }],
     testCases: [{ args: [[100,4,200,1,3,2]], expected: 4 }]
   },
 
@@ -555,6 +617,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= n <= 2000', '1 <= edges.length <= 5000'],
     starterCode: { javascript: `/**\n * @param {number} n\n * @param {number[][]} edges\n * @return {number}\n */\nfunction countComponents(n, edges) {\n    // Write your solution here\n}`, python: `def count_components(n: int, edges: list[list[int]]) -> int:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(V+E)', space: 'O(V+E)', approach: 'DFS/BFS' }, { time: 'O(V+E)', space: 'O(V)', approach: 'Union Find' }],
     testCases: [{ args: [5,[[0,1],[1,2],[3,4]]], expected: 2 }]
   },
 
@@ -567,6 +630,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['m == grid.length', 'n == grid[i].length', '1 <= m, n <= 300'],
     starterCode: { javascript: `/**\n * @param {character[][]} grid\n * @return {number}\n */\nfunction numIslands(grid) {\n    // Write your solution here\n}`, python: `def num_islands(grid: list[list[str]]) -> int:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(mn)', space: 'O(mn)', approach: 'BFS/DFS' }],
     testCases: [{ args: [[["1","1","0"],["1","1","0"],["0","0","1"]]], expected: 2 }]
   },
 
@@ -579,6 +643,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['m == heights.length', 'n == heights[i].length', '1 <= m, n <= 200'],
     starterCode: { javascript: `/**\n * @param {number[][]} heights\n * @return {number[][]}\n */\nfunction pacificAtlantic(heights) {\n    // Write your solution here\n}`, python: `def pacific_atlantic(heights: list[list[int]]) -> list[list[int]]:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(mn)', space: 'O(mn)', approach: 'DFS/BFS from Oceans' }],
     testCases: [{ args: [[[1,2,2,3,5],[3,2,3,4,4],[2,4,5,3,1],[6,7,1,4,5],[5,1,1,2,4]]], expected: [[0,4],[1,3],[1,4],[2,2],[3,0],[3,1],[4,0]] }]
   },
 
@@ -592,6 +657,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['-10^5 <= num <= 10^5', 'At most 5 * 10^4 calls'],
     starterCode: { javascript: `class MedianFinder {\n    constructor() {\n        // Initialize\n    }\n    /**\n     * @param {number} num\n     * @return {void}\n     */\n    addNum(num) {\n        // Add number\n    }\n    /**\n     * @return {number}\n     */\n    findMedian() {\n        // Return median\n    }\n}`, python: `class MedianFinder:\n    def __init__(self):\n        pass\n    def add_num(self, num: int) -> None:\n        pass\n    def find_median(self) -> float:\n        pass` },
+    acceptedComplexities: [{ time: 'O(log n)', space: 'O(n)', approach: 'Two Heaps' }],
     testCases: [{ args: [[[],[1],[2],[],[3],[]]], expected: [null,null,null,1.5,null,2] }]
   },
 
@@ -605,6 +671,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= nums.length <= 10^5', '-10^4 <= nums[i] <= 10^4', 'k is in range [1, number of unique elements]'],
     starterCode: { javascript: `/**\n * @param {number[]} nums\n * @param {number} k\n * @return {number[]}\n */\nfunction topKFrequent(nums, k) {\n    // Write your solution here\n}`, python: `def top_k_frequent(nums: list[int], k: int) -> list[int]:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(n)', approach: 'Bucket Sort' }, { time: 'O(n log k)', space: 'O(n)', approach: 'Min Heap' }],
     testCases: [{ args: [[1,1,1,2,2,3],2], expected: [1,2] }]
   },
 
@@ -618,6 +685,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['0 <= intervals.length <= 10^4', 'intervals[i].length == 2'],
     starterCode: { javascript: `/**\n * @param {number[][]} intervals\n * @param {number[]} newInterval\n * @return {number[][]}\n */\nfunction insert(intervals, newInterval) {\n    // Write your solution here\n}`, python: `def insert(intervals: list[list[int]], new_interval: list[int]) -> list[list[int]]:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(n)', approach: 'Linear Scan + Merge' }],
     testCases: [{ args: [[[1,3],[6,9]],[2,5]], expected: [[1,5],[6,9]] }]
   },
 
@@ -631,6 +699,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['0 <= intervals.length <= 10^4'],
     starterCode: { javascript: `/**\n * @param {number[][]} intervals\n * @return {boolean}\n */\nfunction canAttendMeetings(intervals) {\n    // Write your solution here\n}`, python: `def can_attend_meetings(intervals: list[list[int]]) -> bool:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n log n)', space: 'O(1)', approach: 'Sort + Compare' }],
     testCases: [{ args: [[[0,30],[5,10],[15,20]]], expected: false }, { args: [[[7,10],[2,4]]], expected: true }]
   },
 
@@ -644,6 +713,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= intervals.length <= 10^4'],
     starterCode: { javascript: `/**\n * @param {number[][]} intervals\n * @return {number}\n */\nfunction minMeetingRooms(intervals) {\n    // Write your solution here\n}`, python: `def min_meeting_rooms(intervals: list[list[int]]) -> int:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n log n)', space: 'O(n)', approach: 'Min Heap' }, { time: 'O(n log n)', space: 'O(n)', approach: 'Sweep Line' }],
     testCases: [{ args: [[[0,30],[5,10],[15,20]]], expected: 2 }]
   },
 
@@ -657,6 +727,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= intervals.length <= 10^4', 'intervals[i].length == 2'],
     starterCode: { javascript: `/**\n * @param {number[][]} intervals\n * @return {number[][]}\n */\nfunction merge(intervals) {\n    // Write your solution here\n}`, python: `def merge(intervals: list[list[int]]) -> list[list[int]]:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n log n)', space: 'O(n)', approach: 'Sort + Merge' }],
     testCases: [{ args: [[[1,3],[2,6],[8,10],[15,18]]], expected: [[1,6],[8,10],[15,18]] }]
   },
 
@@ -670,6 +741,7 @@ You may assume that each input would have exactly one solution, and you may not 
     ],
     constraints: ['1 <= intervals.length <= 10^5'],
     starterCode: { javascript: `/**\n * @param {number[][]} intervals\n * @return {number}\n */\nfunction eraseOverlapIntervals(intervals) {\n    // Write your solution here\n}`, python: `def erase_overlap_intervals(intervals: list[list[int]]) -> int:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n log n)', space: 'O(1)', approach: 'Greedy (Sort by End)' }],
     testCases: [{ args: [[[1,2],[2,3],[3,4],[1,3]]], expected: 1 }]
   },
 
@@ -685,6 +757,7 @@ You may assume that each input would have exactly one solution, and you may not 
     constraints: ['The number of nodes is in the range [0, 10^4]'],
     starterCode: { javascript: `/**\n * @param {ListNode} head\n * @return {boolean}\n */\nfunction hasCycle(head) {\n    // Write your solution here\n}`, python: `def has_cycle(head: ListNode) -> bool:\n    # Write your solution here\n    pass` },
         argTypes: ['list-cycle'],
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(1)', approach: "Floyd's Tortoise & Hare" }, { time: 'O(n)', space: 'O(n)', approach: 'Hash Set' }],
 testCases: [{ args: [[3,2,0,-4],1], expected: true }]
   },
 
@@ -698,6 +771,7 @@ testCases: [{ args: [[3,2,0,-4],1], expected: true }]
     constraints: ['k == lists.length', '0 <= k <= 10^4'],
     starterCode: { javascript: `/**\n * @param {ListNode[]} lists\n * @return {ListNode}\n */\nfunction mergeKLists(lists) {\n    // Write your solution here\n}`, python: `def merge_k_lists(lists: list[ListNode]) -> ListNode:\n    # Write your solution here\n    pass` },
         argTypes: ['lists'], returnType: 'list',
+    acceptedComplexities: [{ time: 'O(n log k)', space: 'O(k)', approach: 'Min Heap' }, { time: 'O(n log k)', space: 'O(1)', approach: 'Divide and Conquer' }],
 testCases: [{ args: [[[1,4,5],[1,3,4],[2,6]]], expected: [1,1,2,3,4,4,5,6] }]
   },
 
@@ -711,6 +785,7 @@ testCases: [{ args: [[[1,4,5],[1,3,4],[2,6]]], expected: [1,1,2,3,4,4,5,6] }]
     constraints: ['The number of nodes in both lists is in the range [0, 50]'],
     starterCode: { javascript: `/**\n * @param {ListNode} list1\n * @param {ListNode} list2\n * @return {ListNode}\n */\nfunction mergeTwoLists(list1, list2) {\n    // Write your solution here\n}`, python: `def merge_two_lists(list1: ListNode, list2: ListNode) -> ListNode:\n    # Write your solution here\n    pass` },
         argTypes: ['list', 'list'], returnType: 'list',
+    acceptedComplexities: [{ time: 'O(n+m)', space: 'O(1)', approach: 'Iterative' }, { time: 'O(n)', space: 'O(1)', approach: 'Iterative' }],
 testCases: [{ args: [[1,2,4],[1,3,4]], expected: [1,1,2,3,4,4] }]
   },
 
@@ -725,6 +800,7 @@ testCases: [{ args: [[1,2,4],[1,3,4]], expected: [1,1,2,3,4,4] }]
     constraints: ['The number of nodes in the list is sz', '1 <= sz <= 30', '1 <= n <= sz'],
     starterCode: { javascript: `/**\n * @param {ListNode} head\n * @param {number} n\n * @return {ListNode}\n */\nfunction removeNthFromEnd(head, n) {\n    // Write your solution here\n}`, python: `def remove_nth_from_end(head: ListNode, n: int) -> ListNode:\n    # Write your solution here\n    pass` },
         argTypes: ['list', 'raw'], returnType: 'list',
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(1)', approach: 'Two Pointers (One Pass)' }],
 testCases: [{ args: [[1,2,3,4,5],2], expected: [1,2,3,5] }]
   },
 
@@ -739,6 +815,7 @@ testCases: [{ args: [[1,2,3,4,5],2], expected: [1,2,3,5] }]
     constraints: ['The number of nodes is in the range [1, 5 * 10^4]'],
     starterCode: { javascript: `/**\n * @param {ListNode} head\n * @return {void}\n */\nfunction reorderList(head) {\n    // Write your solution here\n}`, python: `def reorder_list(head: ListNode) -> None:\n    # Write your solution here\n    pass` },
         argTypes: ['list'], returnType: 'list', inPlace: true,
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(1)', approach: 'Find Mid + Reverse + Merge' }],
 testCases: [{ args: [[1,2,3,4]], expected: [1,4,2,3] }]
   },
 
@@ -753,6 +830,7 @@ testCases: [{ args: [[1,2,3,4]], expected: [1,4,2,3] }]
     constraints: ['The number of nodes in the list is [0, 5000]'],
     starterCode: { javascript: `/**\n * @param {ListNode} head\n * @return {ListNode}\n */\nfunction reverseList(head) {\n    // Write your solution here\n}`, python: `def reverse_list(head: ListNode) -> ListNode:\n    # Write your solution here\n    pass` },
         argTypes: ['list'], returnType: 'list',
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(1)', approach: 'Iterative' }, { time: 'O(n)', space: 'O(n)', approach: 'Recursive' }],
 testCases: [{ args: [[1,2,3,4,5]], expected: [5,4,3,2,1] }]
   },
 
@@ -766,6 +844,7 @@ testCases: [{ args: [[1,2,3,4,5]], expected: [5,4,3,2,1] }]
     ],
     constraints: ['n == matrix.length == matrix[i].length', '1 <= n <= 20'],
     starterCode: { javascript: `/**\n * @param {number[][]} matrix\n * @return {void}\n */\nfunction rotate(matrix) {\n    // Write your solution here\n}`, python: `def rotate(matrix: list[list[int]]) -> None:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n^2)', space: 'O(1)', approach: 'Transpose + Reverse' }],
     testCases: [{ args: [[[1,2,3],[4,5,6],[7,8,9]]], expected: [[7,4,1],[8,5,2],[9,6,3]] }]
   },
 
@@ -778,6 +857,7 @@ testCases: [{ args: [[1,2,3,4,5]], expected: [5,4,3,2,1] }]
     ],
     constraints: ['m == matrix.length', 'n == matrix[0].length', '1 <= m, n <= 200'],
     starterCode: { javascript: `/**\n * @param {number[][]} matrix\n * @return {void}\n */\nfunction setZeroes(matrix) {\n    // Write your solution here\n}`, python: `def set_zeroes(matrix: list[list[int]]) -> None:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(mn)', space: 'O(1)', approach: 'First Row/Col as Markers' }, { time: 'O(mn)', space: 'O(m+n)', approach: 'Extra Sets' }],
     testCases: [{ args: [[[1,1,1],[1,0,1],[1,1,1]]], expected: [[1,0,1],[0,0,0],[1,0,1]] }]
   },
 
@@ -790,6 +870,7 @@ testCases: [{ args: [[1,2,3,4,5]], expected: [5,4,3,2,1] }]
     ],
     constraints: ['m == matrix.length', 'n == matrix[i].length', '1 <= m, n <= 10'],
     starterCode: { javascript: `/**\n * @param {number[][]} matrix\n * @return {number[]}\n */\nfunction spiralOrder(matrix) {\n    // Write your solution here\n}`, python: `def spiral_order(matrix: list[list[int]]) -> list[int]:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(mn)', space: 'O(1)', approach: 'Layer-by-Layer' }],
     testCases: [{ args: [[[1,2,3],[4,5,6],[7,8,9]]], expected: [1,2,3,6,9,8,7,4,5] }]
   },
 
@@ -802,6 +883,7 @@ testCases: [{ args: [[1,2,3,4,5]], expected: [5,4,3,2,1] }]
     ],
     constraints: ['m == board.length', 'n = board[i].length', '1 <= m, n <= 6', '1 <= word.length <= 15'],
     starterCode: { javascript: `/**\n * @param {character[][]} board\n * @param {string} word\n * @return {boolean}\n */\nfunction exist(board, word) {\n    // Write your solution here\n}`, python: `def exist(board: list[list[str]], word: str) -> bool:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(mn*4^L)', space: 'O(L)', approach: 'Backtracking' }],
     testCases: [{ args: [[["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]],"ABCCED"], expected: true }]
   },
 
@@ -815,6 +897,7 @@ testCases: [{ args: [[1,2,3,4,5]], expected: [5,4,3,2,1] }]
     ],
     constraints: ['1 <= strs.length <= 200', '0 <= strs[i].length <= 200'],
     starterCode: { javascript: `/**\n * @param {string[]} strs\n * @return {string}\n */\nfunction encode(strs) {\n    // Encode\n}\n/**\n * @param {string} s\n * @return {string[]}\n */\nfunction decode(s) {\n    // Decode\n}`, python: `def encode(strs: list[str]) -> str:\n    pass\ndef decode(s: str) -> list[str]:\n    pass` },
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(n)', approach: 'Length Prefix Encoding' }],
     testCases: [{ args: [["Hello","World"]], expected: ["Hello","World"] }]
   },
 
@@ -827,6 +910,7 @@ testCases: [{ args: [[1,2,3,4,5]], expected: [5,4,3,2,1] }]
     ],
     constraints: ['1 <= strs.length <= 10^4', '0 <= strs[i].length <= 100'],
     starterCode: { javascript: `/**\n * @param {string[]} strs\n * @return {string[][]}\n */\nfunction groupAnagrams(strs) {\n    // Write your solution here\n}`, python: `def group_anagrams(strs: list[str]) -> list[list[str]]:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n*k)', space: 'O(n*k)', approach: 'Character Count Hash' }, { time: 'O(n*k log k)', space: 'O(n*k)', approach: 'Sort Each String' }],
     testCases: [{ args: [["eat","tea","tan","ate","nat","bat"]], expected: [["bat"],["nat","tan"],["ate","eat","tea"]] }]
   },
 
@@ -840,6 +924,7 @@ testCases: [{ args: [[1,2,3,4,5]], expected: [5,4,3,2,1] }]
     ],
     constraints: ['1 <= s.length <= 1000'],
     starterCode: { javascript: `/**\n * @param {string} s\n * @return {string}\n */\nfunction longestPalindrome(s) {\n    // Write your solution here\n}`, python: `def longest_palindrome(s: str) -> str:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n^2)', space: 'O(1)', approach: 'Expand Around Center' }, { time: 'O(n^2)', space: 'O(n^2)', approach: 'DP' }],
     testCases: [{ args: ["babad"], expected: "bab" }]
   },
 
@@ -853,6 +938,7 @@ testCases: [{ args: [[1,2,3,4,5]], expected: [5,4,3,2,1] }]
     ],
     constraints: ['1 <= s.length <= 10^5', '0 <= k <= s.length'],
     starterCode: { javascript: `/**\n * @param {string} s\n * @param {number} k\n * @return {number}\n */\nfunction characterReplacement(s, k) {\n    // Write your solution here\n}`, python: `def character_replacement(s: str, k: int) -> int:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(1)', approach: 'Sliding Window' }],
     testCases: [{ args: ["ABAB",2], expected: 4 }]
   },
 
@@ -866,6 +952,7 @@ testCases: [{ args: [[1,2,3,4,5]], expected: [5,4,3,2,1] }]
     ],
     constraints: ['0 <= s.length <= 5 * 10^4'],
     starterCode: { javascript: `/**\n * @param {string} s\n * @return {number}\n */\nfunction lengthOfLongestSubstring(s) {\n    // Write your solution here\n}`, python: `def length_of_longest_substring(s: str) -> int:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(n)', approach: 'Sliding Window + Hash Map' }, { time: 'O(n)', space: 'O(1)', approach: 'Sliding Window + Array' }],
     testCases: [{ args: ["abcabcbb"], expected: 3 }]
   },
 
@@ -878,6 +965,7 @@ testCases: [{ args: [[1,2,3,4,5]], expected: [5,4,3,2,1] }]
     ],
     constraints: ['1 <= s.length, t.length <= 10^5'],
     starterCode: { javascript: `/**\n * @param {string} s\n * @param {string} t\n * @return {string}\n */\nfunction minWindow(s, t) {\n    // Write your solution here\n}`, python: `def min_window(s: str, t: str) -> str:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n+m)', space: 'O(n+m)', approach: 'Sliding Window + Hash Map' }, { time: 'O(n)', space: 'O(n)', approach: 'Sliding Window' }],
     testCases: [{ args: ["ADOBECODEBANC","ABC"], expected: "BANC" }]
   },
 
@@ -891,6 +979,7 @@ testCases: [{ args: [[1,2,3,4,5]], expected: [5,4,3,2,1] }]
     ],
     constraints: ['1 <= s.length <= 1000'],
     starterCode: { javascript: `/**\n * @param {string} s\n * @return {number}\n */\nfunction countSubstrings(s) {\n    // Write your solution here\n}`, python: `def count_substrings(s: str) -> int:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n^2)', space: 'O(1)', approach: 'Expand Around Center' }, { time: 'O(n^2)', space: 'O(n^2)', approach: 'DP' }],
     testCases: [{ args: ["abc"], expected: 3 }]
   },
 
@@ -904,6 +993,7 @@ testCases: [{ args: [[1,2,3,4,5]], expected: [5,4,3,2,1] }]
     ],
     constraints: ['1 <= s.length, t.length <= 5 * 10^4'],
     starterCode: { javascript: `/**\n * @param {string} s\n * @param {string} t\n * @return {boolean}\n */\nfunction isAnagram(s, t) {\n    // Write your solution here\n}`, python: `def is_anagram(s: str, t: str) -> bool:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(1)', approach: 'Character Count Array' }, { time: 'O(n log n)', space: 'O(1)', approach: 'Sorting' }],
     testCases: [{ args: ["anagram","nagaram"], expected: true }]
   },
 
@@ -917,6 +1007,7 @@ testCases: [{ args: [[1,2,3,4,5]], expected: [5,4,3,2,1] }]
     ],
     constraints: ['1 <= s.length <= 2 * 10^5'],
     starterCode: { javascript: `/**\n * @param {string} s\n * @return {boolean}\n */\nfunction isPalindrome(s) {\n    // Write your solution here\n}`, python: `def is_palindrome(s: str) -> bool:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(1)', approach: 'Two Pointers' }],
     testCases: [{ args: ["A man, a plan, a canal: Panama"], expected: true }]
   },
 
@@ -931,6 +1022,7 @@ testCases: [{ args: [[1,2,3,4,5]], expected: [5,4,3,2,1] }]
     ],
     constraints: ['1 <= s.length <= 10^4'],
     starterCode: { javascript: `/**\n * @param {string} s\n * @return {boolean}\n */\nfunction isValid(s) {\n    // Write your solution here\n}`, python: `def is_valid(s: str) -> bool:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(n)', approach: 'Stack' }],
     testCases: [{ args: ["()"], expected: true }, { args: ["(]"], expected: false }]
   },
 
@@ -944,6 +1036,7 @@ testCases: [{ args: [[1,2,3,4,5]], expected: [5,4,3,2,1] }]
     ],
     constraints: ['1 <= word.length <= 25', 'At most 10^4 calls'],
     starterCode: { javascript: `class WordDictionary {\n    /**\n     * @param {string} word\n     * @return {void}\n     */\n    addWord(word) {}\n    /**\n     * @param {string} word\n     * @return {boolean}\n     */\n    search(word) {}\n}`, python: `class WordDictionary:\n    def add_word(self, word: str) -> None:\n        pass\n    def search(self, word: str) -> bool:\n        pass` },
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(n)', approach: 'Trie + DFS' }],
     testCases: [{ args: [["bad"],"b.d"], expected: true }]
   },
 
@@ -957,6 +1050,7 @@ testCases: [{ args: [[1,2,3,4,5]], expected: [5,4,3,2,1] }]
     constraints: ['The number of nodes is in [0, 2000]'],
     starterCode: { javascript: `/**\n * @param {TreeNode} root\n * @return {number[][]}\n */\nfunction levelOrder(root) {\n    // Write your solution here\n}`, python: `def level_order(root: TreeNode) -> list[list[int]]:\n    # Write your solution here\n    pass` },
         argTypes: ['tree'],
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(n)', approach: 'BFS (Queue)' }],
 testCases: [{ args: [[3,9,20,null,null,15,7]], expected: [[3],[9,20],[15,7]] }]
   },
 
@@ -970,6 +1064,7 @@ testCases: [{ args: [[3,9,20,null,null,15,7]], expected: [[3],[9,20],[15,7]] }]
     constraints: ['The number of nodes is in [1, 3 * 10^4]'],
     starterCode: { javascript: `/**\n * @param {TreeNode} root\n * @return {number}\n */\nfunction maxPathSum(root) {\n    // Write your solution here\n}`, python: `def max_path_sum(root: TreeNode) -> int:\n    # Write your solution here\n    pass` },
         argTypes: ['tree'],
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(n)', approach: 'DFS Post-Order' }, { time: 'O(n)', space: 'O(h)', approach: 'DFS Post-Order' }],
 testCases: [{ args: [[-10,9,20,null,null,15,7]], expected: 42 }]
   },
 
@@ -983,6 +1078,7 @@ testCases: [{ args: [[-10,9,20,null,null,15,7]], expected: 42 }]
     constraints: ['1 <= preorder.length <= 3000', 'preorder.length == inorder.length'],
     starterCode: { javascript: `/**\n * @param {number[]} preorder\n * @param {number[]} inorder\n * @return {TreeNode}\n */\nfunction buildTree(preorder, inorder) {\n    // Write your solution here\n}`, python: `def build_tree(preorder: list[int], inorder: list[int]) -> TreeNode:\n    # Write your solution here\n    pass` },
         returnType: 'tree',
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(n)', approach: 'Recursion + Hash Map' }],
 testCases: [{ args: [[3,9,20,15,7],[9,3,15,20,7]], expected: [3,9,20,null,null,15,7] }]
   },
 
@@ -995,6 +1091,7 @@ testCases: [{ args: [[3,9,20,15,7],[9,3,15,20,7]], expected: [3,9,20,null,null,1
     ],
     constraints: ['1 <= word.length, prefix.length <= 2000'],
     starterCode: { javascript: `class Trie {\n    /**\n     * @param {string} word\n     * @return {void}\n     */\n    insert(word) {}\n    /**\n     * @param {string} word\n     * @return {boolean}\n     */\n    search(word) {}\n    /**\n     * @param {string} prefix\n     * @return {boolean}\n     */\n    startsWith(prefix) {}\n}`, python: `class Trie:\n    def insert(self, word: str) -> None:\n        pass\n    def search(self, word: str) -> bool:\n        pass\n    def starts_with(self, prefix: str) -> bool:\n        pass` },
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(n)', approach: 'Trie (Hash Map Children)' }],
     testCases: [{ args: [["apple"],"apple","app"], expected: [null,true,true] }]
   },
 
@@ -1008,6 +1105,7 @@ testCases: [{ args: [[3,9,20,15,7],[9,3,15,20,7]], expected: [3,9,20,null,null,1
     constraints: ['The number of nodes is in [0, 100]'],
     starterCode: { javascript: `/**\n * @param {TreeNode} root\n * @return {TreeNode}\n */\nfunction invertTree(root) {\n    // Write your solution here\n}`, python: `def invert_tree(root: TreeNode) -> TreeNode:\n    # Write your solution here\n    pass` },
         argTypes: ['tree'], returnType: 'tree',
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(n)', approach: 'DFS / Recursion' }, { time: 'O(n)', space: 'O(h)', approach: 'DFS' }],
 testCases: [{ args: [[4,2,7,1,3,6,9]], expected: [4,7,2,9,6,3,1] }]
   },
 
@@ -1022,6 +1120,7 @@ testCases: [{ args: [[4,2,7,1,3,6,9]], expected: [4,7,2,9,6,3,1] }]
     constraints: ['The number of nodes is n', '1 <= k <= n <= 10^4'],
     starterCode: { javascript: `/**\n * @param {TreeNode} root\n * @param {number} k\n * @return {number}\n */\nfunction kthSmallest(root, k) {\n    // Write your solution here\n}`, python: `def kth_smallest(root: TreeNode, k: int) -> int:\n    # Write your solution here\n    pass` },
         argTypes: ['tree', 'raw'],
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(n)', approach: 'Inorder Traversal' }, { time: 'O(h+k)', space: 'O(h)', approach: 'Iterative Inorder' }],
 testCases: [{ args: [[3,1,4,null,2],1], expected: 1 }]
   },
 
@@ -1035,6 +1134,7 @@ testCases: [{ args: [[3,1,4,null,2],1], expected: 1 }]
     constraints: ['The number of nodes is in [2, 10^5]', 'All values are unique'],
     starterCode: { javascript: `/**\n * @param {TreeNode} root\n * @param {TreeNode} p\n * @param {TreeNode} q\n * @return {TreeNode}\n */\nfunction lowestCommonAncestor(root, p, q) {\n    // Write your solution here\n}`, python: `def lowest_common_ancestor(root: TreeNode, p: TreeNode, q: TreeNode) -> TreeNode:\n    # Write your solution here\n    pass` },
         argTypes: ['tree', 'nodeValue', 'nodeValue'],
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(1)', approach: 'Iterative' }, { time: 'O(h)', space: 'O(1)', approach: 'Iterative' }, { time: 'O(n)', space: 'O(n)', approach: 'Recursive' }],
 testCases: [{ args: [[6,2,8,0,4,7,9,null,null,3,5],2,8], expected: 6 }]
   },
 
@@ -1049,6 +1149,7 @@ testCases: [{ args: [[6,2,8,0,4,7,9,null,null,3,5],2,8], expected: 6 }]
     constraints: ['The number of nodes is in [0, 10^4]'],
     starterCode: { javascript: `/**\n * @param {TreeNode} root\n * @return {number}\n */\nfunction maxDepth(root) {\n    // Write your solution here\n}`, python: `def max_depth(root: TreeNode) -> int:\n    # Write your solution here\n    pass` },
         argTypes: ['tree'],
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(n)', approach: 'DFS / Recursion' }, { time: 'O(n)', space: 'O(h)', approach: 'DFS' }],
 testCases: [{ args: [[3,9,20,null,null,15,7]], expected: 3 }]
   },
 
@@ -1063,6 +1164,7 @@ testCases: [{ args: [[3,9,20,null,null,15,7]], expected: 3 }]
     constraints: ['The number of nodes is in [0, 100]'],
     starterCode: { javascript: `/**\n * @param {TreeNode} p\n * @param {TreeNode} q\n * @return {boolean}\n */\nfunction isSameTree(p, q) {\n    // Write your solution here\n}`, python: `def is_same_tree(p: TreeNode, q: TreeNode) -> bool:\n    # Write your solution here\n    pass` },
         argTypes: ['tree', 'tree'],
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(n)', approach: 'DFS / Recursion' }, { time: 'O(n)', space: 'O(h)', approach: 'DFS' }],
 testCases: [{ args: [[1,2,3],[1,2,3]], expected: true }]
   },
 
@@ -1075,6 +1177,7 @@ testCases: [{ args: [[1,2,3],[1,2,3]], expected: true }]
     ],
     constraints: ['The number of nodes is in [0, 10^4]'],
     starterCode: { javascript: `/**\n * @param {TreeNode} root\n * @return {string}\n */\nfunction serialize(root) {}\n/**\n * @param {string} data\n * @return {TreeNode}\n */\nfunction deserialize(data) {}`, python: `def serialize(root: TreeNode) -> str:\n    pass\ndef deserialize(data: str) -> TreeNode:\n    pass` },
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(n)', approach: 'BFS (Level Order)' }, { time: 'O(n)', space: 'O(n)', approach: 'DFS (Preorder)' }],
     testCases: [{ args: [[1,2,3,null,null,4,5]], expected: [1,2,3,null,null,4,5] }]
   },
 
@@ -1088,6 +1191,7 @@ testCases: [{ args: [[1,2,3],[1,2,3]], expected: true }]
     constraints: ['The number of nodes in root is [1, 2000]', 'The number of nodes in subRoot is [1, 1000]'],
     starterCode: { javascript: `/**\n * @param {TreeNode} root\n * @param {TreeNode} subRoot\n * @return {boolean}\n */\nfunction isSubtree(root, subRoot) {\n    // Write your solution here\n}`, python: `def is_subtree(root: TreeNode, sub_root: TreeNode) -> bool:\n    # Write your solution here\n    pass` },
         argTypes: ['tree', 'tree'],
+    acceptedComplexities: [{ time: 'O(mn)', space: 'O(m+n)', approach: 'DFS + Compare' }, { time: 'O(m+n)', space: 'O(m+n)', approach: 'Serialization' }],
 testCases: [{ args: [[3,4,5,1,2],[4,1,2]], expected: true }]
   },
 
@@ -1102,6 +1206,7 @@ testCases: [{ args: [[3,4,5,1,2],[4,1,2]], expected: true }]
     constraints: ['The number of nodes is in [1, 10^4]'],
     starterCode: { javascript: `/**\n * @param {TreeNode} root\n * @return {boolean}\n */\nfunction isValidBST(root) {\n    // Write your solution here\n}`, python: `def is_valid_bst(root: TreeNode) -> bool:\n    # Write your solution here\n    pass` },
         argTypes: ['tree'],
+    acceptedComplexities: [{ time: 'O(n)', space: 'O(n)', approach: 'DFS with Range' }, { time: 'O(n)', space: 'O(h)', approach: 'DFS / Iterative' }],
 testCases: [{ args: [[2,1,3]], expected: true }, { args: [[5,1,4,null,null,3,6]], expected: false }]
   },
 
@@ -1114,6 +1219,7 @@ testCases: [{ args: [[2,1,3]], expected: true }, { args: [[5,1,4,null,null,3,6]]
     ],
     constraints: ['m == board.length', 'n == board[i].length', '1 <= m, n <= 12', '1 <= words.length <= 3 * 10^4'],
     starterCode: { javascript: `/**\n * @param {character[][]} board\n * @param {string[]} words\n * @return {string[]}\n */\nfunction findWords(board, words) {\n    // Write your solution here\n}`, python: `def find_words(board: list[list[str]], words: list[str]) -> list[str]:\n    # Write your solution here\n    pass` },
+    acceptedComplexities: [{ time: 'O(mn*4^L)', space: 'O(n*L)', approach: 'Trie + Backtracking' }],
     testCases: [{ args: [[["o","a","a","n"],["e","t","a","e"],["i","h","k","r"],["i","f","l","v"]],["oath","pea","eat","rain"]], expected: ["eat","oath"] }]
   }
 };

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import { getProblemById, type Problem } from '../data/problemsData';
@@ -7,6 +7,7 @@ import { PROBLEMS } from '../data/blind75Problems';
 import { useTrackerStore } from '../hooks/useTrackerStore';
 import StatusEditDropdown from '../components/blind75/StatusEditDropdown';
 import { executeCode, setPyodideStatusCallback } from '../services/codeRunner';
+import { validateComplexity } from '../utils/complexityValidator';
 import TestResults from '../components/shared/TestResults';
 import SubmitResultModal from '../components/shared/SubmitResultModal';
 import type { TestRunResult } from '../types/visualization';
@@ -665,28 +666,66 @@ function ProblemPage() {
                   </div>
 
                   {/* Complexity Bar */}
-                  <div className="flex items-center gap-4 px-4 py-2 border-t border-[#30363d] bg-[#161b22] shrink-0 font-mono">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-gray-500">Time</span>
-                      <input
-                        type="text"
-                        value={progress.timeComplexity}
-                        onChange={(e) => updateProgress(Number(problemId), { timeComplexity: e.target.value })}
-                        placeholder="O(n)"
-                        className="w-20 px-2 py-0.5 bg-[#0d1117] border border-[#30363d] rounded text-xs text-gray-300 font-mono focus:outline-none focus:border-[var(--accent)]"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-gray-500">Space</span>
-                      <input
-                        type="text"
-                        value={progress.spaceComplexity}
-                        onChange={(e) => updateProgress(Number(problemId), { spaceComplexity: e.target.value })}
-                        placeholder="O(1)"
-                        className="w-20 px-2 py-0.5 bg-[#0d1117] border border-[#30363d] rounded text-xs text-gray-300 font-mono focus:outline-none focus:border-[var(--accent)]"
-                      />
-                    </div>
-                  </div>
+                  {(() => {
+                    const accepted = problem.acceptedComplexities;
+                    const hasInput = progress.timeComplexity.trim() && progress.spaceComplexity.trim();
+                    const validation = hasInput && accepted?.length
+                      ? validateComplexity(progress.timeComplexity, progress.spaceComplexity, accepted)
+                      : null;
+                    const inputBorder = validation === null
+                      ? 'border-[#30363d]'
+                      : validation.match
+                        ? 'border-green-500/40'
+                        : 'border-red-500/30';
+
+                    return (
+                      <div className="flex items-center gap-4 px-4 py-2 border-t border-[#30363d] bg-[#161b22] shrink-0 font-mono">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-gray-500">Time</span>
+                          <input
+                            type="text"
+                            value={progress.timeComplexity}
+                            onChange={(e) => updateProgress(Number(problemId), { timeComplexity: e.target.value })}
+                            placeholder="O(n)"
+                            className={`w-20 px-2 py-0.5 bg-[#0d1117] border ${inputBorder} rounded text-xs text-gray-300 font-mono focus:outline-none focus:border-[var(--accent)]`}
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-gray-500">Space</span>
+                          <input
+                            type="text"
+                            value={progress.spaceComplexity}
+                            onChange={(e) => updateProgress(Number(problemId), { spaceComplexity: e.target.value })}
+                            placeholder="O(1)"
+                            className={`w-20 px-2 py-0.5 bg-[#0d1117] border ${inputBorder} rounded text-xs text-gray-300 font-mono focus:outline-none focus:border-[var(--accent)]`}
+                          />
+                        </div>
+                        {validation !== null && (
+                          <div className="flex items-center gap-1.5 ml-auto">
+                            {validation.match ? (
+                              <>
+                                <svg className="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                {validation.approach && (
+                                  <span className="text-[10px] text-green-400/70">{validation.approach}</span>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-4 h-4 text-red-400/70" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                {(accepted?.length ?? 0) > 1 && (
+                                  <span className="text-[10px] text-gray-500">{accepted?.length} valid approaches</span>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   {/* Test Output Panel (Run only — Submit uses modal) */}
                   {(testResult || runningAction === 'run') && (

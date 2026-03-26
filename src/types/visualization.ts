@@ -176,9 +176,7 @@ export interface AlgorithmDefinition {
   mode: AlgorithmMode;
 }
 
-// --- Judge0 Code Execution Types ---
-
-// Maps Judge0's numeric status IDs to readable names
+// --- Code Execution Types ---
 export type SubmissionStatus =
   | 'queued'
   | 'processing'

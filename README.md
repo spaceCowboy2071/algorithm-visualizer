@@ -154,7 +154,7 @@ The optimized build will be in the `dist/` folder.
 
 **In Progress**:
 - Remaining Blind 75 HTML visualizers (69 of 75)
-- Judge0 API integration for code submission
+- Remaining Blind 75 HTML visualizers
 
 **Planned**:
 - Additional sorting algorithms (Insertion, Selection, Heap, Radix)
