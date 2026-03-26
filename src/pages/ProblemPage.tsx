@@ -650,7 +650,9 @@ function ProblemPage() {
                         lineNumbers: 'on',
                         folding: true,
                         bracketPairColorization: { enabled: true },
-                        tabSize: 2,
+                        tabSize: language === 'python' ? 4 : 2,
+                        insertSpaces: true,
+                        detectIndentation: false,
                       }}
                     />
                   </div>

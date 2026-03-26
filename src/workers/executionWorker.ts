@@ -25,7 +25,9 @@ async function ensurePyodide(): Promise<any> {
   self.postMessage({ type: 'pyodide-status', status: 'loading' });
   try {
     const { loadPyodide } = await import('pyodide');
-    pyodide = await loadPyodide();
+    pyodide = await loadPyodide({
+      indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.29.3/full/',
+    });
     self.postMessage({ type: 'pyodide-status', status: 'loaded' });
     return pyodide;
   } catch (err: any) {

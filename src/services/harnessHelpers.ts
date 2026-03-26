@@ -325,10 +325,13 @@ export function buildPythonHarness(
   const argConv = buildPyArgs(argTypes);
   const retConv = pyReturnConv(returnType, inPlace);
 
+  // Normalize tabs → 4 spaces to avoid IndentationError from mixed whitespace
+  const cleanCode = userCode.replace(/\t/g, '    ');
+
   return `import json
 import time as _time
 ${helpers}
-${userCode}
+${cleanCode}
 
 __tc=json.loads("""${testCasesJson.replace(/\\/g, '\\\\').replace(/"""/g, '\\"\\"\\"')}""")
 __r=[]
