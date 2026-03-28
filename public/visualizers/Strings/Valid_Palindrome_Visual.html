@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valid Palindrome — Two Pointers Visual Walkthrough</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--surface2:#1c2333;--border:#30363d;--text:#e6edf3;--text-dim:#8b949e;--accent:#58a6ff;--green:#2ea043;--green-glow:#3fb950;--orange:#f0883e;--red:#f78166;--purple:#d2a8ff;--cyan:#79c0ff;--yellow:#e3b341;--code-bg:#0d1117;--highlight:rgba(88,166,255,0.1);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.6;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+header{text-align:center;padding:3rem 0 2rem;position:relative;}
+header::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(210,168,255,0.08) 0%,transparent 70%);pointer-events:none;}
+h1{font-size:2.4rem;font-weight:700;letter-spacing:-0.03em;background:linear-gradient(135deg,var(--purple),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.25rem;}
+.subtitle{color:var(--text-dim);font-size:0.95rem;}
+.tag{display:inline-block;padding:0.2rem 0.65rem;border-radius:99px;font-size:0.75rem;font-weight:600;margin:0.75rem 0.2rem 0;}
+.tag-pattern{background:rgba(210,168,255,0.15);color:var(--purple);}
+.tag-easy{background:rgba(0,135,90,0.15);color:#00875A;}
+.tag-string{background:rgba(121,192,255,0.15);color:var(--cyan);}
+section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;margin:1.5rem 0;position:relative;overflow:hidden;}
+section::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--purple),var(--accent),var(--green-glow));border-radius:12px 12px 0 0;}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:1rem;}
+p{margin-bottom:0.75rem;font-size:0.95rem;}
+.dim{color:var(--text-dim);}
+code{font-family:'JetBrains Mono',monospace;font-size:0.85em;background:var(--surface2);padding:0.1rem 0.4rem;border-radius:4px;}
+.callout{background:rgba(240,136,62,0.08);border-left:3px solid var(--orange);padding:0.75rem 1rem;border-radius:0 8px 8px 0;margin:1rem 0;font-size:0.9rem;}
+.callout strong{color:var(--orange);}
+.callout-green{background:rgba(46,160,67,0.08);border-left-color:var(--green);}
+.callout-green strong{color:var(--green-glow);}
+.callout-purple{background:rgba(210,168,255,0.08);border-left-color:var(--purple);}
+.callout-purple strong{color:var(--purple);}
+
+/* Char cells */
+.char-row{display:flex;gap:2px;justify-content:center;align-items:center;margin:0.75rem 0;flex-wrap:wrap;}
+.char-cell{width:38px;height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;border-radius:6px;border:2px solid var(--border);background:var(--surface2);transition:all 0.3s ease;position:relative;}
+.char-cell .ch{font-size:1rem;font-weight:700;}
+.char-cell .idx{font-size:0.5rem;color:var(--text-dim);position:absolute;bottom:1px;}
+.char-cell .ptr{font-size:0.55rem;font-weight:700;position:absolute;top:-14px;}
+.char-cell.left-ptr{border-color:var(--red);color:var(--red);background:rgba(247,129,102,0.1);box-shadow:0 0 8px rgba(247,129,102,0.25);}
+.char-cell.right-ptr{border-color:var(--purple);color:var(--purple);background:rgba(210,168,255,0.1);box-shadow:0 0 8px rgba(210,168,255,0.25);}
+.char-cell.matched{border-color:var(--green);color:var(--green-glow);background:rgba(46,160,67,0.12);}
+.char-cell.skipped{border-color:var(--yellow);color:var(--yellow);background:rgba(227,179,65,0.08);opacity:0.5;}
+.char-cell.skip-active{border-color:var(--yellow);color:var(--yellow);background:rgba(227,179,65,0.15);box-shadow:0 0 8px rgba(227,179,65,0.3);}
+.char-cell.mismatch{border-color:var(--red);color:var(--red);background:rgba(247,129,102,0.2);box-shadow:0 0 12px rgba(247,129,102,0.4);}
+.char-cell.inactive{opacity:0.3;}
+
+/* Compare display */
+.compare-display{display:flex;align-items:center;justify-content:center;gap:0.75rem;margin:1rem 0;font-family:'JetBrains Mono',monospace;font-size:1.2rem;flex-wrap:wrap;}
+.compare-char{width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-weight:700;border:2px solid var(--border);background:var(--surface2);transition:all 0.3s;}
+.compare-char.left{border-color:var(--red);color:var(--red);}
+.compare-char.right{border-color:var(--purple);color:var(--purple);}
+.compare-char.match-yes{border-color:var(--green);color:var(--green-glow);background:rgba(46,160,67,0.15);}
+.compare-char.match-no{border-color:var(--red);color:var(--red);background:rgba(247,129,102,0.15);}
+.compare-op{font-size:1rem;font-weight:500;}
+.compare-result{font-size:0.9rem;font-weight:700;padding:0.3rem 0.8rem;border-radius:6px;}
+.compare-result.yes{color:var(--green-glow);background:rgba(46,160,67,0.15);border:1px solid var(--green);}
+.compare-result.no{color:var(--red);background:rgba(247,129,102,0.1);border:1px solid var(--red);}
+.compare-result.skip{color:var(--yellow);background:rgba(227,179,65,0.1);border:1px solid var(--yellow);}
+
+/* Log */
+.status-bar{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;font-family:'JetBrains Mono',monospace;font-size:0.75rem;line-height:1.7;min-height:80px;max-height:200px;overflow-y:auto;margin:0.75rem 0;}
+.log-match{color:var(--green-glow);}.log-skip{color:var(--yellow);}.log-fail{color:var(--red);font-weight:700;}.log-done{color:var(--green-glow);font-weight:700;}.log-init{color:var(--text-dim);}.log-compare{color:var(--cyan);}
+
+/* Controls */
+.controls{display:flex;gap:0.75rem;justify-content:center;align-items:center;margin:1rem 0;flex-wrap:wrap;}
+button{font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;padding:0.5rem 1.25rem;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;transition:all 0.2s;}
+button:hover{background:rgba(88,166,255,0.1);border-color:var(--accent);color:var(--accent);}
+button.primary{background:rgba(210,168,255,0.15);border-color:var(--purple);color:var(--purple);}
+button:disabled{opacity:0.3;cursor:not-allowed;}
+.ex-tab{transition:all 0.2s;}.ex-tab.active{background:rgba(210,168,255,0.2);border-color:var(--purple);color:var(--purple);}
+.code-tab{transition:all 0.2s;}.code-tab.active{color:var(--accent) !important;border-bottom-color:var(--accent) !important;}
+.step-counter{font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text-dim);min-width:100px;text-align:center;}
+
+/* Code */
+.code-block{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;font-family:'JetBrains Mono',monospace;font-size:0.8rem;line-height:1.8;overflow-x:auto;counter-reset:line;margin:1rem 0;}
+.code-line{display:block;padding:0 0.5rem;border-radius:3px;white-space:pre;transition:background 0.3s;}
+.code-line::before{counter-increment:line;content:counter(line);display:inline-block;width:2rem;margin-right:1rem;text-align:right;color:#484f58;font-size:0.72rem;}
+.code-line.highlight{background:var(--highlight);}
+.kw{color:#ff7b72;}.fn{color:#d2a8ff;}.num{color:#79c0ff;}.cmt{color:#484f58;font-style:italic;}.str{color:#a5d6ff;}
+
+.complexity-grid{display:flex;gap:2rem;flex-wrap:wrap;margin:1rem 0;}
+.complexity-item{flex:1;min-width:200px;}
+.complexity-item h3{font-size:1.1rem;font-weight:600;color:var(--accent);margin:0 0 0.25rem;}
+
+@media(max-width:700px){h1{font-size:1.8rem;}section{padding:1.25rem;}.char-cell{width:30px;height:40px;}.char-cell .ch{font-size:0.8rem;}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+<h1>Valid Palindrome</h1>
+<p class="subtitle">LeetCode #125 — Two Pointers on Strings</p>
+<div>
+  <span class="tag tag-pattern">Two Pointers</span>
+  <span class="tag tag-easy">Easy</span>
+  <span class="tag tag-string">Strings</span>
+</div>
+</header>
+
+<section>
+<h2>1 — What's the problem?</h2>
+<p>Return <code>True</code> if the string is a palindrome after converting to lowercase and removing all non-alphanumeric characters.</p>
+
+<div class="callout callout-purple">
+<strong>Same two-pointer converge as Container With Most Water and Two Sum II</strong> — pointers at both ends, move inward. The twist: skip non-alphanumeric characters and compare case-insensitively.
+</div>
+
+<div class="callout">
+<strong>Python tools:</strong> <code>.isalnum()</code> checks if a character is alphanumeric. <code>.lower()</code> converts to lowercase. If interviewers ban built-ins, use <code>ord()</code> ranges: A-Z (65-90), a-z (97-122), 0-9 (48-57).
+</div>
+</section>
+
+<section>
+<h2>2 — Step through it</h2>
+<p class="dim">Watch pointers skip non-alphanumeric characters and compare from both ends.</p>
+
+<div style="display:flex;justify-content:center;gap:1rem;margin:0.5rem 0;font-size:0.7rem;font-family:'JetBrains Mono',monospace;flex-wrap:wrap;">
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--red);background:rgba(247,129,102,0.1);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--red);">L</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--purple);background:rgba(210,168,255,0.1);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--purple);">R</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--green);background:rgba(46,160,67,0.12);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--green-glow);">Matched</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--yellow);background:rgba(227,179,65,0.08);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--yellow);">Skipped</span></span>
+</div>
+
+<div style="display:flex;gap:0.5rem;justify-content:center;margin:1rem 0;">
+  <button class="ex-tab active" data-ex="ex1" onclick="switchExample('ex1')" style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;">Palindrome: "A man, a plan..."</button>
+  <button class="ex-tab" data-ex="ex2" onclick="switchExample('ex2')" style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;">Not palindrome: "race a car"</button>
+</div>
+
+<div id="sim-area">
+  <div class="char-row" id="char-row"></div>
+  <div class="compare-display" id="compare"></div>
+</div>
+
+<div class="status-bar" id="log"></div>
+
+<div class="controls">
+  <button onclick="resetSim()">Reset</button>
+  <button onclick="stepBack()" id="btn-prev">← Back</button>
+  <span class="step-counter" id="step-label">Step 0 / 0</span>
+  <button class="primary" onclick="stepForward()" id="btn-next">Next →</button>
+  <button onclick="togglePlay()" id="btn-play">▶ Auto</button>
+</div>
+</section>
+
+<section>
+<h2>3 — Complete implementation</h2>
+
+<div style="display:flex;gap:0;margin:0 0 0;border-bottom:2px solid var(--border);">
+  <div class="code-tab active" data-ct="ct1" onclick="switchCodeTab('ct1')" style="padding:0.6rem 1.25rem;font-size:0.85rem;font-weight:600;color:var(--text-dim);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s;">With built-ins</div>
+  <div class="code-tab" data-ct="ct2" onclick="switchCodeTab('ct2')" style="padding:0.6rem 1.25rem;font-size:0.85rem;font-weight:600;color:var(--text-dim);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s;">Without built-ins (interview safe)</div>
+</div>
+
+<div id="ct1" class="code-panel">
+<div class="code-block">
+<span class="code-line"><span class="kw">def</span> <span class="fn">isPalindrome</span>(self, s: <span class="num">str</span>) -> <span class="num">bool</span>:</span>
+<span class="code-line">    L, R = <span class="num">0</span>, <span class="fn">len</span>(s) - <span class="num">1</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">while</span> L < R:</span>
+<span class="code-line">        <span class="kw">while</span> L < R <span class="kw">and not</span> s[L].<span class="fn">isalnum</span>():  <span class="cmt"># skip non-alnum L</span></span>
+<span class="code-line">            L += <span class="num">1</span></span>
+<span class="code-line">        <span class="kw">while</span> L < R <span class="kw">and not</span> s[R].<span class="fn">isalnum</span>():  <span class="cmt"># skip non-alnum R</span></span>
+<span class="code-line">            R -= <span class="num">1</span></span>
+<span class="code-line">        <span class="kw">if</span> s[L].<span class="fn">lower</span>() != s[R].<span class="fn">lower</span>():   <span class="cmt"># case-insensitive compare</span></span>
+<span class="code-line">            <span class="kw">return</span> <span class="num">False</span></span>
+<span class="code-line">        L, R = L + <span class="num">1</span>, R - <span class="num">1</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">return</span> <span class="num">True</span></span>
+</div>
+<p class="dim" style="font-size:0.85rem;">Uses Python's <code>.isalnum()</code> and <code>.lower()</code>. Clean, concise — use this on LeetCode.</p>
+</div>
+
+<div id="ct2" class="code-panel" style="display:none;">
+<div class="code-block">
+<span class="code-line"><span class="kw">def</span> <span class="fn">isPalindrome</span>(self, s: <span class="num">str</span>) -> <span class="num">bool</span>:</span>
+<span class="code-line">    L, R = <span class="num">0</span>, <span class="fn">len</span>(s) - <span class="num">1</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">while</span> L < R:</span>
+<span class="code-line">        <span class="kw">while</span> L < R <span class="kw">and not</span> self.<span class="fn">alphaNum</span>(s[L]):</span>
+<span class="code-line">            L += <span class="num">1</span></span>
+<span class="code-line">        <span class="kw">while</span> L < R <span class="kw">and not</span> self.<span class="fn">alphaNum</span>(s[R]):</span>
+<span class="code-line">            R -= <span class="num">1</span></span>
+<span class="code-line">        <span class="kw">if</span> s[L].<span class="fn">lower</span>() != s[R].<span class="fn">lower</span>():</span>
+<span class="code-line">            <span class="kw">return</span> <span class="num">False</span></span>
+<span class="code-line">        L, R = L + <span class="num">1</span>, R - <span class="num">1</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">return</span> <span class="num">True</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="kw">def</span> <span class="fn">alphaNum</span>(self, c):          <span class="cmt"># custom isalnum using ord()</span></span>
+<span class="code-line">    <span class="kw">return</span> (<span class="fn">ord</span>(<span class="str">'A'</span>) <= <span class="fn">ord</span>(c) <= <span class="fn">ord</span>(<span class="str">'Z'</span>) <span class="kw">or</span></span>
+<span class="code-line">            <span class="fn">ord</span>(<span class="str">'a'</span>) <= <span class="fn">ord</span>(c) <= <span class="fn">ord</span>(<span class="str">'z'</span>) <span class="kw">or</span></span>
+<span class="code-line">            <span class="fn">ord</span>(<span class="str">'0'</span>) <= <span class="fn">ord</span>(c) <= <span class="fn">ord</span>(<span class="str">'9'</span>))</span>
+</div>
+<p class="dim" style="font-size:0.85rem;">Replaces <code>.isalnum()</code> with manual ASCII range checks. Use this if the interviewer says "no built-in string methods." The <code>alphaNum</code> function checks three ranges: uppercase A-Z (65-90), lowercase a-z (97-122), digits 0-9 (48-57). Note: <code>alphaNum</code> is a class method here — call with <code>self.alphaNum()</code>.</p>
+</div>
+
+<div class="complexity-grid">
+  <div class="complexity-item">
+    <h3>Time: O(n)</h3>
+    <p class="dim" style="font-size:0.85rem;">Each character visited at most once by L or R.</p>
+  </div>
+  <div class="complexity-item">
+    <h3>Space: O(1)</h3>
+    <p class="dim" style="font-size:0.85rem;">Two pointers. No extra string or array created.</p>
+  </div>
+</div>
+
+<div class="callout callout-green">
+<strong>Pattern connection:</strong> Same two-pointer converge from Container With Most Water and Two Sum II. The inner while loops for skipping non-alphanumeric characters are the only new element — the core compare-and-move logic is identical.
+</div>
+</section>
+
+</div>
+
+<script>
+const EXAMPLES = {
+  ex1: { str: "A man, a plan, a canal: Panama", isPalin: true },
+  ex2: { str: "race a car", isPalin: false },
+};
+
+let activeEx = 'ex1';
+let S, SN;
+
+function loadExample() { S = EXAMPLES[activeEx].str; SN = S.length; }
+loadExample();
+
+function computeSteps() {
+  const steps = [];
+  let L = 0, R = SN - 1;
+  const matched = new Set();
+  const skipped = new Set();
+
+  steps.push({ L, R, matched: new Set(), skipped: new Set(), compareL:null, compareR:null, result:null, skipActive:null,
+    log: `Initialize: L=0, R=${SN-1}`, type:'init' });
+
+  while (L < R) {
+    // Skip L
+    while (L < R && !S[L].match(/[a-zA-Z0-9]/)) {
+      skipped.add(L);
+      steps.push({ L, R, matched:new Set(matched), skipped:new Set(skipped), compareL:null, compareR:null, result:null, skipActive:L,
+        log: `Skip L: '${S[L]}' not alphanumeric → L++`, type:'skip' });
+      L++;
+    }
+    // Skip R
+    while (L < R && !S[R].match(/[a-zA-Z0-9]/)) {
+      skipped.add(R);
+      steps.push({ L, R, matched:new Set(matched), skipped:new Set(skipped), compareL:null, compareR:null, result:null, skipActive:R,
+        log: `Skip R: '${S[R]}' not alphanumeric → R--`, type:'skip' });
+      R--;
+    }
+
+    if (L >= R) break;
+
+    const lc = S[L].toLowerCase();
+    const rc = S[R].toLowerCase();
+    const match = lc === rc;
+
+    if (match) {
+      matched.add(L); matched.add(R);
+      steps.push({ L, R, matched:new Set(matched), skipped:new Set(skipped), compareL:S[L], compareR:S[R], result:'match', skipActive:null,
+        log: `Compare: '${S[L]}'.lower()='${lc}' == '${S[R]}'.lower()='${rc}' ✓ Match!`, type:'match' });
+      L++; R--;
+    } else {
+      steps.push({ L, R, matched:new Set(matched), skipped:new Set(skipped), compareL:S[L], compareR:S[R], result:'mismatch', skipActive:null,
+        log: `Compare: '${S[L]}'.lower()='${lc}' != '${S[R]}'.lower()='${rc}' ✗ MISMATCH → return False`, type:'fail' });
+      steps.push({ L, R, matched:new Set(matched), skipped:new Set(skipped), compareL:null, compareR:null, result:'false', skipActive:null,
+        log: `Return False — not a palindrome`, type:'fail' });
+      return steps;
+    }
+  }
+
+  steps.push({ L, R, matched:new Set(matched), skipped:new Set(skipped), compareL:null, compareR:null, result:'true', skipActive:null,
+    log: `All characters matched! Return True — it's a palindrome`, type:'done' });
+
+  return steps;
+}
+
+let steps = computeSteps();
+let current = 0;
+let playInterval = null;
+
+function switchExample(key) {
+  if (playInterval) togglePlay();
+  activeEx = key;
+  loadExample();
+  steps = computeSteps();
+  current = 0;
+  document.querySelectorAll('.ex-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.ex-tab[data-ex="${key}"]`).classList.add('active');
+  render();
+}
+
+function render() {
+  const step = steps[current];
+
+  // Char row
+  const charRow = document.getElementById('char-row');
+  let html = '';
+  for (let i = 0; i < SN; i++) {
+    let cls = 'char-cell';
+    let ptrHtml = '';
+
+    if (step.result === 'mismatch' && (i === step.L || i === step.R)) {
+      cls += ' mismatch';
+    } else if (i === step.L && i === step.R) {
+      cls += ' left-ptr';
+    } else if (i === step.L) {
+      cls += ' left-ptr';
+    } else if (i === step.R) {
+      cls += ' right-ptr';
+    } else if (step.matched.has(i)) {
+      cls += ' matched';
+    } else if (step.skipActive === i) {
+      cls += ' skip-active';
+    } else if (step.skipped.has(i)) {
+      cls += ' skipped';
+    } else if (step.L > 0 && (i < step.L || i > step.R)) {
+      if (!step.matched.has(i) && !step.skipped.has(i)) cls += ' inactive';
+    }
+
+    if (i === step.L) ptrHtml += `<span class="ptr" style="color:var(--red);">L</span>`;
+    if (i === step.R && i !== step.L) ptrHtml += `<span class="ptr" style="color:var(--purple);">R</span>`;
+
+    html += `<div class="${cls}">${ptrHtml}<span class="ch">${S[i]}</span><span class="idx">${i}</span></div>`;
+  }
+  charRow.innerHTML = html;
+
+  // Compare display
+  const compareEl = document.getElementById('compare');
+  if (step.compareL !== null && step.compareR !== null) {
+    const matchCls = step.result === 'match' ? 'match-yes' : 'match-no';
+    const resCls = step.result === 'match' ? 'yes' : 'no';
+    const resText = step.result === 'match' ? '✓ Match' : '✗ Mismatch';
+    compareEl.innerHTML = `
+      <div class="compare-char left ${matchCls}">${step.compareL.toLowerCase()}</div>
+      <span class="compare-op">==</span>
+      <div class="compare-char right ${matchCls}">${step.compareR.toLowerCase()}</div>
+      <span class="compare-result ${resCls}">${resText}</span>`;
+  } else if (step.result === 'true') {
+    compareEl.innerHTML = `<span class="compare-result yes" style="font-size:1rem;">✓ Palindrome — return True</span>`;
+  } else if (step.result === 'false') {
+    compareEl.innerHTML = `<span class="compare-result no" style="font-size:1rem;">✗ Not a palindrome — return False</span>`;
+  } else if (step.skipActive !== null) {
+    compareEl.innerHTML = `<span class="compare-result skip">'${S[step.skipActive]}' → skip (not alphanumeric)</span>`;
+  } else {
+    compareEl.innerHTML = `<span style="color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:0.85rem;">—</span>`;
+  }
+
+  // Log
+  const logEl = document.getElementById('log');
+  let logHtml = '';
+  for (let i = 0; i <= current; i++) {
+    const s = steps[i];
+    let cls = 'log-init';
+    if (s.type === 'match') cls = 'log-match';
+    else if (s.type === 'skip') cls = 'log-skip';
+    else if (s.type === 'fail') cls = 'log-fail';
+    else if (s.type === 'done') cls = 'log-done';
+    logHtml += `<div class="${cls}">${s.log}</div>`;
+  }
+  logEl.innerHTML = logHtml;
+  logEl.scrollTop = logEl.scrollHeight;
+
+  document.getElementById('step-label').textContent = `Step ${current} / ${steps.length - 1}`;
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current >= steps.length - 1;
+}
+
+function stepForward() { if (current < steps.length - 1) { current++; render(); } else if (playInterval) togglePlay(); }
+function stepBack() { if (current > 0) { current--; render(); } }
+function resetSim() { if (playInterval) togglePlay(); current = 0; render(); }
+function togglePlay() {
+  if (playInterval) { clearInterval(playInterval); playInterval = null; document.getElementById('btn-play').textContent = '▶ Auto'; }
+  else { document.getElementById('btn-play').textContent = '⏸ Pause'; playInterval = setInterval(() => { if (current >= steps.length - 1) { togglePlay(); return; } stepForward(); }, 700); }
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); stepForward(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); stepBack(); }
+  if (e.key === 'r') resetSim();
+});
+function switchCodeTab(id) {
+  document.querySelectorAll('.code-panel').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).style.display = 'block';
+  document.querySelector(`.code-tab[data-ct="${id}"]`).classList.add('active');
+}
+render();
+</script>
+</body>
+</html>

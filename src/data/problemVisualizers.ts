@@ -10,6 +10,8 @@ const VISUALIZER_PATHS: Record<number, string> = {
   4: '/visualizers/Arrays/Contains_Duplicate_Visual.html',
   1: '/visualizers/Arrays/3Sum_Visual.html',
   2: '/visualizers/Arrays/Best_Time_Buy_Sell_Stock_Visual.html',
+  60: '/visualizers/Strings/Valid_Palindrome_Visual.html',
+  61: '/visualizers/Strings/Valid_Parentheses_Visual.html',
 };
 
 export function getVisualizerPath(problemId: number): string | null {

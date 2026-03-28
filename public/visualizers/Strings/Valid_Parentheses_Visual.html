@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valid Parentheses — Stack Visual Walkthrough</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--surface2:#1c2333;--border:#30363d;--text:#e6edf3;--text-dim:#8b949e;--accent:#58a6ff;--green:#2ea043;--green-glow:#3fb950;--orange:#f0883e;--red:#f78166;--purple:#d2a8ff;--cyan:#79c0ff;--yellow:#e3b341;--code-bg:#0d1117;--highlight:rgba(88,166,255,0.1);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.6;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+header{text-align:center;padding:3rem 0 2rem;position:relative;}
+header::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(210,168,255,0.08) 0%,transparent 70%);pointer-events:none;}
+h1{font-size:2.4rem;font-weight:700;letter-spacing:-0.03em;background:linear-gradient(135deg,var(--purple),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.25rem;}
+.subtitle{color:var(--text-dim);font-size:0.95rem;}
+.tag{display:inline-block;padding:0.2rem 0.65rem;border-radius:99px;font-size:0.75rem;font-weight:600;margin:0.75rem 0.2rem 0;}
+.tag-pattern{background:rgba(210,168,255,0.15);color:var(--purple);}
+.tag-easy{background:rgba(0,135,90,0.15);color:#00875A;}
+.tag-string{background:rgba(121,192,255,0.15);color:var(--cyan);}
+section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;margin:1.5rem 0;position:relative;overflow:hidden;}
+section::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--purple),var(--orange),var(--yellow));border-radius:12px 12px 0 0;}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:1rem;}
+p{margin-bottom:0.75rem;font-size:0.95rem;}
+.dim{color:var(--text-dim);}
+code{font-family:'JetBrains Mono',monospace;font-size:0.85em;background:var(--surface2);padding:0.1rem 0.4rem;border-radius:4px;}
+.callout{background:rgba(240,136,62,0.08);border-left:3px solid var(--orange);padding:0.75rem 1rem;border-radius:0 8px 8px 0;margin:1rem 0;font-size:0.9rem;}
+.callout strong{color:var(--orange);}
+.callout-green{background:rgba(46,160,67,0.08);border-left-color:var(--green);}
+.callout-green strong{color:var(--green-glow);}
+.callout-purple{background:rgba(210,168,255,0.08);border-left-color:var(--purple);}
+.callout-purple strong{color:var(--purple);}
+
+/* Char cells */
+.char-row{display:flex;gap:4px;justify-content:center;align-items:center;margin:0.75rem 0;flex-wrap:wrap;}
+.char-cell{width:48px;height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;border-radius:8px;border:2px solid var(--border);background:var(--surface2);transition:all 0.3s ease;position:relative;}
+.char-cell .ch{font-size:1.3rem;font-weight:700;}
+.char-cell .idx{font-size:0.5rem;color:var(--text-dim);position:absolute;bottom:1px;}
+.char-cell.active-push{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 12px rgba(121,192,255,0.4);animation:cellPulse 1s ease-in-out infinite;}
+.char-cell.active-pop{border-color:var(--green);color:var(--green-glow);box-shadow:0 0 12px rgba(46,160,67,0.4);animation:cellPulse 1s ease-in-out infinite;}
+.char-cell.active-fail{border-color:var(--red);color:var(--red);box-shadow:0 0 12px rgba(247,129,102,0.5);animation:cellPulse 0.5s ease-in-out infinite;}
+.char-cell.done{border-color:var(--green);background:rgba(46,160,67,0.08);color:var(--green-glow);opacity:0.5;}
+.char-cell.future{opacity:0.3;}
+@keyframes cellPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
+
+/* Stack visual */
+.stack-area{display:flex;gap:2rem;justify-content:center;align-items:flex-start;margin:1.5rem 0;flex-wrap:wrap;}
+.stack-panel{display:flex;flex-direction:column;align-items:center;min-width:120px;}
+.stack-label{font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;}
+.stack-container{width:80px;min-height:200px;border:2px solid var(--border);border-top:none;border-radius:0 0 10px 10px;display:flex;flex-direction:column-reverse;align-items:center;padding:6px;gap:4px;position:relative;background:var(--surface2);}
+.stack-container::before{content:'';position:absolute;top:-2px;left:-10px;right:-10px;height:2px;background:var(--border);}
+.stack-item{width:60px;height:44px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:1.3rem;font-weight:700;border-radius:6px;border:2px solid var(--border);background:var(--bg);transition:all 0.3s;color:var(--text);}
+.stack-item.paren{border-color:var(--cyan);color:var(--cyan);background:rgba(88,166,255,0.1);}
+.stack-item.bracket{border-color:var(--purple);color:var(--purple);background:rgba(210,168,255,0.1);}
+.stack-item.curly{border-color:var(--yellow);color:var(--yellow);background:rgba(227,179,65,0.1);}
+.stack-item.top{box-shadow:0 0 12px rgba(88,166,255,0.3);}
+.stack-item.popping{animation:popAnim 0.3s ease;opacity:0.5;}
+.stack-empty{color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:0.75rem;text-align:center;padding:1rem 0;}
+@keyframes popAnim{0%{transform:scale(1);}50%{transform:scale(1.15);}100%{transform:scale(1);}}
+
+/* Action display */
+.action-box{text-align:center;margin:1rem 0;}
+.action-inner{display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:0.5rem 1.5rem;font-family:'JetBrains Mono',monospace;font-size:0.9rem;min-width:260px;transition:all 0.3s;}
+.action-inner.push{border-color:var(--cyan);color:var(--cyan);}
+.action-inner.pop{border-color:var(--green);color:var(--green-glow);}
+.action-inner.fail{border-color:var(--red);color:var(--red);box-shadow:0 0 12px rgba(247,129,102,0.2);}
+.action-inner.done{border-color:var(--green);color:var(--green-glow);box-shadow:0 0 12px rgba(46,160,67,0.2);}
+.action-inner.done-fail{border-color:var(--red);color:var(--red);}
+
+/* Map display */
+.map-display{display:flex;gap:1rem;justify-content:center;margin:1rem 0;flex-wrap:wrap;}
+.map-entry{display:flex;align-items:center;gap:6px;padding:0.4rem 0.75rem;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:1rem;transition:all 0.3s;}
+.map-entry.active{border-color:var(--green);box-shadow:0 0 8px rgba(46,160,67,0.3);}
+.map-entry.fail-entry{border-color:var(--red);box-shadow:0 0 8px rgba(247,129,102,0.3);}
+.map-closer{color:var(--orange);font-weight:700;}
+.map-arrow{color:var(--text-dim);font-size:0.8rem;}
+.map-opener{color:var(--cyan);font-weight:700;}
+
+/* Log */
+.status-bar{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;font-family:'JetBrains Mono',monospace;font-size:0.78rem;line-height:1.7;min-height:80px;max-height:200px;overflow-y:auto;margin:0.75rem 0;}
+.log-push{color:var(--cyan);}.log-pop{color:var(--green-glow);font-weight:600;}.log-fail{color:var(--red);font-weight:700;}.log-done{color:var(--green-glow);font-weight:700;}.log-init{color:var(--text-dim);}
+
+/* Controls */
+.controls{display:flex;gap:0.75rem;justify-content:center;align-items:center;margin:1rem 0;flex-wrap:wrap;}
+button{font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;padding:0.5rem 1.25rem;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;transition:all 0.2s;}
+button:hover{background:rgba(88,166,255,0.1);border-color:var(--accent);color:var(--accent);}
+button.primary{background:rgba(210,168,255,0.15);border-color:var(--purple);color:var(--purple);}
+button:disabled{opacity:0.3;cursor:not-allowed;}
+.ex-tab{transition:all 0.2s;}.ex-tab.active{background:rgba(210,168,255,0.2);border-color:var(--purple);color:var(--purple);}
+.step-counter{font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text-dim);min-width:100px;text-align:center;}
+
+/* Code */
+.code-block{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;font-family:'JetBrains Mono',monospace;font-size:0.8rem;line-height:1.8;overflow-x:auto;counter-reset:line;margin:1rem 0;}
+.code-line{display:block;padding:0 0.5rem;border-radius:3px;white-space:pre;transition:background 0.3s;}
+.code-line::before{counter-increment:line;content:counter(line);display:inline-block;width:2rem;margin-right:1rem;text-align:right;color:#484f58;font-size:0.72rem;}
+.code-line.highlight{background:var(--highlight);}
+.kw{color:#ff7b72;}.fn{color:#d2a8ff;}.num{color:#79c0ff;}.cmt{color:#484f58;font-style:italic;}.str{color:#a5d6ff;}
+
+.complexity-grid{display:flex;gap:2rem;flex-wrap:wrap;margin:1rem 0;}
+.complexity-item{flex:1;min-width:200px;}
+.complexity-item h3{font-size:1.1rem;font-weight:600;color:var(--accent);margin:0 0 0.25rem;}
+
+@media(max-width:700px){h1{font-size:1.8rem;}section{padding:1.25rem;}.char-cell{width:40px;height:40px;}.char-cell .ch{font-size:1.1rem;}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+<h1>Valid Parentheses</h1>
+<p class="subtitle">LeetCode #20 — Stack Visual Walkthrough</p>
+<div>
+  <span class="tag tag-pattern">Stack</span>
+  <span class="tag tag-easy">Easy</span>
+  <span class="tag tag-string">Strings</span>
+</div>
+</header>
+
+<section>
+<h2>1 — What's the problem?</h2>
+<p>Given a string of brackets <code>(){}[]</code>, return <code>True</code> if every opener has its matching closer in the correct (nested) order.</p>
+
+<div class="callout callout-purple">
+<strong>Why a stack?</strong> The most recently opened bracket must close first. That's LIFO — last in, first out. When you see <code>{[</code>, the <code>[</code> needs to close before the <code>{</code>. A stack naturally enforces this ordering.
+</div>
+
+<div class="callout">
+<strong>Three failure cases:</strong> (1) closer doesn't match the top of stack, (2) closer arrives but stack is empty (nothing to match), (3) loop ends with items still on stack (unclosed openers).
+</div>
+</section>
+
+<section>
+<h2>2 — Step through it</h2>
+<p class="dim">Watch the stack grow with openers and shrink as matching closers pop them off.</p>
+
+<div style="display:flex;justify-content:center;gap:1rem;margin:0.5rem 0;font-size:0.7rem;font-family:'JetBrains Mono',monospace;flex-wrap:wrap;">
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--cyan);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--cyan);">Push (opener)</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--green);background:rgba(46,160,67,0.15);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--green-glow);">Pop (matched)</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--red);background:rgba(247,129,102,0.15);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--red);">Fail (mismatch)</span></span>
+</div>
+
+<div style="display:flex;gap:0.5rem;justify-content:center;margin:1rem 0;flex-wrap:wrap;">
+  <button class="ex-tab active" data-ex="ex1" onclick="switchExample('ex1')" style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;">{[]} — valid</button>
+  <button class="ex-tab" data-ex="ex2" onclick="switchExample('ex2')" style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;">([)] — invalid</button>
+  <button class="ex-tab" data-ex="ex3" onclick="switchExample('ex3')" style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;">(] — invalid</button>
+  <button class="ex-tab" data-ex="ex4" onclick="switchExample('ex4')" style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;">(){} — valid</button>
+</div>
+
+<div id="sim-area">
+  <div class="char-row" id="char-row"></div>
+
+  <div class="stack-area">
+    <div class="stack-panel">
+      <div class="stack-label">Stack</div>
+      <div class="stack-container" id="stack-container">
+        <div class="stack-empty">empty</div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:240px;max-width:400px;">
+      <div class="stack-label">closeToOpen Map</div>
+      <div class="map-display" id="map-display">
+        <div class="map-entry" id="map-paren"><span class="map-closer">)</span><span class="map-arrow">→</span><span class="map-opener">(</span></div>
+        <div class="map-entry" id="map-bracket"><span class="map-closer">]</span><span class="map-arrow">→</span><span class="map-opener">[</span></div>
+        <div class="map-entry" id="map-curly"><span class="map-closer">}</span><span class="map-arrow">→</span><span class="map-opener">{</span></div>
+      </div>
+      <div class="action-box"><div class="action-inner" id="action">—</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="status-bar" id="log"></div>
+
+<div class="controls">
+  <button onclick="resetSim()">Reset</button>
+  <button onclick="stepBack()" id="btn-prev">← Back</button>
+  <span class="step-counter" id="step-label">Step 0 / 0</span>
+  <button class="primary" onclick="stepForward()" id="btn-next">Next →</button>
+  <button onclick="togglePlay()" id="btn-play">▶ Auto</button>
+</div>
+</section>
+
+<section>
+<h2>3 — Complete implementation</h2>
+<div class="code-block">
+<span class="code-line"><span class="kw">def</span> <span class="fn">isValid</span>(self, s: <span class="num">str</span>) -> <span class="num">bool</span>:</span>
+<span class="code-line">    stack = []</span>
+<span class="code-line">    closeToOpen = {<span class="str">")"</span>: <span class="str">"("</span>, <span class="str">"]"</span>: <span class="str">"["</span>, <span class="str">"}"</span>: <span class="str">"{"</span>}</span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">for</span> c <span class="kw">in</span> s:</span>
+<span class="code-line">        <span class="kw">if</span> c <span class="kw">in</span> closeToOpen:              <span class="cmt"># it's a closer</span></span>
+<span class="code-line">            <span class="kw">if</span> stack <span class="kw">and</span> stack[-<span class="num">1</span>] == closeToOpen[c]:</span>
+<span class="code-line">                stack.<span class="fn">pop</span>()               <span class="cmt"># matched! remove opener</span></span>
+<span class="code-line">            <span class="kw">else</span>:</span>
+<span class="code-line">                <span class="kw">return</span> <span class="num">False</span>             <span class="cmt"># mismatch or empty stack</span></span>
+<span class="code-line">        <span class="kw">else</span>:                              <span class="cmt"># it's an opener</span></span>
+<span class="code-line">            stack.<span class="fn">append</span>(c)             <span class="cmt"># push onto stack</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">return not</span> stack                    <span class="cmt"># empty = valid, items left = invalid</span></span>
+</div>
+
+<div class="complexity-grid">
+  <div class="complexity-item">
+    <h3>Time: O(n)</h3>
+    <p class="dim" style="font-size:0.85rem;">Single pass through the string. Each character is pushed/popped at most once.</p>
+  </div>
+  <div class="complexity-item">
+    <h3>Space: O(n)</h3>
+    <p class="dim" style="font-size:0.85rem;">Stack holds up to n/2 openers in the worst case (e.g. "((((").</p>
+  </div>
+</div>
+
+<div class="callout callout-green">
+<strong>Pattern connection:</strong> Stacks appear in many problems beyond parentheses: Evaluate Reverse Polish Notation, Daily Temperatures (monotonic stack), Min Stack, and decoding problems. The core idea is always the same — LIFO ordering enforces a "most recent first" processing rule.
+</div>
+</section>
+
+</div>
+
+<script>
+const CLOSE_TO_OPEN = {')':'(', ']':'[', '}':'{'};
+const EXAMPLES = {
+  ex1: { str: '{[]}', valid: true },
+  ex2: { str: '([)]', valid: false },
+  ex3: { str: '(]', valid: false },
+  ex4: { str: '(){}', valid: true },
+};
+
+let activeEx = 'ex1';
+let S;
+
+function loadExample() { S = EXAMPLES[activeEx].str; }
+loadExample();
+
+function getItemClass(ch) {
+  if (ch === '(' || ch === ')') return 'paren';
+  if (ch === '[' || ch === ']') return 'bracket';
+  return 'curly';
+}
+
+function computeSteps() {
+  const steps = [];
+  const stack = [];
+
+  steps.push({ i:-1, stack:[], action:'Initialize: stack = [], closeToOpen map ready', actionType:'init', activeChar:null, matchEntry:null,
+    log:'Initialize: stack = []' });
+
+  for (let i = 0; i < S.length; i++) {
+    const c = S[i];
+
+    if (c in CLOSE_TO_OPEN) {
+      // It's a closer
+      if (stack.length > 0 && stack[stack.length-1] === CLOSE_TO_OPEN[c]) {
+        const popped = stack.pop();
+        steps.push({ i, stack:[...stack], action:`'${c}' is closer → top is '${popped}' → MATCH! Pop.`, actionType:'pop', activeChar:c, matchEntry:c,
+          log:`c='${c}': closer → stack top '${popped}' == closeToOpen['${c}'] → pop ✓` });
+      } else if (stack.length === 0) {
+        steps.push({ i, stack:[...stack], action:`'${c}' is closer → stack EMPTY → FAIL`, actionType:'fail', activeChar:c, matchEntry:c,
+          log:`c='${c}': closer → stack is empty → return False ✗` });
+        return steps;
+      } else {
+        const top = stack[stack.length-1];
+        steps.push({ i, stack:[...stack], action:`'${c}' is closer → top is '${top}' ≠ '${CLOSE_TO_OPEN[c]}' → FAIL`, actionType:'fail', activeChar:c, matchEntry:c,
+          log:`c='${c}': closer → stack top '${top}' ≠ closeToOpen['${c}']('${CLOSE_TO_OPEN[c]}') → return False ✗` });
+        return steps;
+      }
+    } else {
+      // It's an opener
+      stack.push(c);
+      steps.push({ i, stack:[...stack], action:`'${c}' is opener → PUSH`, actionType:'push', activeChar:c, matchEntry:null,
+        log:`c='${c}': opener → push onto stack` });
+    }
+  }
+
+  if (stack.length === 0) {
+    steps.push({ i:S.length, stack:[], action:'Stack empty → return True ✓', actionType:'done', activeChar:null, matchEntry:null,
+      log:'Loop complete. Stack is empty → return True ✓' });
+  } else {
+    steps.push({ i:S.length, stack:[...stack], action:`Stack not empty [${stack.join(',')}] → return False`, actionType:'done-fail', activeChar:null, matchEntry:null,
+      log:`Loop complete. Stack still has [${stack.join(',')}] → return False ✗` });
+  }
+
+  return steps;
+}
+
+let steps = computeSteps();
+let current = 0;
+let playInterval = null;
+
+function switchExample(key) {
+  if (playInterval) togglePlay();
+  activeEx = key; loadExample();
+  steps = computeSteps(); current = 0;
+  document.querySelectorAll('.ex-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.ex-tab[data-ex="${key}"]`).classList.add('active');
+  render();
+}
+
+function render() {
+  const step = steps[current];
+
+  // Char row
+  const charRow = document.getElementById('char-row');
+  let html = '';
+  for (let i = 0; i < S.length; i++) {
+    let cls = 'char-cell';
+    if (i === step.i && step.actionType === 'push') cls += ' active-push';
+    else if (i === step.i && step.actionType === 'pop') cls += ' active-pop';
+    else if (i === step.i && step.actionType === 'fail') cls += ' active-fail';
+    else if (i < step.i || (step.i === S.length)) cls += ' done';
+    else if (i > step.i) cls += ' future';
+    html += `<div class="${cls}"><span class="ch">${S[i]}</span><span class="idx">${i}</span></div>`;
+  }
+  charRow.innerHTML = html;
+
+  // Stack
+  const stackEl = document.getElementById('stack-container');
+  if (step.stack.length === 0) {
+    stackEl.innerHTML = '<div class="stack-empty">empty</div>';
+  } else {
+    let sHtml = '';
+    for (let i = 0; i < step.stack.length; i++) {
+      const ch = step.stack[i];
+      const isTop = i === step.stack.length - 1;
+      sHtml += `<div class="stack-item ${getItemClass(ch)}${isTop ? ' top' : ''}">${ch}</div>`;
+    }
+    stackEl.innerHTML = sHtml;
+  }
+
+  // Map highlighting
+  document.querySelectorAll('.map-entry').forEach(el => { el.classList.remove('active', 'fail-entry'); });
+  if (step.matchEntry) {
+    const mapId = step.matchEntry === ')' || step.matchEntry === '(' ? 'map-paren' :
+                  step.matchEntry === ']' || step.matchEntry === '[' ? 'map-bracket' : 'map-curly';
+    const el = document.getElementById(mapId);
+    if (step.actionType === 'pop') el.classList.add('active');
+    else if (step.actionType === 'fail') el.classList.add('fail-entry');
+  }
+
+  // Action
+  const actionEl = document.getElementById('action');
+  actionEl.textContent = step.action;
+  actionEl.className = 'action-inner';
+  if (step.actionType === 'push') actionEl.classList.add('push');
+  else if (step.actionType === 'pop') actionEl.classList.add('pop');
+  else if (step.actionType === 'fail') actionEl.classList.add('fail');
+  else if (step.actionType === 'done') actionEl.classList.add('done');
+  else if (step.actionType === 'done-fail') actionEl.classList.add('done-fail');
+
+  // Log
+  const logEl = document.getElementById('log');
+  let logHtml = '';
+  for (let i = 0; i <= current; i++) {
+    const s = steps[i];
+    let cls = 'log-init';
+    if (s.actionType === 'push') cls = 'log-push';
+    else if (s.actionType === 'pop') cls = 'log-pop';
+    else if (s.actionType === 'fail') cls = 'log-fail';
+    else if (s.actionType === 'done') cls = 'log-done';
+    else if (s.actionType === 'done-fail') cls = 'log-fail';
+    logHtml += `<div class="${cls}">${s.log}</div>`;
+  }
+  logEl.innerHTML = logHtml;
+  logEl.scrollTop = logEl.scrollHeight;
+
+  document.getElementById('step-label').textContent = `Step ${current} / ${steps.length - 1}`;
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current >= steps.length - 1;
+}
+
+function stepForward() { if (current < steps.length - 1) { current++; render(); } else if (playInterval) togglePlay(); }
+function stepBack() { if (current > 0) { current--; render(); } }
+function resetSim() { if (playInterval) togglePlay(); current = 0; render(); }
+function togglePlay() {
+  if (playInterval) { clearInterval(playInterval); playInterval = null; document.getElementById('btn-play').textContent = '▶ Auto'; }
+  else { document.getElementById('btn-play').textContent = '⏸ Pause'; playInterval = setInterval(() => { if (current >= steps.length - 1) { togglePlay(); return; } stepForward(); }, 1000); }
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); stepForward(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); stepBack(); }
+  if (e.key === 'r') resetSim();
+});
+render();
+</script>
+</body>
+</html>
