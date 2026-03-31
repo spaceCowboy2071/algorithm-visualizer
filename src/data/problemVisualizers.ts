@@ -12,6 +12,8 @@ const VISUALIZER_PATHS: Record<number, string> = {
   2: '/visualizers/Arrays/Best_Time_Buy_Sell_Stock_Visual.html',
   60: '/visualizers/Strings/Valid_Palindrome_Visual.html',
   61: '/visualizers/Strings/Valid_Parentheses_Visual.html',
+  47: '/visualizers/Linked_Lists/Reverse_Linked_List_Visual.html',
+  56: '/visualizers/Strings/Longest_Substring_No_Repeat_Visual.html',
 };
 
 export function getVisualizerPath(problemId: number): string | null {

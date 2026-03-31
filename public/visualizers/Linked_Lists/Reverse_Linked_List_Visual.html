@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reverse Linked List — Pointer Reversal Visual Walkthrough</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--surface2:#1c2333;--border:#30363d;--text:#e6edf3;--text-dim:#8b949e;--accent:#58a6ff;--green:#2ea043;--green-glow:#3fb950;--orange:#f0883e;--red:#f78166;--purple:#d2a8ff;--cyan:#79c0ff;--yellow:#e3b341;--code-bg:#0d1117;--highlight:rgba(88,166,255,0.1);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.6;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+header{text-align:center;padding:3rem 0 2rem;position:relative;}
+header::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(240,136,62,0.08) 0%,transparent 70%);pointer-events:none;}
+h1{font-size:2.4rem;font-weight:700;letter-spacing:-0.03em;background:linear-gradient(135deg,var(--orange),var(--yellow));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.25rem;}
+.subtitle{color:var(--text-dim);font-size:0.95rem;}
+.tag{display:inline-block;padding:0.2rem 0.65rem;border-radius:99px;font-size:0.75rem;font-weight:600;margin:0.75rem 0.2rem 0;}
+.tag-pattern{background:rgba(240,136,62,0.15);color:var(--orange);}
+.tag-easy{background:rgba(0,135,90,0.15);color:#00875A;}
+.tag-ll{background:rgba(210,168,255,0.15);color:var(--purple);}
+section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;margin:1.5rem 0;position:relative;overflow:hidden;}
+section::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--orange),var(--yellow),var(--green-glow));border-radius:12px 12px 0 0;}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:1rem;}
+p{margin-bottom:0.75rem;font-size:0.95rem;}
+.dim{color:var(--text-dim);}
+code{font-family:'JetBrains Mono',monospace;font-size:0.85em;background:var(--surface2);padding:0.1rem 0.4rem;border-radius:4px;}
+.callout{background:rgba(240,136,62,0.08);border-left:3px solid var(--orange);padding:0.75rem 1rem;border-radius:0 8px 8px 0;margin:1rem 0;font-size:0.9rem;}
+.callout strong{color:var(--orange);}
+.callout-green{background:rgba(46,160,67,0.08);border-left-color:var(--green);}
+.callout-green strong{color:var(--green-glow);}
+
+/* Linked list visualization */
+.ll-area{display:flex;justify-content:center;align-items:center;margin:1.5rem 0;min-height:140px;flex-wrap:wrap;gap:0;}
+.ll-node{display:flex;flex-direction:column;align-items:center;position:relative;}
+.node-box{width:60px;height:60px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:1.3rem;font-weight:700;border-radius:10px;border:2px solid var(--border);background:var(--surface2);transition:all 0.4s ease;position:relative;}
+.node-box.curr-node{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 14px rgba(121,192,255,0.4);}
+.node-box.prev-node{border-color:var(--orange);color:var(--orange);box-shadow:0 0 10px rgba(240,136,62,0.3);}
+.node-box.nxt-node{border-color:var(--green);color:var(--green-glow);box-shadow:0 0 10px rgba(46,160,67,0.3);}
+.node-box.reversed{border-color:var(--yellow);color:var(--yellow);background:rgba(227,179,65,0.1);}
+.node-box.done{border-color:var(--green);color:var(--green-glow);background:rgba(46,160,67,0.1);box-shadow:0 0 12px rgba(46,160,67,0.2);}
+.node-label{font-family:'JetBrains Mono',monospace;font-size:0.6rem;font-weight:700;position:absolute;top:-16px;white-space:nowrap;}
+.arrow{width:40px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:1rem;color:var(--text-dim);transition:all 0.3s;}
+.arrow.reversed-arrow{color:var(--yellow);transform:scaleX(-1);}
+.arrow.active-arrow{color:var(--cyan);}
+.null-box{font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--text-dim);padding:0 8px;}
+
+/* Step description */
+.step-desc{text-align:center;margin:1rem 0;padding:0.6rem 1.5rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:0.85rem;display:inline-block;transition:all 0.3s;min-width:300px;}
+.step-desc.save{border-color:var(--green);color:var(--green-glow);}
+.step-desc.flip{border-color:var(--red);color:var(--red);}
+.step-desc.advance{border-color:var(--cyan);color:var(--cyan);}
+.step-desc.done{border-color:var(--yellow);color:var(--yellow);}
+
+/* Log */
+.status-bar{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;font-family:'JetBrains Mono',monospace;font-size:0.75rem;line-height:1.7;min-height:80px;max-height:200px;overflow-y:auto;margin:0.75rem 0;}
+.log-save{color:var(--green-glow);}.log-flip{color:var(--red);font-weight:600;}.log-advance{color:var(--cyan);}.log-done{color:var(--yellow);font-weight:700;}.log-init{color:var(--text-dim);}
+
+/* Controls */
+.controls{display:flex;gap:0.75rem;justify-content:center;align-items:center;margin:1rem 0;flex-wrap:wrap;}
+button{font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;padding:0.5rem 1.25rem;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;transition:all 0.2s;}
+button:hover{background:rgba(88,166,255,0.1);border-color:var(--accent);color:var(--accent);}
+button.primary{background:rgba(240,136,62,0.15);border-color:var(--orange);color:var(--orange);}
+button:disabled{opacity:0.3;cursor:not-allowed;}
+.step-counter{font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text-dim);min-width:100px;text-align:center;}
+
+/* Code */
+.code-block{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;font-family:'JetBrains Mono',monospace;font-size:0.78rem;line-height:1.8;overflow-x:auto;counter-reset:line;margin:1rem 0;}
+.code-line{display:block;padding:0 0.5rem;border-radius:3px;white-space:pre;transition:background 0.3s;}
+.code-line::before{counter-increment:line;content:counter(line);display:inline-block;width:2rem;margin-right:1rem;text-align:right;color:#484f58;font-size:0.7rem;}
+.code-line.highlight{background:var(--highlight);}
+.kw{color:#ff7b72;}.fn{color:#d2a8ff;}.num{color:#79c0ff;}.cmt{color:#484f58;font-style:italic;}
+.code-tab{padding:0.6rem 1.25rem;font-size:0.85rem;font-weight:600;color:var(--text-dim);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s;}
+.code-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+.complexity-grid{display:flex;gap:2rem;flex-wrap:wrap;margin:1rem 0;}
+.complexity-item{flex:1;min-width:200px;}
+.complexity-item h3{font-size:1.1rem;font-weight:600;color:var(--accent);margin:0 0 0.25rem;}
+
+@media(max-width:700px){h1{font-size:1.8rem;}section{padding:1.25rem;}.node-box{width:48px;height:48px;font-size:1.1rem;}.arrow{width:30px;}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+<h1>Reverse Linked List</h1>
+<p class="subtitle">LeetCode #206 — Pointer Reversal Visual Walkthrough</p>
+<div>
+  <span class="tag tag-pattern">Iterative Pointer Reversal</span>
+  <span class="tag tag-easy">Easy</span>
+  <span class="tag tag-ll">Linked Lists</span>
+</div>
+</header>
+
+<section>
+<h2>1 — What's the problem?</h2>
+<p>Reverse a singly linked list. Each node only has <code>.val</code> and <code>.next</code> — no indices, no random access, no backward pointers.</p>
+
+<div class="callout">
+<strong>Not like arrays:</strong> You can't index into a linked list. No <code>list[3]</code>. To reach a node, you walk there via <code>.next</code> pointers. You use <code>while</code> loops, not <code>for</code> loops.
+</div>
+
+<div class="callout callout-green">
+<strong>Three pointers, four operations per step:</strong> <code>prev</code> (the reversed portion), <code>curr</code> (the node being processed), <code>nxt</code> (saved before we break the link). Each step: save → flip → advance prev → advance curr.
+</div>
+</section>
+
+<section>
+<h2>2 — Step through it (iterative)</h2>
+<p class="dim">Watch the pointers walk through the list, flipping one link at a time. Orange = prev, cyan = curr, green = nxt.</p>
+
+<div style="display:flex;justify-content:center;gap:1rem;margin:0.5rem 0;font-size:0.7rem;font-family:'JetBrains Mono',monospace;flex-wrap:wrap;">
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--orange);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--orange);">prev</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--cyan);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--cyan);">curr</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--green);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--green-glow);">nxt (saved)</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--yellow);background:rgba(227,179,65,0.1);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--yellow);">reversed</span></span>
+</div>
+
+<div style="text-align:center;">
+  <div class="ll-area" id="ll-area"></div>
+  <div class="step-desc" id="step-desc">—</div>
+</div>
+
+<div class="status-bar" id="log"></div>
+
+<div class="controls">
+  <button onclick="resetSim()">Reset</button>
+  <button onclick="stepBack()" id="btn-prev">← Back</button>
+  <span class="step-counter" id="step-label">Step 0 / 0</span>
+  <button class="primary" onclick="stepForward()" id="btn-next">Next →</button>
+  <button onclick="togglePlay()" id="btn-play">▶ Auto</button>
+</div>
+</section>
+
+<section>
+<h2>3 — Complete implementation</h2>
+
+<div style="display:flex;gap:0;border-bottom:2px solid var(--border);">
+  <div class="code-tab active" data-ct="ct-iter" onclick="switchCodeTab('ct-iter')">Iterative (primary)</div>
+  <div class="code-tab" data-ct="ct-rec" onclick="switchCodeTab('ct-rec')">Recursive (follow-up)</div>
+</div>
+
+<div id="ct-iter" class="code-panel">
+<div class="code-block">
+<span class="code-line"><span class="kw">def</span> <span class="fn">reverseList</span>(self, head):</span>
+<span class="code-line">    prev, curr = <span class="num">None</span>, head  <span class="cmt"># prev=None (new tail), curr=head</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">while</span> curr:               <span class="cmt"># until curr walks off the end</span></span>
+<span class="code-line">        nxt = curr.next       <span class="cmt"># SAVE next before we break link</span></span>
+<span class="code-line">        curr.next = prev      <span class="cmt"># FLIP pointer backward</span></span>
+<span class="code-line">        prev = curr            <span class="cmt"># ADVANCE prev forward</span></span>
+<span class="code-line">        curr = nxt             <span class="cmt"># ADVANCE curr forward</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">return</span> prev               <span class="cmt"># prev is new head (curr is None)</span></span>
+</div>
+<p class="dim" style="font-size:0.85rem;">O(n) time, O(1) space. This is the go-to answer for interviews.</p>
+</div>
+
+<div id="ct-rec" class="code-panel" style="display:none;">
+<div class="code-block">
+<span class="code-line"><span class="kw">def</span> <span class="fn">reverseList</span>(self, head):</span>
+<span class="code-line">    <span class="kw">if not</span> head <span class="kw">or not</span> head.next:  <span class="cmt"># base: empty or single node</span></span>
+<span class="code-line">        <span class="kw">return</span> head</span>
+<span class="code-line"></span>
+<span class="code-line">    new_head = self.<span class="fn">reverseList</span>(head.next)  <span class="cmt"># recurse to end</span></span>
+<span class="code-line"></span>
+<span class="code-line">    head.next.next = head     <span class="cmt"># my next node points back at me</span></span>
+<span class="code-line">    head.next = <span class="num">None</span>          <span class="cmt"># break my forward pointer</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">return</span> new_head            <span class="cmt"># pass new head all the way up</span></span>
+</div>
+<p class="dim" style="font-size:0.85rem;">O(n) time, O(n) space (call stack). Know this for follow-up questions — Meta specifically asks for both.</p>
+</div>
+
+<div class="complexity-grid">
+  <div class="complexity-item">
+    <h3>Iterative: O(n) time, O(1) space</h3>
+    <p class="dim" style="font-size:0.85rem;">Visit each node once. Only three pointer variables.</p>
+  </div>
+  <div class="complexity-item">
+    <h3>Recursive: O(n) time, O(n) space</h3>
+    <p class="dim" style="font-size:0.85rem;">Same traversal, but call stack holds n frames.</p>
+  </div>
+</div>
+
+<div class="callout callout-green">
+<strong>Pattern connection:</strong> Pointer reversal is the building block for Reorder List (reverse second half then merge), Palindrome Linked List (reverse half and compare), and the reverse portion of Reverse Nodes in k-Group. The three-pointer walk also appears in Merge Two Sorted Lists.
+</div>
+</section>
+
+</div>
+
+<script>
+const VALS = [1, 2, 3, 4, 5];
+const N = VALS.length;
+
+function computeSteps() {
+  const steps = [];
+
+  // State: for each node, track whether its arrow points forward or backward
+  // prevIdx, currIdx, nxtIdx track pointer positions (-1 = None)
+  steps.push({
+    prevIdx: -1, currIdx: 0, nxtIdx: -1,
+    reversed: new Set(), // indices whose arrows have been flipped
+    phase: 'init', desc: 'Initialize: prev = None, curr = head (node 1)',
+    log: 'prev = None, curr = head → node 1'
+  });
+
+  let prevIdx = -1, currIdx = 0;
+
+  while (currIdx < N) {
+    const nxtIdx = currIdx + 1 < N ? currIdx + 1 : -1;
+    const reversed = new Set(steps[steps.length - 1].reversed);
+
+    // Step 1: Save nxt
+    steps.push({
+      prevIdx, currIdx, nxtIdx,
+      reversed: new Set(reversed),
+      phase: 'save', desc: `nxt = curr.next → ${nxtIdx >= 0 ? 'node ' + VALS[nxtIdx] : 'None'}`,
+      log: `nxt = curr.next → ${nxtIdx >= 0 ? 'node ' + VALS[nxtIdx] : 'None'}`
+    });
+
+    // Step 2: Flip pointer
+    reversed.add(currIdx);
+    steps.push({
+      prevIdx, currIdx, nxtIdx,
+      reversed: new Set(reversed),
+      phase: 'flip', desc: `curr.next = prev → node ${VALS[currIdx]} now points ${prevIdx >= 0 ? 'to node ' + VALS[prevIdx] : 'to None'}`,
+      log: `FLIP: node ${VALS[currIdx]}.next = ${prevIdx >= 0 ? 'node ' + VALS[prevIdx] : 'None'}`
+    });
+
+    // Step 3: Advance
+    const newPrev = currIdx;
+    const newCurr = nxtIdx;
+    steps.push({
+      prevIdx: newPrev, currIdx: newCurr >= 0 ? newCurr : N, nxtIdx: -1,
+      reversed: new Set(reversed),
+      phase: 'advance', desc: `prev = node ${VALS[newPrev]}, curr = ${newCurr >= 0 ? 'node ' + VALS[newCurr] : 'None'}`,
+      log: `ADVANCE: prev → node ${VALS[newPrev]}, curr → ${newCurr >= 0 ? 'node ' + VALS[newCurr] : 'None'}`
+    });
+
+    prevIdx = newPrev;
+    currIdx = newCurr >= 0 ? newCurr : N;
+  }
+
+  // Done
+  steps.push({
+    prevIdx: N - 1, currIdx: N, nxtIdx: -1,
+    reversed: new Set(steps[steps.length - 1].reversed),
+    phase: 'done', desc: `curr is None → return prev (node ${VALS[N-1]}) — new head!`,
+    log: `DONE! curr = None. Return prev = node ${VALS[N-1]} (new head). List: ${VALS.slice().reverse().join(' → ')} → None`
+  });
+
+  return steps;
+}
+
+let steps = computeSteps();
+let current = 0;
+let playInterval = null;
+
+function render() {
+  const step = steps[current];
+  const area = document.getElementById('ll-area');
+  let html = '';
+
+  // Null before (if prev is None at start)
+  if (step.phase === 'init' || (step.prevIdx === -1 && step.currIdx < N)) {
+    html += `<div class="ll-node"><div class="null-box">None</div></div>`;
+    html += `<div class="arrow">←</div>`;
+  }
+
+  for (let i = 0; i < N; i++) {
+    let boxCls = 'node-box';
+    let labelHtml = '';
+    const labels = [];
+
+    if (step.currIdx === i) { boxCls += ' curr-node'; labels.push('<span style="color:var(--cyan);">curr</span>'); }
+    if (step.prevIdx === i) { boxCls += ' prev-node'; labels.push('<span style="color:var(--orange);">prev</span>'); }
+    if (step.nxtIdx === i && (step.phase === 'save' || step.phase === 'flip')) { boxCls += ' nxt-node'; labels.push('<span style="color:var(--green-glow);">nxt</span>'); }
+    if (step.phase === 'done') { boxCls += ' done'; }
+    else if (step.reversed.has(i) && step.currIdx !== i && step.prevIdx !== i) { boxCls += ' reversed'; }
+
+    if (labels.length > 0) {
+      labelHtml = `<span class="node-label">${labels.join(' ')}</span>`;
+    }
+
+    html += `<div class="ll-node">${labelHtml}<div class="${boxCls}">${VALS[i]}</div></div>`;
+
+    // Arrow
+    if (i < N - 1) {
+      let arrowCls = 'arrow';
+      if (step.reversed.has(i)) {
+        arrowCls += ' reversed-arrow';
+        html += `<div class="${arrowCls}">→</div>`;
+      } else {
+        html += `<div class="${arrowCls}">→</div>`;
+      }
+    }
+  }
+
+  // None at end
+  html += `<div class="ll-node"><div class="null-box">None</div></div>`;
+
+  area.innerHTML = html;
+
+  // Step description
+  const descEl = document.getElementById('step-desc');
+  descEl.textContent = step.desc;
+  descEl.className = 'step-desc';
+  if (step.phase === 'save') descEl.classList.add('save');
+  else if (step.phase === 'flip') descEl.classList.add('flip');
+  else if (step.phase === 'advance') descEl.classList.add('advance');
+  else if (step.phase === 'done') descEl.classList.add('done');
+
+  // Log
+  const logEl = document.getElementById('log');
+  let logHtml = '';
+  for (let i = 0; i <= current; i++) {
+    const s = steps[i];
+    let cls = 'log-init';
+    if (s.phase === 'save') cls = 'log-save';
+    else if (s.phase === 'flip') cls = 'log-flip';
+    else if (s.phase === 'advance') cls = 'log-advance';
+    else if (s.phase === 'done') cls = 'log-done';
+    logHtml += `<div class="${cls}">${s.log}</div>`;
+  }
+  logEl.innerHTML = logHtml;
+  logEl.scrollTop = logEl.scrollHeight;
+
+  document.getElementById('step-label').textContent = `Step ${current} / ${steps.length - 1}`;
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current >= steps.length - 1;
+}
+
+function stepForward() { if (current < steps.length - 1) { current++; render(); } else if (playInterval) togglePlay(); }
+function stepBack() { if (current > 0) { current--; render(); } }
+function resetSim() { if (playInterval) togglePlay(); current = 0; render(); }
+function togglePlay() {
+  if (playInterval) { clearInterval(playInterval); playInterval = null; document.getElementById('btn-play').textContent = '▶ Auto'; }
+  else { document.getElementById('btn-play').textContent = '⏸ Pause'; playInterval = setInterval(() => { if (current >= steps.length - 1) { togglePlay(); return; } stepForward(); }, 1000); }
+}
+function switchCodeTab(id) {
+  document.querySelectorAll('.code-panel').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).style.display = 'block';
+  document.querySelector(`.code-tab[data-ct="${id}"]`).classList.add('active');
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); stepForward(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); stepBack(); }
+  if (e.key === 'r') resetSim();
+});
+render();
+</script>
+</body>
+</html>

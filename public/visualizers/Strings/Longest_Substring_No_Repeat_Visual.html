@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Longest Substring Without Repeating Characters — Sliding Window Visual</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--surface2:#1c2333;--border:#30363d;--text:#e6edf3;--text-dim:#8b949e;--accent:#58a6ff;--green:#2ea043;--green-glow:#3fb950;--orange:#f0883e;--red:#f78166;--purple:#d2a8ff;--cyan:#79c0ff;--yellow:#e3b341;--code-bg:#0d1117;--highlight:rgba(88,166,255,0.1);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.6;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+header{text-align:center;padding:3rem 0 2rem;position:relative;}
+header::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(88,166,255,0.08) 0%,transparent 70%);pointer-events:none;}
+h1{font-size:2.2rem;font-weight:700;letter-spacing:-0.03em;background:linear-gradient(135deg,var(--cyan),var(--green-glow));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.25rem;}
+.subtitle{color:var(--text-dim);font-size:0.95rem;}
+.tag{display:inline-block;padding:0.2rem 0.65rem;border-radius:99px;font-size:0.75rem;font-weight:600;margin:0.75rem 0.2rem 0;}
+.tag-pattern{background:rgba(88,166,255,0.15);color:var(--accent);}
+.tag-medium{background:rgba(240,136,62,0.15);color:var(--orange);}
+.tag-string{background:rgba(121,192,255,0.15);color:var(--cyan);}
+section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;margin:1.5rem 0;position:relative;overflow:hidden;}
+section::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cyan),var(--green-glow),var(--yellow));border-radius:12px 12px 0 0;}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:1rem;}
+h3{font-size:1.1rem;font-weight:600;margin:1.25rem 0 0.5rem;color:var(--accent);}
+p{margin-bottom:0.75rem;font-size:0.95rem;}
+.dim{color:var(--text-dim);}
+code{font-family:'JetBrains Mono',monospace;font-size:0.85em;background:var(--surface2);padding:0.1rem 0.4rem;border-radius:4px;}
+.callout{background:rgba(240,136,62,0.08);border-left:3px solid var(--orange);padding:0.75rem 1rem;border-radius:0 8px 8px 0;margin:1rem 0;font-size:0.9rem;}
+.callout strong{color:var(--orange);}
+.callout-green{background:rgba(46,160,67,0.08);border-left-color:var(--green);}
+.callout-green strong{color:var(--green-glow);}
+.callout-blue{background:rgba(88,166,255,0.08);border-left-color:var(--accent);}
+.callout-blue strong{color:var(--accent);}
+
+/* Char cells */
+.char-row{display:flex;gap:3px;justify-content:center;align-items:center;margin:0.5rem 0;flex-wrap:wrap;}
+.char-cell{width:48px;height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;border-radius:8px;border:2px solid var(--border);background:var(--surface2);transition:all 0.3s ease;position:relative;}
+.char-cell .ch{font-size:1.2rem;font-weight:700;}
+.char-cell .idx{font-size:0.5rem;color:var(--text-dim);position:absolute;bottom:1px;}
+.char-cell .ptr{font-size:0.55rem;font-weight:700;position:absolute;top:-15px;}
+.char-cell.in-window{border-color:var(--cyan);color:var(--cyan);background:rgba(88,166,255,0.1);}
+.char-cell.expanding{border-color:var(--green);color:var(--green-glow);background:rgba(46,160,67,0.15);box-shadow:0 0 12px rgba(46,160,67,0.3);}
+.char-cell.duplicate{border-color:var(--red);color:var(--red);background:rgba(247,129,102,0.15);box-shadow:0 0 12px rgba(247,129,102,0.4);animation:dupFlash 0.5s ease;}
+.char-cell.shrinking{border-color:var(--orange);color:var(--orange);background:rgba(240,136,62,0.1);box-shadow:0 0 8px rgba(240,136,62,0.3);}
+.char-cell.outside{opacity:0.25;}
+.char-cell.best{border-color:var(--yellow);background:rgba(227,179,65,0.12);color:var(--yellow);}
+@keyframes dupFlash{0%{transform:scale(1);}50%{transform:scale(1.08);}100%{transform:scale(1);}}
+
+/* Window bracket */
+.bracket-row{display:flex;gap:3px;justify-content:center;align-items:flex-start;margin:0 0 0.25rem;min-height:16px;}
+.bracket-spacer{width:48px;height:14px;}
+.bracket-cell{width:48px;height:14px;position:relative;}
+.bracket-cell.start::before{content:'';position:absolute;left:4px;top:0;width:calc(100% - 4px);height:100%;border-left:2px solid var(--cyan);border-top:2px solid var(--cyan);border-top-left-radius:4px;}
+.bracket-cell.middle::before{content:'';position:absolute;left:0;top:0;width:100%;height:100%;border-top:2px solid var(--cyan);}
+.bracket-cell.end::before{content:'';position:absolute;left:0;top:0;width:calc(100% - 4px);height:100%;border-right:2px solid var(--cyan);border-top:2px solid var(--cyan);border-top-right-radius:4px;}
+.bracket-cell.single::before{content:'';position:absolute;left:4px;top:0;width:calc(100% - 8px);height:100%;border:2px solid var(--cyan);border-bottom:none;border-radius:4px 4px 0 0;}
+
+/* Best bracket */
+.best-bracket-row{display:flex;gap:3px;justify-content:center;align-items:flex-end;margin:0.25rem 0 0;min-height:16px;}
+.best-cell{width:48px;height:14px;position:relative;}
+.best-cell.start::before{content:'';position:absolute;left:4px;bottom:0;width:calc(100% - 4px);height:100%;border-left:2px solid var(--yellow);border-bottom:2px solid var(--yellow);border-bottom-left-radius:4px;}
+.best-cell.middle::before{content:'';position:absolute;left:0;bottom:0;width:100%;height:100%;border-bottom:2px solid var(--yellow);}
+.best-cell.end::before{content:'';position:absolute;left:0;bottom:0;width:calc(100% - 4px);height:100%;border-right:2px solid var(--yellow);border-bottom:2px solid var(--yellow);border-bottom-right-radius:4px;}
+.best-cell.single::before{content:'';position:absolute;left:4px;bottom:0;width:calc(100% - 8px);height:100%;border:2px solid var(--yellow);border-top:none;border-radius:0 0 4px 4px;}
+
+/* Set display */
+.set-area{margin:0.75rem 0;}
+.set-label{font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.25rem;}
+.set-row{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;min-height:36px;align-items:center;}
+.set-item{display:inline-flex;align-items:center;justify-content:center;width:38px;height:34px;background:rgba(88,166,255,0.1);border:1px solid rgba(88,166,255,0.3);border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:0.95rem;font-weight:700;color:var(--cyan);transition:all 0.3s;}
+.set-item.new{border-color:var(--green);color:var(--green-glow);box-shadow:0 0 10px rgba(46,160,67,0.3);}
+.set-item.removing{border-color:var(--orange);color:var(--orange);box-shadow:0 0 10px rgba(240,136,62,0.3);opacity:0.5;}
+.set-item.dup-highlight{border-color:var(--red);color:var(--red);box-shadow:0 0 10px rgba(247,129,102,0.4);}
+.set-empty{color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:0.82rem;}
+
+/* Variables */
+.var-display{display:flex;gap:1.25rem;justify-content:center;flex-wrap:wrap;margin:0.75rem 0;}
+.var-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0.4rem 1rem;font-family:'JetBrains Mono',monospace;text-align:center;min-width:100px;transition:all 0.3s;}
+.var-box .var-name{font-size:0.6rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;}
+.var-box .var-val{font-size:1.1rem;font-weight:700;margin-top:0.05rem;}
+.var-box.v-window{border-color:var(--cyan);}.var-box.v-window .var-val{color:var(--cyan);}
+.var-box.v-best{border-color:var(--yellow);}.var-box.v-best .var-val{color:var(--yellow);}
+.var-box.v-action{border-color:var(--accent);min-width:220px;}.var-box.v-action .var-val{color:var(--accent);font-size:0.8rem;}
+.var-box.new-best{animation:bestFlash 0.6s ease;}
+@keyframes bestFlash{0%{box-shadow:0 0 0 rgba(227,179,65,0);}50%{box-shadow:0 0 20px rgba(227,179,65,0.5);}100%{box-shadow:0 0 0 rgba(227,179,65,0);}}
+
+/* Log */
+.status-bar{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;font-family:'JetBrains Mono',monospace;font-size:0.75rem;line-height:1.7;min-height:80px;max-height:200px;overflow-y:auto;margin:0.75rem 0;}
+.log-expand{color:var(--green-glow);}.log-shrink{color:var(--orange);}.log-dup{color:var(--red);font-weight:600;}.log-best{color:var(--yellow);font-weight:600;}.log-done{color:var(--accent);font-weight:700;}.log-init{color:var(--text-dim);}
+
+/* Controls */
+.controls{display:flex;gap:0.75rem;justify-content:center;align-items:center;margin:1rem 0;flex-wrap:wrap;}
+button{font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;padding:0.5rem 1.25rem;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;transition:all 0.2s;}
+button:hover{background:rgba(88,166,255,0.1);border-color:var(--accent);color:var(--accent);}
+button.primary{background:rgba(88,166,255,0.15);border-color:var(--cyan);color:var(--cyan);}
+button:disabled{opacity:0.3;cursor:not-allowed;}
+.ex-tab{transition:all 0.2s;}.ex-tab.active{background:rgba(88,166,255,0.2);border-color:var(--cyan);color:var(--cyan);}
+.step-counter{font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text-dim);min-width:100px;text-align:center;}
+
+/* Code */
+.code-block{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;font-family:'JetBrains Mono',monospace;font-size:0.8rem;line-height:1.8;overflow-x:auto;counter-reset:line;margin:1rem 0;}
+.code-line{display:block;padding:0 0.5rem;border-radius:3px;white-space:pre;transition:background 0.3s;}
+.code-line::before{counter-increment:line;content:counter(line);display:inline-block;width:2rem;margin-right:1rem;text-align:right;color:#484f58;font-size:0.72rem;}
+.code-line.highlight{background:var(--highlight);}
+.kw{color:#ff7b72;}.fn{color:#d2a8ff;}.num{color:#79c0ff;}.cmt{color:#484f58;font-style:italic;}
+
+.complexity-grid{display:flex;gap:2rem;flex-wrap:wrap;margin:1rem 0;}
+.complexity-item{flex:1;min-width:200px;}
+.complexity-item h3{font-size:1.1rem;font-weight:600;color:var(--accent);margin:0 0 0.25rem;}
+
+@media(max-width:700px){h1{font-size:1.7rem;}section{padding:1.25rem;}.char-cell{width:38px;height:44px;}.char-cell .ch{font-size:1rem;}.bracket-spacer,.bracket-cell,.best-cell{width:38px;}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+<h1>Longest Substring Without Repeating Characters</h1>
+<p class="subtitle">LeetCode #3 — Sliding Window Visual Walkthrough</p>
+<div>
+  <span class="tag tag-pattern">Sliding Window + Hash Set</span>
+  <span class="tag tag-medium">Medium</span>
+  <span class="tag tag-string">Strings</span>
+</div>
+</header>
+
+<section>
+<h2>1 — What's the problem?</h2>
+<p>Find the length of the longest substring with no repeating characters.</p>
+
+<div class="callout callout-blue">
+<strong>Sliding window pattern:</strong> Two pointers (L and R) define a "window." R expands right every step. When a duplicate enters the window, L shrinks right until the duplicate is gone. Both pointers only move right — the window slides like a caterpillar.
+</div>
+
+<h3>The caterpillar analogy</h3>
+<p>R is the front of the caterpillar — always stretching forward. L is the back — it only moves when the body (window) contains something invalid. The caterpillar never moves backward.</p>
+
+<div class="callout">
+<strong>Why O(n)?</strong> Even though there's a while loop inside a for loop, each character gets added to the set once and removed at most once. Total operations = 2n at most = O(n).
+</div>
+</section>
+
+<section>
+<h2>2 — Step through it</h2>
+<p class="dim">Cyan bracket = current window. Yellow bracket = best window found so far. Watch the window expand and shrink.</p>
+
+<div style="display:flex;justify-content:center;gap:1rem;margin:0.5rem 0;font-size:0.7rem;font-family:'JetBrains Mono',monospace;flex-wrap:wrap;">
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--green);background:rgba(46,160,67,0.15);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--green-glow);">Expand R</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--red);background:rgba(247,129,102,0.15);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--red);">Duplicate!</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--orange);background:rgba(240,136,62,0.1);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--orange);">Shrink L</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--yellow);background:rgba(227,179,65,0.12);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--yellow);">Best window</span></span>
+</div>
+
+<div style="display:flex;gap:0.5rem;justify-content:center;margin:1rem 0;flex-wrap:wrap;">
+  <button class="ex-tab active" data-ex="ex1" onclick="switchExample('ex1')" style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;">"abcabcbb"</button>
+  <button class="ex-tab" data-ex="ex2" onclick="switchExample('ex2')" style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;">"bbbbb"</button>
+  <button class="ex-tab" data-ex="ex3" onclick="switchExample('ex3')" style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;">"pwwkew"</button>
+</div>
+
+<div id="sim-area">
+  <div class="bracket-row" id="window-bracket"></div>
+  <div class="char-row" id="char-row"></div>
+  <div class="best-bracket-row" id="best-bracket"></div>
+
+  <div class="var-display">
+    <div class="var-box v-window" id="vwindow"><div class="var-name">Window size</div><div class="var-val" id="vwindow-val">0</div></div>
+    <div class="var-box v-best" id="vbest"><div class="var-name">Best (res)</div><div class="var-val" id="vbest-val">0</div></div>
+    <div class="var-box v-action" id="vaction"><div class="var-name">Action</div><div class="var-val" id="vaction-val">—</div></div>
+  </div>
+
+  <div class="set-area">
+    <div class="set-label">charSet</div>
+    <div class="set-row" id="set-row"><span class="set-empty">{ empty }</span></div>
+  </div>
+</div>
+
+<div class="status-bar" id="log"></div>
+
+<div class="controls">
+  <button onclick="resetSim()">Reset</button>
+  <button onclick="stepBack()" id="btn-prev">← Back</button>
+  <span class="step-counter" id="step-label">Step 0 / 0</span>
+  <button class="primary" onclick="stepForward()" id="btn-next">Next →</button>
+  <button onclick="togglePlay()" id="btn-play">▶ Auto</button>
+</div>
+</section>
+
+<section>
+<h2>3 — Complete implementation</h2>
+<div class="code-block">
+<span class="code-line"><span class="kw">def</span> <span class="fn">lengthOfLongestSubstring</span>(self, s: <span class="num">str</span>) -> <span class="num">int</span>:</span>
+<span class="code-line">    charSet = <span class="fn">set</span>()              <span class="cmt"># characters in current window</span></span>
+<span class="code-line">    l = <span class="num">0</span>                         <span class="cmt"># left pointer</span></span>
+<span class="code-line">    res = <span class="num">0</span>                       <span class="cmt"># best window size seen</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">for</span> r <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(s)):     <span class="cmt"># R expands right every step</span></span>
+<span class="code-line">        <span class="kw">while</span> s[r] <span class="kw">in</span> charSet:   <span class="cmt"># duplicate? shrink from left</span></span>
+<span class="code-line">            charSet.<span class="fn">remove</span>(s[l])</span>
+<span class="code-line">            l += <span class="num">1</span></span>
+<span class="code-line">        charSet.<span class="fn">add</span>(s[r])         <span class="cmt"># add new char to window</span></span>
+<span class="code-line">        res = <span class="fn">max</span>(res, r - l + <span class="num">1</span>) <span class="cmt"># update best</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">return</span> res</span>
+</div>
+
+<div class="complexity-grid">
+  <div class="complexity-item">
+    <h3>Time: O(n)</h3>
+    <p class="dim" style="font-size:0.85rem;">Each character is added and removed from the set at most once. 2n operations max.</p>
+  </div>
+  <div class="complexity-item">
+    <h3>Space: O(min(n, m))</h3>
+    <p class="dim" style="font-size:0.85rem;">Set holds at most min(string length, alphabet size) characters. For lowercase English, that's O(26) = O(1).</p>
+  </div>
+</div>
+
+<div class="callout callout-green">
+<strong>Pattern connection:</strong> Sliding window appears in Longest Repeating Character Replacement, Find All Anagrams in a String, and Minimum Window Substring — all on your Blind 75 list. The expand-right / shrink-left mechanic is the same; what changes is the condition that triggers shrinking.
+</div>
+</section>
+
+</div>
+
+<script>
+const EXAMPLES = {
+  ex1: { str: 'abcabcbb' },
+  ex2: { str: 'bbbbb' },
+  ex3: { str: 'pwwkew' },
+};
+
+let activeEx = 'ex1';
+let S;
+function loadExample() { S = EXAMPLES[activeEx].str; }
+loadExample();
+
+function computeSteps() {
+  const steps = [];
+  const charSet = new Set();
+  let l = 0, res = 0;
+  let bestL = 0, bestR = -1;
+
+  steps.push({ l, r:-1, charSet:new Set(), res:0, bestL:0, bestR:-1, action:'—', type:'init',
+    log:`Initialize: charSet=set(), l=0, res=0` });
+
+  for (let r = 0; r < S.length; r++) {
+    // Check for duplicate
+    if (charSet.has(S[r])) {
+      steps.push({ l, r, charSet:new Set(charSet), res, bestL, bestR, action:`'${S[r]}' already in set → duplicate!`, type:'dup',
+        log:`r=${r}: '${S[r]}' in charSet → DUPLICATE` });
+
+      // Shrink
+      while (charSet.has(S[r])) {
+        const removed = S[l];
+        charSet.delete(S[l]);
+        steps.push({ l, r, charSet:new Set(charSet), res, bestL, bestR, removingChar:removed,
+          action:`Remove '${removed}', L=${l}→${l+1}`, type:'shrink',
+          log:`  Shrink: remove '${removed}' (L=${l}), L++` });
+        l++;
+      }
+    }
+
+    // Expand
+    charSet.add(S[r]);
+    const windowSize = r - l + 1;
+    const newBest = windowSize > res;
+    if (newBest) { res = windowSize; bestL = l; bestR = r; }
+
+    steps.push({ l, r, charSet:new Set(charSet), res, bestL, bestR, newChar:S[r], newBest,
+      action:`Add '${S[r]}', window="${S.substring(l, r+1)}" size=${windowSize}${newBest ? ' → NEW BEST!' : ''}`, type:'expand',
+      log:`r=${r}: Add '${S[r]}' → window="${S.substring(l, r+1)}" size=${windowSize}${newBest ? ` → res=${res}` : ''}` });
+  }
+
+  steps.push({ l, r:S.length, charSet:new Set(charSet), res, bestL, bestR, action:`Done! Best = ${res}`, type:'done',
+    log:`Done! Longest substring without repeating = ${res} ("${S.substring(bestL, bestR+1)}")` });
+
+  return steps;
+}
+
+let steps = computeSteps();
+let current = 0;
+let playInterval = null;
+
+function switchExample(key) {
+  if (playInterval) togglePlay();
+  activeEx = key; loadExample();
+  steps = computeSteps(); current = 0;
+  document.querySelectorAll('.ex-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.ex-tab[data-ex="${key}"]`).classList.add('active');
+  render();
+}
+
+function render() {
+  const step = steps[current];
+  const N = S.length;
+
+  // Window bracket
+  const wBracket = document.getElementById('window-bracket');
+  let wHtml = '';
+  if (step.r >= 0 && step.r < N && step.l <= step.r) {
+    for (let i = 0; i < N; i++) {
+      if (i >= step.l && i <= step.r) {
+        if (step.l === step.r) wHtml += '<div class="bracket-cell single"></div>';
+        else if (i === step.l) wHtml += '<div class="bracket-cell start"></div>';
+        else if (i === step.r) wHtml += '<div class="bracket-cell end"></div>';
+        else wHtml += '<div class="bracket-cell middle"></div>';
+      } else {
+        wHtml += '<div class="bracket-spacer"></div>';
+      }
+      if (i < N - 1) wHtml += '<div style="width:3px;"></div>';
+    }
+  }
+  wBracket.innerHTML = wHtml;
+
+  // Char row
+  const charRow = document.getElementById('char-row');
+  let cHtml = '';
+  for (let i = 0; i < N; i++) {
+    let cls = 'char-cell';
+    let ptrHtml = '';
+
+    if (step.type === 'dup' && i === step.r) {
+      cls += ' duplicate';
+    } else if (step.type === 'shrink' && i === step.l) {
+      cls += ' shrinking';
+    } else if (step.type === 'expand' && i === step.r) {
+      cls += ' expanding';
+    } else if (step.r >= 0 && i >= step.l && i <= step.r) {
+      cls += ' in-window';
+    } else if (step.type === 'done' && i >= step.bestL && i <= step.bestR) {
+      cls += ' best';
+    } else if (i < step.l || (step.r >= 0 && i > step.r)) {
+      cls += ' outside';
+    }
+
+    if (i === step.l && step.r >= 0 && step.r < N) ptrHtml += '<span class="ptr" style="color:var(--red);">L</span>';
+    if (i === step.r && step.r >= 0 && step.r < N) ptrHtml += `<span class="ptr" style="color:var(--green-glow);${i===step.l?'right:2px;':''}">R</span>`;
+
+    cHtml += `<div class="${cls}">${ptrHtml}<span class="ch">${S[i]}</span><span class="idx">${i}</span></div>`;
+  }
+  charRow.innerHTML = cHtml;
+
+  // Best bracket
+  const bBracket = document.getElementById('best-bracket');
+  let bHtml = '';
+  if (step.bestR >= 0) {
+    for (let i = 0; i < N; i++) {
+      if (i >= step.bestL && i <= step.bestR) {
+        if (step.bestL === step.bestR) bHtml += '<div class="best-cell single"></div>';
+        else if (i === step.bestL) bHtml += '<div class="best-cell start"></div>';
+        else if (i === step.bestR) bHtml += '<div class="best-cell end"></div>';
+        else bHtml += '<div class="best-cell middle"></div>';
+      } else {
+        bHtml += '<div class="bracket-spacer"></div>';
+      }
+      if (i < N - 1) bHtml += '<div style="width:3px;"></div>';
+    }
+  }
+  bBracket.innerHTML = bHtml;
+
+  // Variables
+  const winSize = (step.r >= 0 && step.r < N) ? step.r - step.l + 1 : 0;
+  document.getElementById('vwindow-val').textContent = step.type === 'done' ? '—' : winSize;
+  document.getElementById('vbest-val').textContent = step.res;
+  document.getElementById('vaction-val').textContent = step.action;
+
+  const vbestBox = document.getElementById('vbest');
+  if (step.newBest) { vbestBox.classList.remove('new-best'); void vbestBox.offsetWidth; vbestBox.classList.add('new-best'); }
+
+  // Set
+  const setRow = document.getElementById('set-row');
+  if (step.charSet.size === 0) {
+    setRow.innerHTML = '<span class="set-empty">{ empty }</span>';
+  } else {
+    let sHtml = '';
+    for (const ch of [...step.charSet].sort()) {
+      let cls = 'set-item';
+      if (step.type === 'expand' && step.newChar === ch) cls += ' new';
+      if (step.type === 'shrink' && step.removingChar === ch) cls += ' removing';
+      if (step.type === 'dup' && S[step.r] === ch) cls += ' dup-highlight';
+      sHtml += `<div class="${cls}">${ch}</div>`;
+    }
+    setRow.innerHTML = sHtml;
+  }
+
+  // Log
+  const logEl = document.getElementById('log');
+  let logHtml = '';
+  for (let i = 0; i <= current; i++) {
+    const s = steps[i];
+    let cls = 'log-init';
+    if (s.type === 'expand' && s.newBest) cls = 'log-best';
+    else if (s.type === 'expand') cls = 'log-expand';
+    else if (s.type === 'dup') cls = 'log-dup';
+    else if (s.type === 'shrink') cls = 'log-shrink';
+    else if (s.type === 'done') cls = 'log-done';
+    logHtml += `<div class="${cls}">${s.log}</div>`;
+  }
+  logEl.innerHTML = logHtml;
+  logEl.scrollTop = logEl.scrollHeight;
+
+  document.getElementById('step-label').textContent = `Step ${current} / ${steps.length - 1}`;
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current >= steps.length - 1;
+}
+
+function stepForward() { if (current < steps.length - 1) { current++; render(); } else if (playInterval) togglePlay(); }
+function stepBack() { if (current > 0) { current--; render(); } }
+function resetSim() { if (playInterval) togglePlay(); current = 0; render(); }
+function togglePlay() {
+  if (playInterval) { clearInterval(playInterval); playInterval = null; document.getElementById('btn-play').textContent = '▶ Auto'; }
+  else { document.getElementById('btn-play').textContent = '⏸ Pause'; playInterval = setInterval(() => { if (current >= steps.length - 1) { togglePlay(); return; } stepForward(); }, 900); }
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); stepForward(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); stepBack(); }
+  if (e.key === 'r') resetSim();
+});
+render();
+</script>
+</body>
+</html>
