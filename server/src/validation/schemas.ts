@@ -1,0 +1,34 @@
+import { z } from 'zod';
+
+export const signupSchema = z.object({
+  email: z.string().email('Invalid email format'),
+  password: z.string().min(8, 'Password must be at least 8 characters').max(72, 'Password must be at most 72 characters'),
+  displayName: z.string().max(100).optional(),
+});
+
+export const loginSchema = z.object({
+  email: z.string().email('Invalid email format'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+export const googleAuthSchema = z.object({
+  credential: z.string().min(1, 'Google credential is required'),
+});
+
+export const progressUpdateSchema = z.object({
+  status: z.enum(['not_started', 'studied', 'in_progress', 'review', 'solved']).optional(),
+  solvedIndependently: z.boolean().optional(),
+  solvedIn20Min: z.boolean().optional(),
+  confidence: z.number().int().min(0).max(5).optional(),
+  attemptCount: z.number().int().min(0).optional(),
+  timeComplexity: z.string().max(20).optional(),
+  spaceComplexity: z.string().max(20).optional(),
+  notes: z.string().optional(),
+  savedCodeJs: z.string().optional(),
+  savedCodePython: z.string().optional(),
+});
+
+export type SignupInput = z.infer<typeof signupSchema>;
+export type LoginInput = z.infer<typeof loginSchema>;
+export type GoogleAuthInput = z.infer<typeof googleAuthSchema>;
+export type ProgressUpdateInput = z.infer<typeof progressUpdateSchema>;
