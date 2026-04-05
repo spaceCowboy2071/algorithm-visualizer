@@ -23,3 +23,11 @@ dist-ssr
 *.sln
 *.sw?
 CLAUDE.md
+
+# Server
+server/.env
+server/dist
+
+# Docs
+docs/
+*.pdf
