@@ -54,7 +54,7 @@ A comprehensive LeetCode interview preparation platform featuring:
 - **Category-based Navigation**: Filter problems by topic with pattern labels (e.g., "Two Pointers", "Hash Map", "DFS / BFS")
 - **Difficulty Badges**: Color-coded Easy, Medium, Hard indicators
 - **Code Playground**: Integrated Monaco editor (VS Code) for solving problems, with time/space complexity inputs below the editor
-- **Interactive Visualizers**: Step-through HTML visualizers for select problems with animated state, live code highlighting, and complexity analysis (6 of 75 complete)
+- **Interactive Visualizers**: Step-through HTML visualizers for select problems with animated state, live code highlighting, and complexity analysis (13 of 75 complete)
 - **Study Tracker**: Rich per-problem progress tracking — status (Not Started / Studied / In Progress / Review Needed / Solved), confidence level (1-5), solved independently, solved under 20 min, attempt count (auto-incremented), notes, and complexity analysis
 - **Dashboard**: Aggregate stats overlay with solved/studied/in-progress counts, average confidence, completion percentage, and per-category progress bars
 - **Progress Overlay**: Centered modal on each problem page for quick status/confidence updates without leaving the editor
@@ -93,12 +93,22 @@ A comprehensive LeetCode interview preparation platform featuring:
 
 ## Tech Stack
 
-- **Frontend Framework**: React 19 with TypeScript 5.9
+### Frontend
+- **Framework**: React 19 with TypeScript 5.9
 - **Build Tool**: Vite 7
 - **Styling**: Tailwind CSS 4
 - **Routing**: React Router v7
 - **Code Editor**: Monaco Editor (VS Code)
 - **Deployment**: Vercel
+
+### Backend (in progress)
+- **Server**: Node.js + Express 5 + TypeScript
+- **Database**: PostgreSQL 16 (via `pg` connection pool)
+- **Auth**: JWT + bcrypt + Google OAuth + refresh token rotation
+- **Validation**: Zod (runtime request validation)
+- **Security**: express-rate-limit, httpOnly cookies, SHA-256 token hashing
+- **Containerization**: Docker Compose (PostgreSQL)
+- **Deployment**: AWS EC2 + RDS (planned)
 
 ## Getting Started
 
@@ -135,7 +145,7 @@ The optimized build will be in the `dist/` folder.
 
 ## Project Status
 
-**Completed**:
+**Completed (Frontend)**:
 - All 5 data structure pages: Arrays, Linked Lists, Trees, Hash Tables, Graphs
 - Sorting algorithms: Bubble Sort, Quick Sort, Merge Sort
 - Searching algorithms: Binary Search, Linear Search, Jump Search, Interpolation Search
@@ -143,22 +153,37 @@ The optimized build will be in the `dist/` folder.
 - CRT terminal UI redesign — IBM monitor bezel landing page, green/amber theme toggle, scanlines/vignette toggle, unified dark palette, terminal title bars
 - Theme system — React context + CSS custom properties, localStorage persistence
 - Blind 75 study tracker with status/confidence/attempts/notes, dashboard overlay, and per-problem progress overlay
-- Monaco code editor with time/space complexity inputs on problem pages
-- 6 interactive HTML problem visualizers (Two Sum, Container With Most Water, Maximum Subarray, Product of Array Except Self, Clone Graph, Number of Islands)
-- X-Ray Code Viewer with line highlighting (JS + Python)
+- Monaco code editor with browser-based code execution (Web Worker + Pyodide for Python, native Function() for JavaScript)
+- Time/space complexity validation with pair matching for all 75 problems
+- 13 interactive HTML problem visualizers (Two Sum, Container With Most Water, Maximum Subarray, Product of Array Except Self, Contains Duplicate, 3Sum, Best Time to Buy and Sell Stock, Clone Graph, Number of Islands, Reverse Linked List, Longest Substring Without Repeating Characters, Valid Palindrome, Valid Parentheses)
+- X-Ray Code Viewer with line highlighting (JS + Python + Pseudocode)
 - Complexity analysis panels (How/When/Where/Why)
 - Step forward/backward time-travel navigation
 - Animation speed controls
 - Responsive design
 - Vercel deployment with SPA routing
 
+**Completed (Backend)**:
+- Express 5 + TypeScript server with PostgreSQL connection pool and health check endpoint
+- Docker Compose for PostgreSQL 16 with auto-migration
+- Database schema: users, progress, and refresh_tokens tables
+- Full authentication system: signup, login, Google OAuth, refresh token rotation with reuse detection
+- JWT access tokens (15 min) + httpOnly refresh token cookies (7 days)
+- bcrypt password hashing (salt rounds 12)
+- Zod runtime request validation on all auth endpoints
+- Rate limiting on auth routes (10 req / 15 min per IP)
+- JWT authentication middleware for protected routes
+
 **In Progress**:
-- Remaining Blind 75 HTML visualizers (69 of 75)
-- Remaining Blind 75 HTML visualizers
+- Backend Phase 2: Progress CRUD routes, integration tests, frontend auth integration
 
 **Planned**:
 - Additional sorting algorithms (Insertion, Selection, Heap, Radix)
-- Firebase integration — user accounts, Firestore migration for tracker data (currently localStorage), spaced repetition reminders
+- Remaining 62 Blind 75 HTML problem visualizers
+- AWS deployment (EC2 + RDS) with GitHub Actions CI/CD
+- User accounts with cross-device progress persistence
+- Password reset flow (SendGrid)
+- Spaced repetition reminders for problem review
 
 ## License
 
