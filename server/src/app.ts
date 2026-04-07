@@ -3,6 +3,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { pool } from './db';
 import authRoutes from './routes/auth';
+import progressRoutes from './routes/progress';
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use(cookieParser());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/progress', progressRoutes);
 
 // Health check — proves Express can talk to PostgreSQL
 app.get('/api/health', async (_req, res) => {
