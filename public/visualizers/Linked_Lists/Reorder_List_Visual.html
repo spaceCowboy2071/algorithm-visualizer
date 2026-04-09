@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reorder List — Find Middle + Reverse + Merge</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--surface2:#1c2333;--border:#30363d;--text:#e6edf3;--text-dim:#8b949e;--accent:#58a6ff;--green:#2ea043;--green-glow:#3fb950;--orange:#f0883e;--red:#f78166;--purple:#d2a8ff;--cyan:#79c0ff;--yellow:#e3b341;--code-bg:#0d1117;--highlight:rgba(88,166,255,0.1);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.6;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+header{text-align:center;padding:3rem 0 2rem;position:relative;}
+header::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(210,168,255,0.08) 0%,transparent 70%);pointer-events:none;}
+h1{font-size:2.4rem;font-weight:700;letter-spacing:-0.03em;background:linear-gradient(135deg,var(--purple),var(--green-glow));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.25rem;}
+.subtitle{color:var(--text-dim);font-size:0.95rem;}
+.tag{display:inline-block;padding:0.2rem 0.65rem;border-radius:99px;font-size:0.75rem;font-weight:600;margin:0.75rem 0.2rem 0;}
+.tag-pattern{background:rgba(210,168,255,0.15);color:var(--purple);}
+.tag-med{background:rgba(240,136,62,0.15);color:var(--orange);}
+.tag-ll{background:rgba(210,168,255,0.15);color:var(--purple);}
+section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;margin:1.5rem 0;position:relative;overflow:hidden;}
+section::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cyan),var(--purple),var(--green-glow));border-radius:12px 12px 0 0;}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:1rem;}
+p{margin-bottom:0.75rem;font-size:0.95rem;}
+.dim{color:var(--text-dim);}
+code{font-family:'JetBrains Mono',monospace;font-size:0.85em;background:var(--surface2);padding:0.1rem 0.4rem;border-radius:4px;}
+.callout{background:rgba(240,136,62,0.08);border-left:3px solid var(--orange);padding:0.75rem 1rem;border-radius:0 8px 8px 0;margin:1rem 0;font-size:0.9rem;}
+.callout strong{color:var(--orange);}
+.callout-green{background:rgba(46,160,67,0.08);border-left-color:var(--green);}
+.callout-green strong{color:var(--green-glow);}
+
+/* Nodes */
+.list-row{display:flex;align-items:center;justify-content:center;gap:0;margin:0.5rem 0;flex-wrap:wrap;}
+.list-label{font-family:'JetBrains Mono',monospace;font-size:0.7rem;font-weight:600;min-width:65px;text-align:right;margin-right:6px;}
+.nd{width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:700;border-radius:8px;border:2px solid var(--border);background:var(--surface2);transition:all 0.4s;position:relative;}
+.nd .nd-ptr{position:absolute;top:-15px;font-size:0.5rem;font-weight:700;white-space:nowrap;}
+.nd.first-half{border-color:var(--cyan);color:var(--cyan);}
+.nd.second-half{border-color:var(--purple);color:var(--purple);}
+.nd.slow-node{border-color:var(--green);color:var(--green-glow);box-shadow:0 0 10px rgba(46,160,67,0.3);}
+.nd.fast-node{border-color:var(--orange);color:var(--orange);box-shadow:0 0 10px rgba(240,136,62,0.3);}
+.nd.rev-active{border-color:var(--red);color:var(--red);box-shadow:0 0 10px rgba(247,129,102,0.3);}
+.nd.merge-first{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 8px rgba(121,192,255,0.3);}
+.nd.merge-second{border-color:var(--purple);color:var(--purple);box-shadow:0 0 8px rgba(210,168,255,0.3);}
+.nd.done-node{border-color:var(--green);color:var(--green-glow);background:rgba(46,160,67,0.08);}
+.arr{width:28px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--text-dim);}
+.arr.cyan-arr{color:var(--cyan);}.arr.purple-arr{color:var(--purple);}.arr.green-arr{color:var(--green-glow);}
+.null-label{font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--text-dim);padding:0 4px;}
+
+/* Phase */
+.phase-box{text-align:center;margin:0.75rem 0;}
+.phase-inner{display:inline-block;padding:0.5rem 1.5rem;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:0.9rem;font-weight:600;border:1.5px solid var(--border);background:var(--surface2);transition:all 0.3s;min-width:260px;}
+.phase-inner.step1{border-color:var(--cyan);color:var(--cyan);}
+.phase-inner.step2{border-color:var(--purple);color:var(--purple);}
+.phase-inner.step3{border-color:var(--green);color:var(--green-glow);}
+.phase-inner.done{border-color:var(--green);color:var(--green-glow);}
+
+/* Log */
+.status-bar{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;font-family:'JetBrains Mono',monospace;font-size:0.72rem;line-height:1.7;min-height:80px;max-height:200px;overflow-y:auto;margin:0.75rem 0;}
+.log-s1{color:var(--cyan);}.log-s2{color:var(--purple);}.log-s3{color:var(--green-glow);}.log-done{color:var(--yellow);font-weight:700;}.log-init{color:var(--text-dim);}
+
+/* Controls */
+.controls{display:flex;gap:0.75rem;justify-content:center;align-items:center;margin:1rem 0;flex-wrap:wrap;}
+button{font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;padding:0.5rem 1.25rem;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;transition:all 0.2s;}
+button:hover{background:rgba(88,166,255,0.1);border-color:var(--accent);color:var(--accent);}
+button.primary{background:rgba(210,168,255,0.15);border-color:var(--purple);color:var(--purple);}
+button:disabled{opacity:0.3;cursor:not-allowed;}
+.step-counter{font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text-dim);min-width:100px;text-align:center;}
+
+/* Code */
+.code-block{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;font-family:'JetBrains Mono',monospace;font-size:0.75rem;line-height:1.8;overflow-x:auto;counter-reset:line;margin:1rem 0;}
+.code-line{display:block;padding:0 0.5rem;border-radius:3px;white-space:pre;transition:background 0.3s;}
+.code-line::before{counter-increment:line;content:counter(line);display:inline-block;width:2rem;margin-right:1rem;text-align:right;color:#484f58;font-size:0.68rem;}
+.kw{color:#ff7b72;}.fn{color:#d2a8ff;}.num{color:#79c0ff;}.cmt{color:#484f58;font-style:italic;}
+
+.complexity-grid{display:flex;gap:2rem;flex-wrap:wrap;margin:1rem 0;}
+.complexity-item{flex:1;min-width:200px;}
+.complexity-item h3{font-size:1.1rem;font-weight:600;color:var(--accent);margin:0 0 0.25rem;}
+
+@media(max-width:700px){h1{font-size:1.8rem;}section{padding:1.25rem;}.nd{width:40px;height:40px;font-size:0.95rem;}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+<h1>Reorder List</h1>
+<p class="subtitle">LeetCode #143 — Find Middle + Reverse + Merge</p>
+<div>
+  <span class="tag tag-pattern">Composition (3 patterns)</span>
+  <span class="tag tag-med">Medium</span>
+  <span class="tag tag-ll">Linked Lists</span>
+</div>
+</header>
+
+<section>
+<h2>1 — What's the problem?</h2>
+<p>Reorder <code>L0→L1→L2→...→Ln</code> to <code>L0→Ln→L1→Ln-1→L2→...</code> — interleave from both ends.</p>
+
+<div class="callout">
+<strong>No new patterns — this is composition.</strong> Three steps, each one you already know: (1) Find middle with slow/fast, (2) Reverse second half, (3) Merge two halves alternating.
+</div>
+</section>
+
+<section>
+<h2>2 — Step through it</h2>
+<p class="dim">Watch all three phases on <code>1 → 2 → 3 → 4</code>.</p>
+
+<div style="display:flex;justify-content:center;gap:1rem;margin:0.5rem 0;font-size:0.7rem;font-family:'JetBrains Mono',monospace;flex-wrap:wrap;">
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--cyan);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--cyan);">First half</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--purple);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--purple);">Second half</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--green);background:rgba(46,160,67,0.08);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--green-glow);">Merged</span></span>
+</div>
+
+<div id="sim-area">
+  <div class="phase-box"><div class="phase-inner" id="phase">—</div></div>
+  <div id="lists-display"></div>
+</div>
+
+<div class="status-bar" id="log"></div>
+
+<div class="controls">
+  <button onclick="resetSim()">Reset</button>
+  <button onclick="stepBack()" id="btn-prev">← Back</button>
+  <span class="step-counter" id="step-label">Step 0 / 0</span>
+  <button class="primary" onclick="stepForward()" id="btn-next">Next →</button>
+  <button onclick="togglePlay()" id="btn-play">▶ Auto</button>
+</div>
+</section>
+
+<section>
+<h2>3 — Complete implementation</h2>
+<div class="code-block">
+<span class="code-line"><span class="kw">def</span> <span class="fn">reorderList</span>(self, head):</span>
+<span class="code-line">    <span class="cmt"># Step 1: Find middle</span></span>
+<span class="code-line">    slow, fast = head, head.next</span>
+<span class="code-line">    <span class="kw">while</span> fast <span class="kw">and</span> fast.next:</span>
+<span class="code-line">        slow = slow.next</span>
+<span class="code-line">        fast = fast.next.next</span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="cmt"># Step 2: Split + reverse second half</span></span>
+<span class="code-line">    second = slow.next</span>
+<span class="code-line">    prev = slow.next = <span class="num">None</span>     <span class="cmt"># split AND init prev</span></span>
+<span class="code-line">    <span class="kw">while</span> second:</span>
+<span class="code-line">        tmp = second.next</span>
+<span class="code-line">        second.next = prev</span>
+<span class="code-line">        prev = second</span>
+<span class="code-line">        second = tmp</span>
+<span class="code-line">    second = prev</span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="cmt"># Step 3: Merge alternating</span></span>
+<span class="code-line">    first = head</span>
+<span class="code-line">    <span class="kw">while</span> second:</span>
+<span class="code-line">        tmp1, tmp2 = first.next, second.next</span>
+<span class="code-line">        first.next = second</span>
+<span class="code-line">        second.next = tmp1</span>
+<span class="code-line">        first, second = tmp1, tmp2</span>
+</div>
+
+<div class="complexity-grid">
+  <div class="complexity-item">
+    <h3>Time: O(n)</h3>
+    <p class="dim" style="font-size:0.85rem;">Three O(n) passes: find middle, reverse, merge.</p>
+  </div>
+  <div class="complexity-item">
+    <h3>Space: O(1)</h3>
+    <p class="dim" style="font-size:0.85rem;">All operations in-place. Only pointer variables.</p>
+  </div>
+</div>
+
+<div class="callout callout-green">
+<strong>Linked Lists complete (5/6):</strong> This problem ties together every LL technique: slow/fast pointers (Detect Cycle), pointer reversal (Reverse Linked List), and merge wiring (Merge Two Sorted Lists). The only remaining LL problem is Merge K Sorted Lists (Hard) which needs the Heap pattern.
+</div>
+</section>
+
+</div>
+
+<script>
+const steps = [
+  // INIT
+  { phase:'Start', phaseClass:'',
+    rows: [{ label:'list:', nodes:[{v:1,c:''},{v:2,c:''},{v:3,c:''},{v:4,c:''}], arrC:'', trail:'None' }],
+    log:'Starting list: 1 → 2 → 3 → 4' },
+
+  // STEP 1: Find middle
+  { phase:'Step 1: Find middle (slow/fast)', phaseClass:'step1',
+    rows: [{ label:'list:', nodes:[{v:1,c:'',ptr:'slow'},{v:2,c:'fast-node',ptr:'fast'},{v:3,c:''},{v:4,c:''}], arrC:'', trail:'None' }],
+    log:'slow=head(1), fast=head.next(2)' },
+
+  { phase:'Step 1: Find middle (slow/fast)', phaseClass:'step1',
+    rows: [{ label:'list:', nodes:[{v:1,c:''},{v:2,c:'slow-node',ptr:'slow'},{v:3,c:''},{v:4,c:'fast-node',ptr:'fast'}], arrC:'', trail:'None' }],
+    log:'slow→2, fast→4. fast.next is None → stop. Middle = node 2' },
+
+  // STEP 1: Split
+  { phase:'Step 1: Split at middle', phaseClass:'step1',
+    rows: [
+      { label:'first:', nodes:[{v:1,c:'first-half'},{v:2,c:'first-half'}], arrC:'cyan-arr', trail:'None' },
+      { label:'second:', nodes:[{v:3,c:'second-half'},{v:4,c:'second-half'}], arrC:'purple-arr', trail:'None' }
+    ],
+    log:'Split: second=slow.next(3), slow.next=None. First: 1→2, Second: 3→4' },
+
+  // STEP 2: Reverse second half
+  { phase:'Step 2: Reverse second half', phaseClass:'step2',
+    rows: [
+      { label:'first:', nodes:[{v:1,c:'first-half'},{v:2,c:'first-half'}], arrC:'cyan-arr', trail:'None' },
+      { label:'second:', nodes:[{v:3,c:'rev-active'},{v:4,c:'second-half'}], arrC:'purple-arr', trail:'None' }
+    ],
+    log:'Reversing: prev=None, second=node 3' },
+
+  { phase:'Step 2: Reverse second half', phaseClass:'step2',
+    rows: [
+      { label:'first:', nodes:[{v:1,c:'first-half'},{v:2,c:'first-half'}], arrC:'cyan-arr', trail:'None' },
+      { label:'second:', nodes:[{v:3,c:'rev-active'}], arrC:'', trail:'None', prefix:'None ←' },
+      { label:'remain:', nodes:[{v:4,c:'second-half'}], arrC:'', trail:'None' }
+    ],
+    log:'Iter 1: node 3.next=None, prev=3, second=4' },
+
+  { phase:'Step 2: Reverse second half', phaseClass:'step2',
+    rows: [
+      { label:'first:', nodes:[{v:1,c:'first-half'},{v:2,c:'first-half'}], arrC:'cyan-arr', trail:'None' },
+      { label:'reversed:', nodes:[{v:4,c:'second-half'},{v:3,c:'second-half'}], arrC:'purple-arr', trail:'None' }
+    ],
+    log:'Iter 2: node 4.next=3, prev=4, second=None. Done! Reversed: 4→3' },
+
+  // STEP 3: Merge alternating
+  { phase:'Step 3: Merge alternating', phaseClass:'step3',
+    rows: [
+      { label:'first:', nodes:[{v:1,c:'merge-first',ptr:'first'},{v:2,c:'first-half'}], arrC:'cyan-arr', trail:'None' },
+      { label:'second:', nodes:[{v:4,c:'merge-second',ptr:'second'},{v:3,c:'second-half'}], arrC:'purple-arr', trail:'None' }
+    ],
+    log:'Merge: first=1, second=4' },
+
+  { phase:'Step 3: Merge — iteration 1', phaseClass:'step3',
+    rows: [
+      { label:'merged:', nodes:[{v:1,c:'done-node'},{v:4,c:'done-node'},{v:2,c:'merge-first',ptr:'first'},{v:3,c:'merge-second',ptr:'second'}], arrC:'green-arr', trail:'None' }
+    ],
+    log:'Wire: 1→4→2. Advance: first=2, second=3' },
+
+  { phase:'Step 3: Merge — iteration 2', phaseClass:'step3',
+    rows: [
+      { label:'merged:', nodes:[{v:1,c:'done-node'},{v:4,c:'done-node'},{v:2,c:'done-node'},{v:3,c:'done-node'}], arrC:'green-arr', trail:'None' }
+    ],
+    log:'Wire: 2→3. second=None → loop ends' },
+
+  // DONE
+  { phase:'Done! 1 → 4 → 2 → 3', phaseClass:'done',
+    rows: [
+      { label:'result:', nodes:[{v:1,c:'done-node'},{v:4,c:'done-node'},{v:2,c:'done-node'},{v:3,c:'done-node'}], arrC:'green-arr', trail:'None' }
+    ],
+    log:'Final: 1 → 4 → 2 → 3 → None ✓ (L0→L3→L1→L2)' },
+];
+
+let current = 0;
+let playInterval = null;
+
+function render() {
+  const s = steps[current];
+
+  // Phase
+  const phaseEl = document.getElementById('phase');
+  phaseEl.textContent = s.phase;
+  phaseEl.className = 'phase-inner ' + s.phaseClass;
+
+  // Lists
+  const display = document.getElementById('lists-display');
+  let html = '';
+  for (const row of s.rows) {
+    html += '<div class="list-row">';
+    html += `<span class="list-label" style="color:${row.arrC === 'cyan-arr' ? 'var(--cyan)' : row.arrC === 'purple-arr' ? 'var(--purple)' : row.arrC === 'green-arr' ? 'var(--green-glow)' : 'var(--text-dim)'}">${row.label}</span>`;
+
+    if (row.prefix) {
+      html += `<span class="null-label">${row.prefix}</span><div class="arr ${row.arrC}">←</div>`;
+    }
+
+    for (let i = 0; i < row.nodes.length; i++) {
+      const n = row.nodes[i];
+      const ptrHtml = n.ptr ? `<span class="nd-ptr" style="color:${n.c.includes('first') || n.c.includes('slow') || n.c === 'merge-first' ? 'var(--cyan)' : n.c.includes('fast') ? 'var(--orange)' : n.c === 'merge-second' ? 'var(--purple)' : n.c === 'done-node' ? 'var(--green-glow)' : 'var(--text-dim)'}">${n.ptr}</span>` : '';
+      html += `<div class="nd ${n.c}">${ptrHtml}${n.v}</div>`;
+      if (i < row.nodes.length - 1) html += `<div class="arr ${row.arrC}">→</div>`;
+    }
+
+    if (row.trail) html += `<div class="arr">→</div><span class="null-label">${row.trail}</span>`;
+    html += '</div>';
+  }
+  display.innerHTML = html;
+
+  // Log
+  const logEl = document.getElementById('log');
+  let logHtml = '';
+  for (let i = 0; i <= current; i++) {
+    const st = steps[i];
+    let cls = 'log-init';
+    if (st.phaseClass === 'step1') cls = 'log-s1';
+    else if (st.phaseClass === 'step2') cls = 'log-s2';
+    else if (st.phaseClass === 'step3') cls = 'log-s3';
+    else if (st.phaseClass === 'done') cls = 'log-done';
+    logHtml += `<div class="${cls}">${st.log}</div>`;
+  }
+  logEl.innerHTML = logHtml;
+  logEl.scrollTop = logEl.scrollHeight;
+
+  document.getElementById('step-label').textContent = `Step ${current} / ${steps.length - 1}`;
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current >= steps.length - 1;
+}
+
+function stepForward() { if (current < steps.length - 1) { current++; render(); } else if (playInterval) togglePlay(); }
+function stepBack() { if (current > 0) { current--; render(); } }
+function resetSim() { if (playInterval) togglePlay(); current = 0; render(); }
+function togglePlay() {
+  if (playInterval) { clearInterval(playInterval); playInterval = null; document.getElementById('btn-play').textContent = '▶ Auto'; }
+  else { document.getElementById('btn-play').textContent = '⏸ Pause'; playInterval = setInterval(() => { if (current >= steps.length - 1) { togglePlay(); return; } stepForward(); }, 1500); }
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); stepForward(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); stepBack(); }
+  if (e.key === 'r') resetSim();
+});
+render();
+</script>
+</body>
+</html>

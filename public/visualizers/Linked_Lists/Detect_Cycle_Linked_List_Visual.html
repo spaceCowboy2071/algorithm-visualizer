@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Detect Cycle in a Linked List — Floyd's Tortoise & Hare</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--surface2:#1c2333;--border:#30363d;--text:#e6edf3;--text-dim:#8b949e;--accent:#58a6ff;--green:#2ea043;--green-glow:#3fb950;--orange:#f0883e;--red:#f78166;--purple:#d2a8ff;--cyan:#79c0ff;--yellow:#e3b341;--code-bg:#0d1117;--highlight:rgba(88,166,255,0.1);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.6;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+header{text-align:center;padding:3rem 0 2rem;position:relative;}
+header::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(240,136,62,0.08) 0%,transparent 70%);pointer-events:none;}
+h1{font-size:2.4rem;font-weight:700;letter-spacing:-0.03em;background:linear-gradient(135deg,var(--green-glow),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.25rem;}
+.subtitle{color:var(--text-dim);font-size:0.95rem;}
+.tag{display:inline-block;padding:0.2rem 0.65rem;border-radius:99px;font-size:0.75rem;font-weight:600;margin:0.75rem 0.2rem 0;}
+.tag-pattern{background:rgba(240,136,62,0.15);color:var(--orange);}
+.tag-easy{background:rgba(0,135,90,0.15);color:#00875A;}
+.tag-ll{background:rgba(210,168,255,0.15);color:var(--purple);}
+section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;margin:1.5rem 0;position:relative;overflow:hidden;}
+section::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green-glow),var(--orange),var(--red));border-radius:12px 12px 0 0;}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:1rem;}
+p{margin-bottom:0.75rem;font-size:0.95rem;}
+.dim{color:var(--text-dim);}
+code{font-family:'JetBrains Mono',monospace;font-size:0.85em;background:var(--surface2);padding:0.1rem 0.4rem;border-radius:4px;}
+.callout{background:rgba(240,136,62,0.08);border-left:3px solid var(--orange);padding:0.75rem 1rem;border-radius:0 8px 8px 0;margin:1rem 0;font-size:0.9rem;}
+.callout strong{color:var(--orange);}
+.callout-green{background:rgba(46,160,67,0.08);border-left-color:var(--green);}
+.callout-green strong{color:var(--green-glow);}
+
+/* Node display */
+.ll-area{display:flex;align-items:center;justify-content:center;gap:0;margin:1.5rem 0;min-height:100px;flex-wrap:wrap;position:relative;}
+.nd{width:52px;height:52px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:700;border-radius:10px;border:2px solid var(--border);background:var(--surface2);transition:all 0.4s;position:relative;}
+.nd .nd-ptr{position:absolute;top:-16px;font-size:0.55rem;font-weight:700;white-space:nowrap;}
+.nd.slow-here{border-color:var(--green);color:var(--green-glow);box-shadow:0 0 10px rgba(46,160,67,0.4);}
+.nd.fast-here{border-color:var(--orange);color:var(--orange);box-shadow:0 0 10px rgba(240,136,62,0.4);}
+.nd.both-here{border-color:var(--red);color:var(--red);box-shadow:0 0 16px rgba(247,129,102,0.5);animation:meetPulse 0.6s ease-in-out infinite;}
+.nd.cycle-node{border-color:var(--yellow);color:var(--yellow);background:rgba(227,179,65,0.08);}
+.nd.visited{opacity:0.4;}
+.nd.no-cycle{border-color:var(--green);color:var(--green-glow);background:rgba(46,160,67,0.08);}
+@keyframes meetPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
+.arr{width:32px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--text-dim);}
+.arr.cycle-arr{color:var(--yellow);font-weight:700;}
+.null-label{font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--text-dim);padding:0 4px;}
+.cycle-back{font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--yellow);font-weight:600;margin-left:4px;}
+
+/* Result box */
+.result-box{text-align:center;margin:0.75rem 0;font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;padding:0.5rem;border-radius:8px;transition:all 0.3s;}
+.result-box.cycle-found{color:var(--red);background:rgba(247,129,102,0.1);border:1px solid var(--red);}
+.result-box.no-cycle-found{color:var(--green-glow);background:rgba(46,160,67,0.1);border:1px solid var(--green);}
+
+/* Speed display */
+.speed-display{display:flex;justify-content:center;gap:2rem;margin:0.75rem 0;flex-wrap:wrap;}
+.speed-item{display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:0.85rem;}
+.speed-icon{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:0.85rem;font-weight:700;}
+.speed-icon.slow-icon{background:rgba(46,160,67,0.15);border:1px solid var(--green);color:var(--green-glow);}
+.speed-icon.fast-icon{background:rgba(240,136,62,0.15);border:1px solid var(--orange);color:var(--orange);}
+
+/* Log */
+.status-bar{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;font-family:'JetBrains Mono',monospace;font-size:0.75rem;line-height:1.7;min-height:80px;max-height:200px;overflow-y:auto;margin:0.75rem 0;}
+.log-move{color:var(--cyan);}.log-meet{color:var(--red);font-weight:700;}.log-end{color:var(--green-glow);font-weight:700;}.log-init{color:var(--text-dim);}
+
+/* Controls */
+.controls{display:flex;gap:0.75rem;justify-content:center;align-items:center;margin:1rem 0;flex-wrap:wrap;}
+button{font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;padding:0.5rem 1.25rem;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;transition:all 0.2s;}
+button:hover{background:rgba(88,166,255,0.1);border-color:var(--accent);color:var(--accent);}
+button.primary{background:rgba(240,136,62,0.15);border-color:var(--orange);color:var(--orange);}
+button:disabled{opacity:0.3;cursor:not-allowed;}
+.ex-tab{transition:all 0.2s;}.ex-tab.active{background:rgba(240,136,62,0.2);border-color:var(--orange);color:var(--orange);}
+.step-counter{font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text-dim);min-width:100px;text-align:center;}
+
+/* Code */
+.code-block{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;font-family:'JetBrains Mono',monospace;font-size:0.8rem;line-height:1.8;overflow-x:auto;counter-reset:line;margin:1rem 0;}
+.code-line{display:block;padding:0 0.5rem;border-radius:3px;white-space:pre;transition:background 0.3s;}
+.code-line::before{counter-increment:line;content:counter(line);display:inline-block;width:2rem;margin-right:1rem;text-align:right;color:#484f58;font-size:0.72rem;}
+.code-line.highlight{background:var(--highlight);}
+.kw{color:#ff7b72;}.fn{color:#d2a8ff;}.num{color:#79c0ff;}.cmt{color:#484f58;font-style:italic;}
+
+.complexity-grid{display:flex;gap:2rem;flex-wrap:wrap;margin:1rem 0;}
+.complexity-item{flex:1;min-width:200px;}
+.complexity-item h3{font-size:1.1rem;font-weight:600;color:var(--accent);margin:0 0 0.25rem;}
+
+@media(max-width:700px){h1{font-size:1.8rem;}section{padding:1.25rem;}.nd{width:44px;height:44px;font-size:0.95rem;}.arr{width:24px;}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+<h1>Detect Cycle in a Linked List</h1>
+<p class="subtitle">LeetCode #141 — Floyd's Tortoise & Hare</p>
+<div>
+  <span class="tag tag-pattern">Floyd's Cycle Detection</span>
+  <span class="tag tag-easy">Easy</span>
+  <span class="tag tag-ll">Linked Lists</span>
+</div>
+</header>
+
+<section>
+<h2>1 — What's the problem?</h2>
+<p>Return <code>True</code> if a linked list has a cycle (some node's <code>.next</code> points back to a previous node). Return <code>False</code> if the list ends with <code>None</code>.</p>
+
+<div class="callout">
+<strong>Floyd's Tortoise & Hare:</strong> Two pointers start at head. Slow moves 1 step, fast moves 2 steps. If there's a cycle, fast will lap slow and they'll meet. If there's no cycle, fast hits None. Think: two runners on a track — the faster one always catches up.
+</div>
+
+<div class="callout callout-green">
+<strong>Why <code>while fast and fast.next</code>?</strong> Fast moves 2 steps, so we check both <code>fast</code> (not None) and <code>fast.next</code> (next hop exists). If either is None, we know there's no cycle — we'd have hit the end.
+</div>
+</section>
+
+<section>
+<h2>2 — Step through it</h2>
+<p class="dim">Green = slow (1 step). Orange = fast (2 steps). Red = they meet (cycle detected).</p>
+
+<div class="speed-display">
+  <div class="speed-item"><div class="speed-icon slow-icon">S</div><span style="color:var(--green-glow);">Slow: 1 step/turn</span></div>
+  <div class="speed-item"><div class="speed-icon fast-icon">F</div><span style="color:var(--orange);">Fast: 2 steps/turn</span></div>
+</div>
+
+<div style="display:flex;gap:0.5rem;justify-content:center;margin:1rem 0;flex-wrap:wrap;">
+  <button class="ex-tab active" data-ex="ex1" onclick="switchExample('ex1')" style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;">Cycle: 3→2→0→-4→(2)</button>
+  <button class="ex-tab" data-ex="ex2" onclick="switchExample('ex2')" style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;">No cycle: 1→2→None</button>
+</div>
+
+<div id="sim-area">
+  <div class="ll-area" id="ll-area"></div>
+  <div class="result-box" id="result" style="visibility:hidden;">—</div>
+</div>
+
+<div class="status-bar" id="log"></div>
+
+<div class="controls">
+  <button onclick="resetSim()">Reset</button>
+  <button onclick="stepBack()" id="btn-prev">← Back</button>
+  <span class="step-counter" id="step-label">Step 0 / 0</span>
+  <button class="primary" onclick="stepForward()" id="btn-next">Next →</button>
+  <button onclick="togglePlay()" id="btn-play">▶ Auto</button>
+</div>
+</section>
+
+<section>
+<h2>3 — Complete implementation</h2>
+<div class="code-block">
+<span class="code-line"><span class="kw">def</span> <span class="fn">hasCycle</span>(self, head):</span>
+<span class="code-line">    slow, fast = head, head       <span class="cmt"># both start at head</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">while</span> fast <span class="kw">and</span> fast.next:    <span class="cmt"># fast can take 2 steps?</span></span>
+<span class="code-line">        slow = slow.next          <span class="cmt"># tortoise: 1 step</span></span>
+<span class="code-line">        fast = fast.next.next     <span class="cmt"># hare: 2 steps</span></span>
+<span class="code-line">        <span class="kw">if</span> slow == fast:          <span class="cmt"># they met → cycle!</span></span>
+<span class="code-line">            <span class="kw">return</span> <span class="num">True</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">return</span> <span class="num">False</span>                 <span class="cmt"># fast hit None → no cycle</span></span>
+</div>
+
+<div class="complexity-grid">
+  <div class="complexity-item">
+    <h3>Time: O(n)</h3>
+    <p class="dim" style="font-size:0.85rem;">Fast pointer traverses at most 2n steps before meeting slow or hitting None.</p>
+  </div>
+  <div class="complexity-item">
+    <h3>Space: O(1)</h3>
+    <p class="dim" style="font-size:0.85rem;">Just two pointers. No hash set needed.</p>
+  </div>
+</div>
+
+<div class="callout callout-green">
+<strong>Pattern connection:</strong> Floyd's algorithm extends to Find the Duplicate Number (LeetCode #287) and Linked List Cycle II (find where the cycle starts, not just if one exists). The slow/fast pointer technique also appears in Find Middle of Linked List — slow ends at the midpoint when fast reaches the end.
+</div>
+</section>
+
+</div>
+
+<script>
+const EXAMPLES = {
+  ex1: {
+    vals: [3, 2, 0, -4],
+    cycleIdx: 1, // -4 points back to index 1 (node 2)
+    hasCycle: true
+  },
+  ex2: {
+    vals: [1, 2],
+    cycleIdx: -1,
+    hasCycle: false
+  }
+};
+
+let activeEx = 'ex1';
+let VALS, CYCLE_IDX;
+function loadExample() { VALS = EXAMPLES[activeEx].vals; CYCLE_IDX = EXAMPLES[activeEx].cycleIdx; }
+loadExample();
+
+function getNextIdx(i) {
+  if (i === VALS.length - 1) {
+    return CYCLE_IDX >= 0 ? CYCLE_IDX : -1; // cycle back or None
+  }
+  return i + 1;
+}
+
+function computeSteps() {
+  const steps = [];
+  let slow = 0, fast = 0;
+
+  steps.push({ slow: 0, fast: 0, met: false, ended: false,
+    log: 'Initialize: slow = head, fast = head' });
+
+  const maxIter = 20; // safety limit
+  for (let iter = 0; iter < maxIter; iter++) {
+    // Check if fast can move 2 steps
+    const fastNext1 = getNextIdx(fast);
+    if (fastNext1 === -1) {
+      steps.push({ slow, fast, met: false, ended: true, fastHitNull: true,
+        log: `fast.next is None → no cycle → return False` });
+      return steps;
+    }
+    const fastNext2 = getNextIdx(fastNext1);
+    if (fastNext2 === -1) {
+      // fast can move 1 but not 2
+      steps.push({ slow, fast: fastNext1, met: false, ended: true, fastHitNull: true,
+        log: `fast reached end (fast.next.next is None) → no cycle → return False` });
+      return steps;
+    }
+
+    // Move
+    const slowNext = getNextIdx(slow);
+    slow = slowNext;
+    fast = fastNext2;
+
+    const met = slow === fast;
+
+    steps.push({ slow, fast, met, ended: met,
+      log: `slow → node ${VALS[slow]} (idx ${slow}), fast → node ${VALS[fast]} (idx ${fast})${met ? ' → SAME NODE! Cycle detected!' : ''}`
+    });
+
+    if (met) return steps;
+  }
+
+  return steps;
+}
+
+let steps = computeSteps();
+let current = 0;
+let playInterval = null;
+
+function switchExample(key) {
+  if (playInterval) togglePlay();
+  activeEx = key; loadExample();
+  steps = computeSteps(); current = 0;
+  document.querySelectorAll('.ex-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.ex-tab[data-ex="${key}"]`).classList.add('active');
+  render();
+}
+
+function render() {
+  const s = steps[current];
+  const area = document.getElementById('ll-area');
+  let html = '';
+
+  for (let i = 0; i < VALS.length; i++) {
+    let cls = 'nd';
+    let ptrParts = [];
+
+    const isSlow = s.slow === i && !s.ended;
+    const isFast = s.fast === i && !s.ended;
+    const isBoth = isSlow && isFast;
+
+    if (s.met && s.slow === i) {
+      cls += ' both-here';
+      ptrParts.push('<span style="color:var(--red);">MEET!</span>');
+    } else if (isBoth) {
+      cls += ' both-here';
+      ptrParts.push('<span style="color:var(--green-glow);">S</span>');
+      ptrParts.push('<span style="color:var(--orange);">F</span>');
+    } else if (isSlow) {
+      cls += ' slow-here';
+      ptrParts.push('<span style="color:var(--green-glow);">slow</span>');
+    } else if (isFast) {
+      cls += ' fast-here';
+      ptrParts.push('<span style="color:var(--orange);">fast</span>');
+    } else if (s.ended && !s.met) {
+      cls += ' no-cycle';
+    } else if (CYCLE_IDX >= 0 && i >= CYCLE_IDX) {
+      cls += ' cycle-node';
+    }
+
+    const ptrHtml = ptrParts.length > 0 ? `<span class="nd-ptr">${ptrParts.join(' ')}</span>` : '';
+    html += `<div class="${cls}">${ptrHtml}${VALS[i]}</div>`;
+
+    if (i < VALS.length - 1) {
+      html += '<div class="arr">→</div>';
+    }
+  }
+
+  // End: either None or cycle-back
+  if (CYCLE_IDX >= 0) {
+    html += `<div class="arr cycle-arr">→</div>`;
+    html += `<span class="cycle-back">↩ back to node ${VALS[CYCLE_IDX]} (idx ${CYCLE_IDX})</span>`;
+  } else {
+    html += '<div class="arr">→</div>';
+    html += '<span class="null-label">None</span>';
+  }
+
+  area.innerHTML = html;
+
+  // Result
+  const resultEl = document.getElementById('result');
+  if (s.ended && s.met) {
+    resultEl.textContent = `Cycle detected at node ${VALS[s.slow]}! return True`;
+    resultEl.className = 'result-box cycle-found';
+    resultEl.style.visibility = 'visible';
+  } else if (s.ended && !s.met) {
+    resultEl.textContent = 'Fast hit None → no cycle → return False';
+    resultEl.className = 'result-box no-cycle-found';
+    resultEl.style.visibility = 'visible';
+  } else {
+    resultEl.style.visibility = 'hidden';
+  }
+
+  // Log
+  const logEl = document.getElementById('log');
+  let logHtml = '';
+  for (let i = 0; i <= current; i++) {
+    const st = steps[i];
+    let cls = 'log-init';
+    if (st.met) cls = 'log-meet';
+    else if (st.ended) cls = 'log-end';
+    else if (i > 0) cls = 'log-move';
+    logHtml += `<div class="${cls}">${st.log}</div>`;
+  }
+  logEl.innerHTML = logHtml;
+  logEl.scrollTop = logEl.scrollHeight;
+
+  document.getElementById('step-label').textContent = `Step ${current} / ${steps.length - 1}`;
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current >= steps.length - 1;
+}
+
+function stepForward() { if (current < steps.length - 1) { current++; render(); } else if (playInterval) togglePlay(); }
+function stepBack() { if (current > 0) { current--; render(); } }
+function resetSim() { if (playInterval) togglePlay(); current = 0; render(); }
+function togglePlay() {
+  if (playInterval) { clearInterval(playInterval); playInterval = null; document.getElementById('btn-play').textContent = '▶ Auto'; }
+  else { document.getElementById('btn-play').textContent = '⏸ Pause'; playInterval = setInterval(() => { if (current >= steps.length - 1) { togglePlay(); return; } stepForward(); }, 1200); }
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); stepForward(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); stepBack(); }
+  if (e.key === 'r') resetSim();
+});
+render();
+</script>
+</body>
+</html>

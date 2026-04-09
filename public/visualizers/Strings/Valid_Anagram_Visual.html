@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valid Anagram — Frequency Counter Visual Walkthrough</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--surface2:#1c2333;--border:#30363d;--text:#e6edf3;--text-dim:#8b949e;--accent:#58a6ff;--green:#2ea043;--green-glow:#3fb950;--orange:#f0883e;--red:#f78166;--purple:#d2a8ff;--cyan:#79c0ff;--yellow:#e3b341;--code-bg:#0d1117;--highlight:rgba(88,166,255,0.1);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.6;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+header{text-align:center;padding:3rem 0 2rem;position:relative;}
+header::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(88,166,255,0.08) 0%,transparent 70%);pointer-events:none;}
+h1{font-size:2.4rem;font-weight:700;letter-spacing:-0.03em;background:linear-gradient(135deg,var(--accent),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.25rem;}
+.subtitle{color:var(--text-dim);font-size:0.95rem;}
+.tag{display:inline-block;padding:0.2rem 0.65rem;border-radius:99px;font-size:0.75rem;font-weight:600;margin:0.75rem 0.2rem 0;}
+.tag-pattern{background:rgba(88,166,255,0.15);color:var(--accent);}
+.tag-easy{background:rgba(0,135,90,0.15);color:#00875A;}
+.tag-string{background:rgba(121,192,255,0.15);color:var(--cyan);}
+section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;margin:1.5rem 0;position:relative;overflow:hidden;}
+section::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--cyan),var(--green-glow));border-radius:12px 12px 0 0;}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:1rem;}
+p{margin-bottom:0.75rem;font-size:0.95rem;}
+.dim{color:var(--text-dim);}
+code{font-family:'JetBrains Mono',monospace;font-size:0.85em;background:var(--surface2);padding:0.1rem 0.4rem;border-radius:4px;}
+.callout{background:rgba(240,136,62,0.08);border-left:3px solid var(--orange);padding:0.75rem 1rem;border-radius:0 8px 8px 0;margin:1rem 0;font-size:0.9rem;}
+.callout strong{color:var(--orange);}
+.callout-green{background:rgba(46,160,67,0.08);border-left-color:var(--green);}
+.callout-green strong{color:var(--green-glow);}
+.callout-blue{background:rgba(88,166,255,0.08);border-left-color:var(--accent);}
+.callout-blue strong{color:var(--accent);}
+
+/* Char cells */
+.char-row{display:flex;gap:3px;justify-content:center;align-items:center;margin:0.5rem 0;flex-wrap:wrap;}
+.str-label{font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--text-dim);font-weight:600;min-width:40px;text-align:right;margin-right:6px;}
+.char-cell{width:40px;height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;border-radius:6px;border:2px solid var(--border);background:var(--surface2);transition:all 0.3s ease;position:relative;}
+.char-cell .ch{font-size:1rem;font-weight:700;}
+.char-cell .idx{font-size:0.5rem;color:var(--text-dim);position:absolute;bottom:1px;}
+.char-cell.active{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 10px rgba(121,192,255,0.4);animation:cellPulse 1s ease-in-out infinite;}
+.char-cell.active-sub{border-color:var(--purple);color:var(--purple);box-shadow:0 0 10px rgba(210,168,255,0.4);animation:cellPulse 1s ease-in-out infinite;}
+.char-cell.processed{border-color:var(--green);background:rgba(46,160,67,0.08);color:var(--green-glow);opacity:0.5;}
+.char-cell.processed-sub{border-color:var(--purple);background:rgba(210,168,255,0.08);color:var(--purple);opacity:0.5;}
+.char-cell.fail-char{border-color:var(--red);color:var(--red);background:rgba(247,129,102,0.15);box-shadow:0 0 10px rgba(247,129,102,0.4);}
+@keyframes cellPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
+
+/* Phase label */
+.phase-label{text-align:center;font-family:'JetBrains Mono',monospace;font-size:0.85rem;font-weight:600;margin:1rem 0 0.5rem;padding:0.4rem 1rem;border-radius:6px;display:inline-block;}
+.phase-add{color:var(--cyan);background:rgba(88,166,255,0.1);border:1px solid rgba(88,166,255,0.3);}
+.phase-sub{color:var(--purple);background:rgba(210,168,255,0.1);border:1px solid rgba(210,168,255,0.3);}
+.phase-check{color:var(--green-glow);background:rgba(46,160,67,0.1);border:1px solid rgba(46,160,67,0.3);}
+.phase-fail{color:var(--red);background:rgba(247,129,102,0.1);border:1px solid rgba(247,129,102,0.3);}
+
+/* Frequency bars */
+.freq-area{margin:1rem 0;}
+.freq-label{font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.35rem;}
+.freq-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;min-height:60px;align-items:flex-end;}
+.freq-item{display:flex;flex-direction:column;align-items:center;gap:2px;transition:all 0.3s;}
+.freq-bar-container{width:42px;height:80px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative;}
+.freq-bar{width:32px;border-radius:4px 4px 0 0;transition:all 0.4s ease;min-height:2px;}
+.freq-bar.positive{background:rgba(88,166,255,0.4);border:1px solid var(--accent);border-bottom:none;}
+.freq-bar.zero{background:rgba(46,160,67,0.3);border:1px solid var(--green);height:2px!important;}
+.freq-bar.negative{background:rgba(247,129,102,0.4);border:1px solid var(--red);border-bottom:none;}
+.freq-bar.highlight{box-shadow:0 0 12px rgba(121,192,255,0.5);}
+.freq-bar.highlight-sub{box-shadow:0 0 12px rgba(210,168,255,0.5);}
+.freq-count{font-family:'JetBrains Mono',monospace;font-size:0.8rem;font-weight:700;transition:color 0.3s;}
+.freq-count.positive{color:var(--accent);}
+.freq-count.zero{color:var(--green-glow);}
+.freq-count.negative{color:var(--red);}
+.freq-char{font-family:'JetBrains Mono',monospace;font-size:0.85rem;font-weight:600;color:var(--text-dim);margin-top:2px;}
+
+/* Result */
+.result-box{text-align:center;margin:1rem 0;font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;padding:0.5rem;border-radius:8px;transition:all 0.3s;}
+.result-box.true{color:var(--green-glow);background:rgba(46,160,67,0.1);border:1px solid var(--green);}
+.result-box.false{color:var(--red);background:rgba(247,129,102,0.1);border:1px solid var(--red);}
+
+/* Log */
+.status-bar{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;font-family:'JetBrains Mono',monospace;font-size:0.75rem;line-height:1.7;min-height:80px;max-height:200px;overflow-y:auto;margin:0.75rem 0;}
+.log-add{color:var(--cyan);}.log-sub{color:var(--purple);}.log-zero{color:var(--green-glow);font-weight:600;}.log-fail{color:var(--red);font-weight:700;}.log-done{color:var(--green-glow);font-weight:700;}.log-init{color:var(--text-dim);}
+
+/* Controls */
+.controls{display:flex;gap:0.75rem;justify-content:center;align-items:center;margin:1rem 0;flex-wrap:wrap;}
+button{font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;padding:0.5rem 1.25rem;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;transition:all 0.2s;}
+button:hover{background:rgba(88,166,255,0.1);border-color:var(--accent);color:var(--accent);}
+button.primary{background:rgba(88,166,255,0.15);border-color:var(--accent);color:var(--accent);}
+button:disabled{opacity:0.3;cursor:not-allowed;}
+.ex-tab{transition:all 0.2s;}.ex-tab.active{background:rgba(88,166,255,0.2);border-color:var(--accent);color:var(--accent);}
+.step-counter{font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text-dim);min-width:100px;text-align:center;}
+
+/* Code */
+.code-block{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;font-family:'JetBrains Mono',monospace;font-size:0.8rem;line-height:1.8;overflow-x:auto;counter-reset:line;margin:1rem 0;}
+.code-line{display:block;padding:0 0.5rem;border-radius:3px;white-space:pre;transition:background 0.3s;}
+.code-line::before{counter-increment:line;content:counter(line);display:inline-block;width:2rem;margin-right:1rem;text-align:right;color:#484f58;font-size:0.72rem;}
+.code-line.highlight{background:var(--highlight);}
+.kw{color:#ff7b72;}.fn{color:#d2a8ff;}.num{color:#79c0ff;}.cmt{color:#484f58;font-style:italic;}.str{color:#a5d6ff;}
+
+.complexity-grid{display:flex;gap:2rem;flex-wrap:wrap;margin:1rem 0;}
+.complexity-item{flex:1;min-width:200px;}
+.complexity-item h3{font-size:1.1rem;font-weight:600;color:var(--accent);margin:0 0 0.25rem;}
+
+@media(max-width:700px){h1{font-size:1.8rem;}section{padding:1.25rem;}.char-cell{width:32px;height:38px;}.char-cell .ch{font-size:0.85rem;}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+<h1>Valid Anagram</h1>
+<p class="subtitle">LeetCode #242 — Frequency Counter Visual Walkthrough</p>
+<div>
+  <span class="tag tag-pattern">Hash Map / Frequency Count</span>
+  <span class="tag tag-easy">Easy</span>
+  <span class="tag tag-string">Strings</span>
+</div>
+</header>
+
+<section>
+<h2>1 — What's the problem?</h2>
+<p>Return <code>True</code> if <code>t</code> is an anagram of <code>s</code> — same characters, same counts, just rearranged.</p>
+
+<div class="callout callout-blue">
+<strong>The pattern:</strong> Build a frequency count dict from <code>s</code> (add), then subtract using <code>t</code>. If all counts are zero, it's an anagram. Quick exit first: if lengths differ, return False immediately.
+</div>
+
+<div class="callout">
+<strong>Key Python tool:</strong> <code>count.get(c, 0)</code> returns the value for key <code>c</code> if it exists, otherwise returns 0. Avoids KeyError on first encounter of a character.
+</div>
+</section>
+
+<section>
+<h2>2 — Step through it</h2>
+<p class="dim">Watch the frequency counter build up from s (blue), then subtract from t (purple). All zeros = anagram.</p>
+
+<div style="display:flex;justify-content:center;gap:1rem;margin:0.5rem 0;font-size:0.7rem;font-family:'JetBrains Mono',monospace;flex-wrap:wrap;">
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--cyan);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--cyan);">Adding (s)</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--purple);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--purple);">Subtracting (t)</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--green);background:rgba(46,160,67,0.15);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--green-glow);">Zero (matched)</span></span>
+</div>
+
+<div style="display:flex;gap:0.5rem;justify-content:center;margin:1rem 0;">
+  <button class="ex-tab active" data-ex="ex1" onclick="switchExample('ex1')" style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;">Anagram: "anagram" / "nagaram"</button>
+  <button class="ex-tab" data-ex="ex2" onclick="switchExample('ex2')" style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;">Not anagram: "rat" / "car"</button>
+</div>
+
+<div id="sim-area">
+  <div style="text-align:center;" id="phase-display"></div>
+
+  <div class="char-row" id="s-row"></div>
+  <div class="char-row" id="t-row"></div>
+
+  <div class="freq-area">
+    <div class="freq-label">count = { }</div>
+    <div class="freq-row" id="freq-row"></div>
+  </div>
+
+  <div class="result-box" id="result" style="visibility:hidden;">—</div>
+</div>
+
+<div class="status-bar" id="log"></div>
+
+<div class="controls">
+  <button onclick="resetSim()">Reset</button>
+  <button onclick="stepBack()" id="btn-prev">← Back</button>
+  <span class="step-counter" id="step-label">Step 0 / 0</span>
+  <button class="primary" onclick="stepForward()" id="btn-next">Next →</button>
+  <button onclick="togglePlay()" id="btn-play">▶ Auto</button>
+</div>
+</section>
+
+<section>
+<h2>3 — Complete implementation</h2>
+<div class="code-block">
+<span class="code-line"><span class="kw">def</span> <span class="fn">isAnagram</span>(self, s: <span class="num">str</span>, t: <span class="num">str</span>) -> <span class="num">bool</span>:</span>
+<span class="code-line">    <span class="kw">if</span> <span class="fn">len</span>(s) != <span class="fn">len</span>(t):          <span class="cmt"># different lengths = can't be anagram</span></span>
+<span class="code-line">        <span class="kw">return</span> <span class="num">False</span></span>
+<span class="code-line"></span>
+<span class="code-line">    count = {}</span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">for</span> c <span class="kw">in</span> s:                     <span class="cmt"># build frequency count</span></span>
+<span class="code-line">        count[c] = count.<span class="fn">get</span>(c, <span class="num">0</span>) + <span class="num">1</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">for</span> c <span class="kw">in</span> t:                     <span class="cmt"># subtract</span></span>
+<span class="code-line">        <span class="kw">if</span> c <span class="kw">not in</span> count:          <span class="cmt"># char in t not in s at all</span></span>
+<span class="code-line">            <span class="kw">return</span> <span class="num">False</span></span>
+<span class="code-line">        count[c] -= <span class="num">1</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">return</span> <span class="fn">all</span>(v == <span class="num">0</span> <span class="kw">for</span> v <span class="kw">in</span> count.<span class="fn">values</span>()) <span class="cmt"># all zeros?</span></span>
+</div>
+<p class="dim" style="font-size:0.85rem;">One-liner alternative: <code>return Counter(s) == Counter(t)</code> using <code>from collections import Counter</code></p>
+
+<div class="complexity-grid">
+  <div class="complexity-item">
+    <h3>Time: O(n)</h3>
+    <p class="dim" style="font-size:0.85rem;">Two passes through the strings. Dict operations are O(1) average.</p>
+  </div>
+  <div class="complexity-item">
+    <h3>Space: O(n)</h3>
+    <p class="dim" style="font-size:0.85rem;">Dict stores up to 26 entries (lowercase English letters). Could argue O(1) since alphabet is fixed size.</p>
+  </div>
+</div>
+
+<div class="callout callout-green">
+<strong>Pattern connection:</strong> The frequency counter pattern appears in Group Anagrams (sort or count as key), Find All Anagrams in a String (sliding window + frequency), and Longest Repeating Character Replacement (track max frequency in window). This is the building block.
+</div>
+</section>
+
+</div>
+
+<script>
+const EXAMPLES = {
+  ex1: { s: 'anagram', t: 'nagaram', isAnagram: true },
+  ex2: { s: 'rat', t: 'car', isAnagram: false },
+};
+
+let activeEx = 'ex1';
+let S, T;
+
+function loadExample() { S = EXAMPLES[activeEx].s; T = EXAMPLES[activeEx].t; }
+loadExample();
+
+function computeSteps() {
+  const steps = [];
+  const count = {};
+  const allChars = new Set();
+
+  steps.push({ phase:'init', sIdx:-1, tIdx:-1, count:{}, activeChar:null, activeSrc:null, result:null, failChar:null,
+    log:`Initialize: len("${S}")=${S.length}, len("${T}")=${T.length}${S.length !== T.length ? ' → NOT equal, return False' : ' → equal, continue'}` });
+
+  if (S.length !== T.length) {
+    steps.push({ phase:'fail-len', sIdx:-1, tIdx:-1, count:{}, activeChar:null, activeSrc:null, result:false, failChar:null,
+      log:`Different lengths → return False` });
+    return steps;
+  }
+
+  // Build from s
+  for (let i = 0; i < S.length; i++) {
+    const c = S[i];
+    allChars.add(c);
+    count[c] = (count[c] || 0) + 1;
+
+    steps.push({ phase:'add', sIdx:i, tIdx:-1, count:{...count}, activeChar:c, activeSrc:'s', result:null, failChar:null,
+      log:`s[${i}]='${c}': count['${c}'] = ${count[c]}` });
+  }
+
+  steps.push({ phase:'add-done', sIdx:S.length, tIdx:-1, count:{...count}, activeChar:null, activeSrc:null, result:null, failChar:null,
+    log:`Pass 1 complete. count = {${Object.entries(count).map(([k,v])=>`'${k}':${v}`).join(', ')}}` });
+
+  // Subtract from t
+  for (let i = 0; i < T.length; i++) {
+    const c = T[i];
+
+    if (!(c in count)) {
+      steps.push({ phase:'fail-missing', sIdx:S.length, tIdx:i, count:{...count}, activeChar:c, activeSrc:'t', result:false, failChar:c,
+        log:`t[${i}]='${c}': NOT in count → return False` });
+      return steps;
+    }
+
+    count[c] -= 1;
+    allChars.add(c);
+
+    const isZero = count[c] === 0;
+    steps.push({ phase:'sub', sIdx:S.length, tIdx:i, count:{...count}, activeChar:c, activeSrc:'t', result:null, failChar:null,
+      log:`t[${i}]='${c}': count['${c}'] = ${count[c]}${isZero ? ' ✓ zeroed out' : ''}` });
+  }
+
+  // Check all zeros
+  const allZero = Object.values(count).every(v => v === 0);
+  steps.push({ phase: allZero ? 'done' : 'fail-counts', sIdx:S.length, tIdx:T.length, count:{...count}, activeChar:null, activeSrc:null, result:allZero, failChar:null,
+    log: allZero ? `All counts are zero → return True! It's an anagram.` : `Not all counts are zero → return False` });
+
+  return steps;
+}
+
+let steps = computeSteps();
+let current = 0;
+let playInterval = null;
+
+function switchExample(key) {
+  if (playInterval) togglePlay();
+  activeEx = key; loadExample();
+  steps = computeSteps(); current = 0;
+  document.querySelectorAll('.ex-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.ex-tab[data-ex="${key}"]`).classList.add('active');
+  render();
+}
+
+function render() {
+  const step = steps[current];
+
+  // Phase label
+  const phaseEl = document.getElementById('phase-display');
+  if (step.phase === 'add' || step.phase === 'add-done') {
+    phaseEl.innerHTML = '<span class="phase-label phase-add">→ Pass 1: Building count from s</span>';
+  } else if (step.phase === 'sub') {
+    phaseEl.innerHTML = '<span class="phase-label phase-sub">← Pass 2: Subtracting with t</span>';
+  } else if (step.phase === 'done') {
+    phaseEl.innerHTML = '<span class="phase-label phase-check">✓ All zeros — anagram!</span>';
+  } else if (step.phase.startsWith('fail')) {
+    phaseEl.innerHTML = '<span class="phase-label phase-fail">✗ Not an anagram</span>';
+  } else {
+    phaseEl.innerHTML = '';
+  }
+
+  // S row
+  const sRow = document.getElementById('s-row');
+  let sHtml = '<span class="str-label">s =</span>';
+  for (let i = 0; i < S.length; i++) {
+    let cls = 'char-cell';
+    if (step.activeSrc === 's' && step.sIdx === i) cls += ' active';
+    else if (step.sIdx > i && step.phase.startsWith('add')) cls += ' processed';
+    else if (step.phase !== 'init' && step.phase !== 'add') cls += ' processed';
+    sHtml += `<div class="${cls}"><span class="ch">${S[i]}</span><span class="idx">${i}</span></div>`;
+  }
+  sRow.innerHTML = sHtml;
+
+  // T row
+  const tRow = document.getElementById('t-row');
+  let tHtml = '<span class="str-label">t =</span>';
+  for (let i = 0; i < T.length; i++) {
+    let cls = 'char-cell';
+    if (step.failChar && step.tIdx === i) cls += ' fail-char';
+    else if (step.activeSrc === 't' && step.tIdx === i) cls += ' active-sub';
+    else if (step.tIdx > i && (step.phase === 'sub' || step.phase === 'done' || step.phase.startsWith('fail'))) cls += ' processed-sub';
+    tHtml += `<div class="${cls}"><span class="ch">${T[i]}</span><span class="idx">${i}</span></div>`;
+  }
+  tRow.innerHTML = tHtml;
+
+  // Frequency bars
+  const freqRow = document.getElementById('freq-row');
+  const chars = Object.keys(step.count).sort();
+  if (chars.length === 0) {
+    freqRow.innerHTML = '<span style="color:var(--text-dim);font-family:\'JetBrains Mono\',monospace;font-size:0.82rem;">{ empty }</span>';
+  } else {
+    let fHtml = '';
+    const maxCount = Math.max(1, ...Object.values(step.count).map(Math.abs));
+    for (const ch of chars) {
+      const v = step.count[ch];
+      const barH = Math.max(2, (Math.abs(v) / maxCount) * 60);
+      let barCls = 'freq-bar';
+      let countCls = 'freq-count';
+
+      if (v > 0) { barCls += ' positive'; countCls += ' positive'; }
+      else if (v === 0) { barCls += ' zero'; countCls += ' zero'; }
+      else { barCls += ' negative'; countCls += ' negative'; }
+
+      if (step.activeChar === ch && step.activeSrc === 's') barCls += ' highlight';
+      if (step.activeChar === ch && step.activeSrc === 't') barCls += ' highlight-sub';
+
+      fHtml += `<div class="freq-item">
+        <span class="${countCls}">${v}</span>
+        <div class="freq-bar-container">
+          <div class="${barCls}" style="height:${v === 0 ? 2 : barH}px;"></div>
+        </div>
+        <span class="freq-char">${ch}</span>
+      </div>`;
+    }
+    freqRow.innerHTML = fHtml;
+  }
+
+  // Result
+  const resultEl = document.getElementById('result');
+  if (step.result === true) { resultEl.textContent = 'return True — anagram!'; resultEl.className = 'result-box true'; resultEl.style.visibility = 'visible'; }
+  else if (step.result === false) { resultEl.textContent = 'return False — not an anagram'; resultEl.className = 'result-box false'; resultEl.style.visibility = 'visible'; }
+  else { resultEl.style.visibility = 'hidden'; }
+
+  // Log
+  const logEl = document.getElementById('log');
+  let logHtml = '';
+  for (let i = 0; i <= current; i++) {
+    const s = steps[i];
+    let cls = 'log-init';
+    if (s.phase === 'add') cls = 'log-add';
+    else if (s.phase === 'sub' && s.count[s.activeChar] === 0) cls = 'log-zero';
+    else if (s.phase === 'sub') cls = 'log-sub';
+    else if (s.phase === 'done') cls = 'log-done';
+    else if (s.phase.startsWith('fail')) cls = 'log-fail';
+    logHtml += `<div class="${cls}">${s.log}</div>`;
+  }
+  logEl.innerHTML = logHtml;
+  logEl.scrollTop = logEl.scrollHeight;
+
+  document.getElementById('step-label').textContent = `Step ${current} / ${steps.length - 1}`;
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current >= steps.length - 1;
+}
+
+function stepForward() { if (current < steps.length - 1) { current++; render(); } else if (playInterval) togglePlay(); }
+function stepBack() { if (current > 0) { current--; render(); } }
+function resetSim() { if (playInterval) togglePlay(); current = 0; render(); }
+function togglePlay() {
+  if (playInterval) { clearInterval(playInterval); playInterval = null; document.getElementById('btn-play').textContent = '▶ Auto'; }
+  else { document.getElementById('btn-play').textContent = '⏸ Pause'; playInterval = setInterval(() => { if (current >= steps.length - 1) { togglePlay(); return; } stepForward(); }, 700); }
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); stepForward(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); stepBack(); }
+  if (e.key === 'r') resetSim();
+});
+render();
+</script>
+</body>
+</html>

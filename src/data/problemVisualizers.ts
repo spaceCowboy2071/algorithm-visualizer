@@ -14,6 +14,12 @@ const VISUALIZER_PATHS: Record<number, string> = {
   61: '/visualizers/Strings/Valid_Parentheses_Visual.html',
   47: '/visualizers/Linked_Lists/Reverse_Linked_List_Visual.html',
   56: '/visualizers/Strings/Longest_Substring_No_Repeat_Visual.html',
+  42: '/visualizers/Linked_Lists/Detect_Cycle_Linked_List_Visual.html',
+  44: '/visualizers/Linked_Lists/Merge_Two_Sorted_Lists_Visual.html',
+  45: '/visualizers/Linked_Lists/Remove_Nth_Node_From_End_Visual.html',
+  46: '/visualizers/Linked_Lists/Reorder_List_Visual.html',
+  67: '/visualizers/Trees/Invert_Binary_Tree_Visual.html',
+  59: '/visualizers/Strings/Valid_Anagram_Visual.html',
 };
 
 export function getVisualizerPath(problemId: number): string | null {

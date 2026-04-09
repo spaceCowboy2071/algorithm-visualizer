@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Remove Nth Node From End — Gap Technique Visual</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--surface2:#1c2333;--border:#30363d;--text:#e6edf3;--text-dim:#8b949e;--accent:#58a6ff;--green:#2ea043;--green-glow:#3fb950;--orange:#f0883e;--red:#f78166;--purple:#d2a8ff;--cyan:#79c0ff;--yellow:#e3b341;--code-bg:#0d1117;--highlight:rgba(88,166,255,0.1);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.6;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+header{text-align:center;padding:3rem 0 2rem;position:relative;}
+header::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(121,192,255,0.08) 0%,transparent 70%);pointer-events:none;}
+h1{font-size:2.2rem;font-weight:700;letter-spacing:-0.03em;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.25rem;}
+.subtitle{color:var(--text-dim);font-size:0.95rem;}
+.tag{display:inline-block;padding:0.2rem 0.65rem;border-radius:99px;font-size:0.75rem;font-weight:600;margin:0.75rem 0.2rem 0;}
+.tag-pattern{background:rgba(121,192,255,0.15);color:var(--cyan);}
+.tag-med{background:rgba(240,136,62,0.15);color:var(--orange);}
+.tag-ll{background:rgba(210,168,255,0.15);color:var(--purple);}
+section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;margin:1.5rem 0;position:relative;overflow:hidden;}
+section::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cyan),var(--purple),var(--orange));border-radius:12px 12px 0 0;}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:1rem;}
+p{margin-bottom:0.75rem;font-size:0.95rem;}
+.dim{color:var(--text-dim);}
+code{font-family:'JetBrains Mono',monospace;font-size:0.85em;background:var(--surface2);padding:0.1rem 0.4rem;border-radius:4px;}
+.callout{background:rgba(240,136,62,0.08);border-left:3px solid var(--orange);padding:0.75rem 1rem;border-radius:0 8px 8px 0;margin:1rem 0;font-size:0.9rem;}
+.callout strong{color:var(--orange);}
+.callout-green{background:rgba(46,160,67,0.08);border-left-color:var(--green);}
+.callout-green strong{color:var(--green-glow);}
+.callout-cyan{background:rgba(88,166,255,0.08);border-left-color:var(--accent);}
+.callout-cyan strong{color:var(--accent);}
+
+/* Nodes */
+.ll-area{display:flex;align-items:center;justify-content:center;gap:0;margin:1.5rem 0;min-height:90px;flex-wrap:wrap;}
+.nd{width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:700;border-radius:9px;border:2px solid var(--border);background:var(--surface2);transition:all 0.4s;position:relative;}
+.nd .nd-ptr{position:absolute;top:-16px;font-size:0.55rem;font-weight:700;white-space:nowrap;}
+.nd.left-ptr{border-color:var(--green);color:var(--green-glow);box-shadow:0 0 10px rgba(46,160,67,0.3);}
+.nd.right-ptr{border-color:var(--orange);color:var(--orange);box-shadow:0 0 10px rgba(240,136,62,0.3);}
+.nd.target{border-color:var(--red);color:var(--red);background:rgba(247,129,102,0.15);box-shadow:0 0 14px rgba(247,129,102,0.4);}
+.nd.removed{border-color:var(--red);color:var(--red);opacity:0.2;text-decoration:line-through;transform:scale(0.85);}
+.nd.dummy{border-color:var(--text-dim);color:var(--text-dim);border-style:dashed;font-size:0.8rem;}
+.nd.done-node{border-color:var(--green);color:var(--green-glow);background:rgba(46,160,67,0.08);}
+.nd.gap-node{border-color:var(--yellow);color:var(--yellow);background:rgba(227,179,65,0.06);}
+.arr{width:28px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--text-dim);transition:all 0.3s;}
+.arr.skip-arr{color:var(--green-glow);font-weight:700;}
+.null-label{font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--text-dim);padding:0 4px;}
+
+/* Gap indicator */
+.gap-bar{display:flex;justify-content:center;align-items:center;margin:0.25rem 0;min-height:20px;}
+.gap-indicator{font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--yellow);font-weight:600;padding:0.15rem 0.6rem;background:rgba(227,179,65,0.1);border:1px solid rgba(227,179,65,0.3);border-radius:4px;}
+
+/* Phase */
+.phase-box{text-align:center;margin:0.75rem 0;}
+.phase-inner{display:inline-block;padding:0.4rem 1.25rem;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.85rem;font-weight:600;border:1.5px solid var(--border);background:var(--surface2);transition:all 0.3s;}
+.phase-inner.gap-phase{border-color:var(--orange);color:var(--orange);}
+.phase-inner.walk-phase{border-color:var(--cyan);color:var(--cyan);}
+.phase-inner.remove-phase{border-color:var(--red);color:var(--red);}
+.phase-inner.done-phase{border-color:var(--green);color:var(--green-glow);}
+
+/* Log */
+.status-bar{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;font-family:'JetBrains Mono',monospace;font-size:0.75rem;line-height:1.7;min-height:80px;max-height:200px;overflow-y:auto;margin:0.75rem 0;}
+.log-gap{color:var(--orange);}.log-walk{color:var(--cyan);}.log-remove{color:var(--red);font-weight:700;}.log-done{color:var(--green-glow);font-weight:700;}.log-init{color:var(--text-dim);}
+
+/* Controls */
+.controls{display:flex;gap:0.75rem;justify-content:center;align-items:center;margin:1rem 0;flex-wrap:wrap;}
+button{font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;padding:0.5rem 1.25rem;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;transition:all 0.2s;}
+button:hover{background:rgba(88,166,255,0.1);border-color:var(--accent);color:var(--accent);}
+button.primary{background:rgba(121,192,255,0.15);border-color:var(--cyan);color:var(--cyan);}
+button:disabled{opacity:0.3;cursor:not-allowed;}
+.step-counter{font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text-dim);min-width:100px;text-align:center;}
+
+/* Code */
+.code-block{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;font-family:'JetBrains Mono',monospace;font-size:0.78rem;line-height:1.8;overflow-x:auto;counter-reset:line;margin:1rem 0;}
+.code-line{display:block;padding:0 0.5rem;border-radius:3px;white-space:pre;transition:background 0.3s;}
+.code-line::before{counter-increment:line;content:counter(line);display:inline-block;width:2rem;margin-right:1rem;text-align:right;color:#484f58;font-size:0.7rem;}
+.code-line.highlight{background:var(--highlight);}
+.kw{color:#ff7b72;}.fn{color:#d2a8ff;}.num{color:#79c0ff;}.cmt{color:#484f58;font-style:italic;}
+
+.complexity-grid{display:flex;gap:2rem;flex-wrap:wrap;margin:1rem 0;}
+.complexity-item{flex:1;min-width:200px;}
+.complexity-item h3{font-size:1.1rem;font-weight:600;color:var(--accent);margin:0 0 0.25rem;}
+
+@media(max-width:700px){h1{font-size:1.7rem;}section{padding:1.25rem;}.nd{width:42px;height:42px;font-size:0.95rem;}.arr{width:22px;}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+<h1>Remove Nth Node From End</h1>
+<p class="subtitle">LeetCode #19 — Two Pointer Gap Technique</p>
+<div>
+  <span class="tag tag-pattern">Two Pointers (gap)</span>
+  <span class="tag tag-med">Medium</span>
+  <span class="tag tag-ll">Linked Lists</span>
+</div>
+</header>
+
+<section>
+<h2>1 — What's the problem?</h2>
+<p>Remove the nth node from the <strong>end</strong> of a linked list in one pass.</p>
+
+<div class="callout callout-cyan">
+<strong>The gap technique:</strong> Advance <code>right</code> pointer n steps ahead. Now there's a gap of n between <code>left</code> and <code>right</code>. Walk both forward together. When <code>right</code> hits None, <code>left</code> is right before the node to remove.
+</div>
+
+<div class="callout">
+<strong>Dummy node again:</strong> <code>left</code> starts at a dummy node before head. This handles the edge case of removing the head itself (when n equals the list length).
+</div>
+</section>
+
+<section>
+<h2>2 — Step through it</h2>
+<p class="dim">Watch: Phase 1 creates the gap (orange advances). Phase 2 walks both (maintaining gap). Phase 3 skips the target node.</p>
+
+<div style="display:flex;justify-content:center;gap:1rem;margin:0.5rem 0;font-size:0.7rem;font-family:'JetBrains Mono',monospace;flex-wrap:wrap;">
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--green);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--green-glow);">left</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--orange);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--orange);">right</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--red);background:rgba(247,129,102,0.15);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--red);">target (removed)</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--yellow);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--yellow);">gap</span></span>
+</div>
+
+<div id="sim-area">
+  <div class="phase-box"><div class="phase-inner" id="phase">—</div></div>
+  <div class="ll-area" id="ll-area"></div>
+  <div class="gap-bar" id="gap-bar"></div>
+</div>
+
+<div class="status-bar" id="log"></div>
+
+<div class="controls">
+  <button onclick="resetSim()">Reset</button>
+  <button onclick="stepBack()" id="btn-prev">← Back</button>
+  <span class="step-counter" id="step-label">Step 0 / 0</span>
+  <button class="primary" onclick="stepForward()" id="btn-next">Next →</button>
+  <button onclick="togglePlay()" id="btn-play">▶ Auto</button>
+</div>
+</section>
+
+<section>
+<h2>3 — Complete implementation</h2>
+<div class="code-block">
+<span class="code-line"><span class="kw">def</span> <span class="fn">removeNthFromEnd</span>(self, head, n):</span>
+<span class="code-line">    dummy = <span class="fn">ListNode</span>(<span class="num">0</span>, head)  <span class="cmt"># dummy before head</span></span>
+<span class="code-line">    left = dummy                <span class="cmt"># left starts at dummy</span></span>
+<span class="code-line">    right = head                <span class="cmt"># right starts at head</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">while</span> n > <span class="num">0</span> <span class="kw">and</span> right:    <span class="cmt"># create the gap of n</span></span>
+<span class="code-line">        right = right.next</span>
+<span class="code-line">        n -= <span class="num">1</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">while</span> right:               <span class="cmt"># walk both, maintain gap</span></span>
+<span class="code-line">        left = left.next</span>
+<span class="code-line">        right = right.next</span>
+<span class="code-line"></span>
+<span class="code-line">    left.next = left.next.next  <span class="cmt"># skip the target node</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">return</span> dummy.next           <span class="cmt"># skip dummy, return head</span></span>
+</div>
+
+<div class="complexity-grid">
+  <div class="complexity-item">
+    <h3>Time: O(n)</h3>
+    <p class="dim" style="font-size:0.85rem;">One pass through the list (right traverses the full length).</p>
+  </div>
+  <div class="complexity-item">
+    <h3>Space: O(1)</h3>
+    <p class="dim" style="font-size:0.85rem;">Two pointers and a dummy node.</p>
+  </div>
+</div>
+
+<div class="callout callout-green">
+<strong>Pattern connection:</strong> The gap technique appears in Find Middle of Linked List (gap = slow moves 1, fast moves 2 — when fast hits end, slow is at middle). The dummy node trick is the same as Merge Two Sorted Lists. Reorder List combines both: find middle, reverse second half, merge.
+</div>
+</section>
+
+</div>
+
+<script>
+// Example: 1 → 2 → 3 → 4 → 5, n = 2 (remove node 4)
+const VALS = [1, 2, 3, 4, 5];
+const N_REMOVE = 2;
+const TARGET_IDX = VALS.length - N_REMOVE; // index 3 (node 4)
+
+function computeSteps() {
+  const steps = [];
+  // Dummy is at index -1 conceptually; left starts at dummy, right at head (index 0)
+  let left = -1; // -1 = dummy
+  let right = 0;
+  let n = N_REMOVE;
+  let removed = false;
+
+  steps.push({ left: -1, right: 0, phase: 'init', gapN: n, removed: false,
+    log: `Initialize: dummy→head, left=dummy, right=head, n=${n}` });
+
+  // Phase 1: Create gap
+  while (n > 0 && right < VALS.length) {
+    right++;
+    n--;
+    steps.push({ left: -1, right: right < VALS.length ? right : VALS.length, phase: 'gap', gapN: N_REMOVE,
+      removed: false,
+      log: `Gap: right → ${right < VALS.length ? 'node ' + VALS[right] : 'None'}, n=${n} (gap = ${N_REMOVE})` });
+  }
+
+  // Phase 2: Walk both
+  while (right < VALS.length) {
+    left++;
+    right++;
+    steps.push({ left, right: right < VALS.length ? right : VALS.length, phase: 'walk', gapN: N_REMOVE,
+      removed: false,
+      log: `Walk: left → ${left === -1 ? 'dummy' : 'node ' + VALS[left]}, right → ${right < VALS.length ? 'node ' + VALS[right] : 'None'}` });
+  }
+
+  // Phase 3: Remove
+  steps.push({ left, right: VALS.length, phase: 'remove', gapN: N_REMOVE, removed: false, targetIdx: TARGET_IDX,
+    log: `right is None → left is at node ${left === -1 ? 'dummy' : VALS[left]}. left.next (node ${VALS[TARGET_IDX]}) is the target!` });
+
+  steps.push({ left, right: VALS.length, phase: 'done', gapN: N_REMOVE, removed: true, targetIdx: TARGET_IDX,
+    log: `left.next = left.next.next → skip node ${VALS[TARGET_IDX]}. Return dummy.next → [${VALS.filter((_,i) => i !== TARGET_IDX).join(' → ')}]` });
+
+  return steps;
+}
+
+let steps = computeSteps();
+let current = 0;
+let playInterval = null;
+
+function render() {
+  const s = steps[current];
+
+  // Phase
+  const phaseEl = document.getElementById('phase');
+  if (s.phase === 'gap') { phaseEl.textContent = `Phase 1: Creating gap of ${N_REMOVE}`; phaseEl.className = 'phase-inner gap-phase'; }
+  else if (s.phase === 'walk') { phaseEl.textContent = 'Phase 2: Walking both (maintaining gap)'; phaseEl.className = 'phase-inner walk-phase'; }
+  else if (s.phase === 'remove') { phaseEl.textContent = 'Phase 3: Remove target node'; phaseEl.className = 'phase-inner remove-phase'; }
+  else if (s.phase === 'done') { phaseEl.textContent = 'Done! Node removed'; phaseEl.className = 'phase-inner done-phase'; }
+  else { phaseEl.textContent = `n = ${N_REMOVE} — remove ${N_REMOVE}nd from end`; phaseEl.className = 'phase-inner'; }
+
+  // Linked list
+  const area = document.getElementById('ll-area');
+  let html = '';
+
+  // Dummy node
+  let dummyCls = 'nd dummy';
+  let dummyPtr = '';
+  if (s.left === -1) { dummyCls = 'nd dummy left-ptr'; dummyPtr = '<span class="nd-ptr" style="color:var(--green-glow);">left</span>'; }
+  html += `<div class="${dummyCls}">${dummyPtr}D</div><div class="arr">→</div>`;
+
+  for (let i = 0; i < VALS.length; i++) {
+    let cls = 'nd';
+    let ptrParts = [];
+
+    if (s.removed && i === TARGET_IDX) {
+      cls = 'nd removed';
+    } else if (s.phase === 'remove' && i === TARGET_IDX) {
+      cls = 'nd target';
+      ptrParts.push('<span style="color:var(--red);">remove!</span>');
+    } else if (s.phase === 'done') {
+      cls = i === TARGET_IDX ? 'nd removed' : 'nd done-node';
+    } else {
+      // Gap highlighting
+      if (s.phase === 'walk' || s.phase === 'gap') {
+        const leftActual = s.left === -1 ? -1 : s.left;
+        const rightActual = s.right >= VALS.length ? VALS.length : s.right;
+        if (i > leftActual + 1 && i < rightActual && s.left >= 0) cls = 'nd gap-node';
+      }
+    }
+
+    if (s.left === i) { cls = 'nd left-ptr'; ptrParts.push('<span style="color:var(--green-glow);">left</span>'); }
+    if (s.right === i) {
+      if (s.left === i) { ptrParts.push('<span style="color:var(--orange);">right</span>'); }
+      else { cls = 'nd right-ptr'; ptrParts.push('<span style="color:var(--orange);">right</span>'); }
+    }
+
+    const ptrHtml = ptrParts.length > 0 ? `<span class="nd-ptr">${ptrParts.join(' ')}</span>` : '';
+    html += `<div class="${cls}">${ptrHtml}${VALS[i]}</div>`;
+
+    if (i < VALS.length - 1) {
+      let arrCls = 'arr';
+      if (s.removed && i === s.left && i + 1 === TARGET_IDX) arrCls = 'arr skip-arr';
+      else if (s.removed && i === TARGET_IDX) { arrCls = 'arr skip-arr'; }
+      html += `<div class="${arrCls}">→</div>`;
+    }
+  }
+
+  html += '<div class="arr">→</div><span class="null-label">None</span>';
+  if (s.right >= VALS.length && s.phase !== 'done' && s.phase !== 'remove') {
+    html = html.replace('None</span>', 'None</span><span class="nd-ptr" style="color:var(--orange);position:relative;top:-14px;font-size:0.55rem;font-weight:700;margin-left:-30px;">right</span>');
+  }
+
+  area.innerHTML = html;
+
+  // Gap indicator
+  const gapBar = document.getElementById('gap-bar');
+  if (s.phase === 'gap' || s.phase === 'walk') {
+    gapBar.innerHTML = `<span class="gap-indicator">gap = ${N_REMOVE} nodes</span>`;
+  } else if (s.phase === 'remove') {
+    gapBar.innerHTML = `<span class="gap-indicator" style="border-color:var(--red);color:var(--red);background:rgba(247,129,102,0.1);">left.next = left.next.next (skip node ${VALS[TARGET_IDX]})</span>`;
+  } else if (s.phase === 'done') {
+    gapBar.innerHTML = `<span class="gap-indicator" style="border-color:var(--green);color:var(--green-glow);background:rgba(46,160,67,0.1);">Result: ${VALS.filter((_,i) => i !== TARGET_IDX).join(' → ')} → None</span>`;
+  } else {
+    gapBar.innerHTML = '';
+  }
+
+  // Log
+  const logEl = document.getElementById('log');
+  let logHtml = '';
+  for (let i = 0; i <= current; i++) {
+    const st = steps[i];
+    let cls = 'log-init';
+    if (st.phase === 'gap') cls = 'log-gap';
+    else if (st.phase === 'walk') cls = 'log-walk';
+    else if (st.phase === 'remove') cls = 'log-remove';
+    else if (st.phase === 'done') cls = 'log-done';
+    logHtml += `<div class="${cls}">${st.log}</div>`;
+  }
+  logEl.innerHTML = logHtml;
+  logEl.scrollTop = logEl.scrollHeight;
+
+  document.getElementById('step-label').textContent = `Step ${current} / ${steps.length - 1}`;
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current >= steps.length - 1;
+}
+
+function stepForward() { if (current < steps.length - 1) { current++; render(); } else if (playInterval) togglePlay(); }
+function stepBack() { if (current > 0) { current--; render(); } }
+function resetSim() { if (playInterval) togglePlay(); current = 0; render(); }
+function togglePlay() {
+  if (playInterval) { clearInterval(playInterval); playInterval = null; document.getElementById('btn-play').textContent = '▶ Auto'; }
+  else { document.getElementById('btn-play').textContent = '⏸ Pause'; playInterval = setInterval(() => { if (current >= steps.length - 1) { togglePlay(); return; } stepForward(); }, 1200); }
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); stepForward(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); stepBack(); }
+  if (e.key === 'r') resetSim();
+});
+render();
+</script>
+</body>
+</html>
