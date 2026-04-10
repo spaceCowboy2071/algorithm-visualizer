@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider } from './context/AuthContext';
 import Landing from './pages/Landing';
 import ArraysPage from './pages/ArraysPage';
 import LinkedListsPage from './pages/LinkedListsPage';
@@ -12,6 +13,7 @@ import ProblemPage from './pages/ProblemPage';
 function App() {
   return (
     <ThemeProvider>
+    <AuthProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
@@ -24,6 +26,7 @@ function App() {
         <Route path="/blind75/problem/:id" element={<ProblemPage />} />
       </Routes>
     </BrowserRouter>
+    </AuthProvider>
     </ThemeProvider>
   );
 }

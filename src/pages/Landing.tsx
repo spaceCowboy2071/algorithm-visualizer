@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../hooks/useTheme';
+import { useAuth } from '../hooks/useAuth';
 
 interface MenuItem {
   label: string;
@@ -22,10 +23,71 @@ const CHALLENGE_ITEMS: MenuItem[] = [
 
 const ALL_ITEMS = [...DATA_STRUCTURE_ITEMS, ...CHALLENGE_ITEMS];
 
+type Screen = 'menu' | 'auth';
+type AuthMode = 'signin' | 'signup';
+
 function Landing() {
   const { colors, crtEffects, toggleColorTheme, toggleCrtEffects } = useTheme();
+  const { user, isLoading: authLoading, login, signup, logout } = useAuth();
   const navigate = useNavigate();
   const [activeIndex, setActiveIndex] = useState(0);
+
+  // Auth screen state
+  const [screen, setScreen] = useState<Screen>('menu');
+  const [authMode, setAuthMode] = useState<AuthMode>('signin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [glitchKey, setGlitchKey] = useState(0); // bump to re-trigger CSS animation
+  const emailRef = useRef<HTMLInputElement>(null);
+
+  // Focus email input when auth screen appears
+  useEffect(() => {
+    if (screen === 'auth' && emailRef.current) {
+      emailRef.current.focus();
+    }
+  }, [screen, authMode]);
+
+  const switchScreen = (newScreen: Screen) => {
+    setGlitchKey(k => k + 1);
+    setAuthError('');
+    setScreen(newScreen);
+  };
+
+  const switchAuthMode = (mode: AuthMode) => {
+    setGlitchKey(k => k + 1);
+    setAuthError('');
+    setEmail('');
+    setPassword('');
+    setDisplayName('');
+    setAuthMode(mode);
+  };
+
+  const handleAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    setIsSubmitting(true);
+
+    try {
+      if (authMode === 'signup') {
+        await signup(email, password, displayName || undefined);
+      } else {
+        await login(email, password);
+      }
+      // Success — return to menu
+      setEmail('');
+      setPassword('');
+      setDisplayName('');
+      switchScreen('menu');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Authentication failed';
+      setAuthError(message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleNavigate = useCallback((path: string) => {
     navigate(path);
@@ -34,6 +96,16 @@ function Landing() {
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // ESC returns to menu from auth screen
+      if (e.key === 'Escape' && screen === 'auth') {
+        e.preventDefault();
+        switchScreen('menu');
+        return;
+      }
+
+      // Arrow/Enter navigation only active on menu screen
+      if (screen !== 'menu') return;
+
       switch (e.key) {
         case 'ArrowUp':
           e.preventDefault();
@@ -51,7 +123,7 @@ function Landing() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeIndex, handleNavigate]);
+  }, [activeIndex, handleNavigate, screen]);
 
   // ============================================
   // SHARED: Menu content (used by both layouts)
@@ -149,6 +221,138 @@ function Landing() {
   );
 
   // ============================================
+  // SHARED: Auth screen (BIOS sub-menu swap)
+  // ============================================
+  const inputStyle: React.CSSProperties = {
+    background: 'transparent',
+    border: `1px solid ${colors.border}`,
+    color: colors.main,
+    padding: '8px 12px',
+    fontSize: '13px',
+    fontFamily: 'monospace',
+    outline: 'none',
+    width: '100%',
+    caretColor: colors.main,
+  };
+
+  const renderAuthScreen = (compact: boolean) => (
+    <form onSubmit={handleAuthSubmit} className="flex flex-col" style={{ gap: compact ? '10px' : '14px' }}>
+      {/* Mode label */}
+      <div
+        className="text-center text-[11px] tracking-wider"
+        style={{ color: colors.main, opacity: 0.5 }}
+      >
+        {authMode === 'signin' ? '── SYSTEM LOGIN ──' : '── NEW USER REGISTRATION ──'}
+      </div>
+
+      {/* Display name (signup only) */}
+      {authMode === 'signup' && (
+        <div>
+          <label
+            className="font-mono text-[11px] block mb-1"
+            style={{ color: colors.main, opacity: 0.6 }}
+          >
+            NAME:
+          </label>
+          <input
+            type="text"
+            value={displayName}
+            onChange={e => setDisplayName(e.target.value)}
+            placeholder="display name (optional)"
+            style={inputStyle}
+            autoComplete="name"
+          />
+        </div>
+      )}
+
+      {/* Email field */}
+      <div>
+        <label
+          className="font-mono text-[11px] block mb-1"
+          style={{ color: colors.main, opacity: 0.6 }}
+        >
+          EMAIL:
+        </label>
+        <input
+          ref={emailRef}
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          placeholder="email@address.com"
+          required
+          style={inputStyle}
+          autoComplete="email"
+        />
+      </div>
+
+      {/* Password field */}
+      <div>
+        <label
+          className="font-mono text-[11px] block mb-1"
+          style={{ color: colors.main, opacity: 0.6 }}
+        >
+          PASS:
+        </label>
+        <input
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          placeholder={authMode === 'signup' ? 'min 8 characters' : '••••••••'}
+          required
+          minLength={authMode === 'signup' ? 8 : undefined}
+          style={inputStyle}
+          autoComplete={authMode === 'signup' ? 'new-password' : 'current-password'}
+        />
+      </div>
+
+      {/* Error message */}
+      {authError && (
+        <div className="font-mono text-[11px] px-1" style={{ color: '#f85149' }}>
+          ERR: {authError}
+        </div>
+      )}
+
+      {/* Submit button */}
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="font-mono font-bold text-[13px] py-2 cursor-pointer transition-all duration-200"
+        style={{
+          background: colors.bg,
+          border: `1px solid ${colors.main}`,
+          color: colors.main,
+          opacity: isSubmitting ? 0.5 : 1,
+        }}
+      >
+        {isSubmitting
+          ? '> AUTHENTICATING...'
+          : authMode === 'signin' ? '> LOGIN' : '> CREATE ACCOUNT'
+        }
+      </button>
+
+      {/* Mode toggle + back */}
+      <div className="flex justify-between items-center">
+        <button
+          type="button"
+          onClick={() => switchScreen('menu')}
+          className="font-mono text-[11px] cursor-pointer transition-colors duration-150"
+          style={{ color: colors.main, opacity: 0.5, background: 'none', border: 'none' }}
+        >
+          ← BACK
+        </button>
+        <button
+          type="button"
+          onClick={() => switchAuthMode(authMode === 'signin' ? 'signup' : 'signin')}
+          className="font-mono text-[11px] cursor-pointer transition-colors duration-150"
+          style={{ color: colors.main, opacity: 0.5, background: 'none', border: 'none' }}
+        >
+          {authMode === 'signin' ? 'NEW USER? REGISTER →' : 'EXISTING USER? LOGIN →'}
+        </button>
+      </div>
+    </form>
+  );
+
+  // ============================================
   // SHARED: Bottom action buttons
   // ============================================
   const renderActionButtons = (style: 'desktop' | 'mobile') => {
@@ -192,7 +396,23 @@ function Landing() {
           {style === 'desktop' && (
             <span className="font-mono text-xs" style={{ color: colors.main, opacity: 0.3 }}>v1.0.0</span>
           )}
-          <button className={btnClass} style={btnStyle}>Sign In</button>
+          {user ? (
+            <>
+              <span className={`font-mono ${style === 'desktop' ? 'text-xs' : 'text-[9px]'}`} style={{ color: colors.main, opacity: 0.6 }}>
+                {user.displayName || user.email}
+              </span>
+              <button className={btnClass} style={btnStyle} onClick={logout}>Sign Out</button>
+            </>
+          ) : (
+            <button
+              className={btnClass}
+              style={btnStyle}
+              onClick={() => switchScreen('auth')}
+              disabled={authLoading}
+            >
+              Sign In
+            </button>
+          )}
         </div>
       </>
     );
@@ -268,10 +488,11 @@ function Landing() {
               ── ALGOVIZ System v1.0 &middot; Algorithm Workstation &middot; Mode: STD ──
             </div>
 
-            {/* Menu box — centered, grows to fill */}
+            {/* Center box — swaps between MAIN MENU and AUTHENTICATION */}
             <div className="flex-1 flex flex-col items-center justify-center">
               <div
-                className="w-full"
+                key={glitchKey}
+                className="w-full crt-glitch"
                 style={{
                   border: `2px solid ${colors.main}`,
                   padding: '18px 24px',
@@ -282,9 +503,9 @@ function Landing() {
                   className="text-center mb-3 pb-2 text-sm font-bold tracking-wide"
                   style={{ color: colors.main, borderBottom: `1px solid ${colors.border}` }}
                 >
-                  MAIN MENU
+                  {screen === 'auth' ? 'AUTHENTICATION' : 'MAIN MENU'}
                 </div>
-                {renderMenuItems(false)}
+                {screen === 'auth' ? renderAuthScreen(false) : renderMenuItems(false)}
               </div>
             </div>
 
@@ -293,7 +514,7 @@ function Landing() {
               className="text-center mt-4 text-[11px]"
               style={{ color: colors.main, opacity: 0.4 }}
             >
-              Use arrow keys to navigate and ENTER to select
+              {screen === 'auth' ? 'ESC to return to main menu' : 'Use arrow keys to navigate and ENTER to select'}
             </div>
             <div
               className="flex justify-between mt-2 px-1 text-[10px]"
@@ -405,18 +626,19 @@ function Landing() {
           </div>
         </div>
 
-        {/* Menu box */}
+        {/* Center box — swaps between MAIN MENU and AUTHENTICATION */}
         <div
-          className="mb-5"
+          key={glitchKey}
+          className="mb-5 crt-glitch"
           style={{ border: `1.5px solid ${colors.main}`, padding: '12px 14px' }}
         >
           <div
             className="text-center pb-2 mb-2.5 text-xs font-bold tracking-wide"
             style={{ color: colors.main, borderBottom: `1px solid ${colors.border}` }}
           >
-            MAIN MENU
+            {screen === 'auth' ? 'AUTHENTICATION' : 'MAIN MENU'}
           </div>
-          {renderMenuItems(true)}
+          {screen === 'auth' ? renderAuthScreen(true) : renderMenuItems(true)}
         </div>
 
         {/* Tap hint */}
@@ -424,7 +646,7 @@ function Landing() {
           className="text-center text-[10px] mb-5"
           style={{ color: colors.main, opacity: 0.3 }}
         >
-          Tap to select
+          {screen === 'auth' ? 'Tap BACK to return' : 'Tap to select'}
         </div>
 
         {/* Action buttons */}

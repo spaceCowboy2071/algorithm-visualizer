@@ -60,3 +60,18 @@
 .crt-blink {
   animation: crt-blink 1s step-end infinite;
 }
+
+/* CRT glitch transition for screen swaps */
+@keyframes crt-glitch {
+  0% { opacity: 1; transform: translateY(0); }
+  10% { opacity: 0.6; transform: translateY(-2px) skewX(-1deg); }
+  20% { opacity: 0.3; transform: translateY(1px) skewX(0.5deg); }
+  40% { opacity: 0; transform: translateY(0); }
+  60% { opacity: 0; transform: translateY(0); }
+  70% { opacity: 0.4; transform: translateY(1px) skewX(-0.5deg); }
+  85% { opacity: 0.8; transform: translateY(-1px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.crt-glitch {
+  animation: crt-glitch 0.35s ease-out;
+}
