@@ -5,6 +5,7 @@ import { getProblemById, type Problem } from '../data/problemsData';
 import { getVisualizerPath } from '../data/problemVisualizers';
 import { PROBLEMS } from '../data/blind75Problems';
 import { useTrackerStore } from '../hooks/useTrackerStore';
+import { useAuth } from '../hooks/useAuth';
 import StatusEditDropdown from '../components/blind75/StatusEditDropdown';
 import { executeCode, setPyodideStatusCallback } from '../services/codeRunner';
 import { validateComplexity } from '../utils/complexityValidator';
@@ -26,8 +27,9 @@ function ProblemPage() {
   const [language, setLanguage] = useState<'javascript' | 'python'>('python');
   const [code, setCode] = useState('');
 
-  // Tracker store
+  // Tracker store + auth
   const { getProgress, updateProgress } = useTrackerStore();
+  const { user } = useAuth();
   const blind75Problem = PROBLEMS.find(p => p.id === Number(problemId));
   const progress = getProgress(Number(problemId));
 
@@ -322,7 +324,7 @@ function ProblemPage() {
               {/* Terminal Title Bar */}
               <div className="bg-[#161b22] px-4 py-2 border-b border-[#30363d] flex items-center justify-between">
                 <span className="text-gray-500 text-xs font-mono">
-                  terminal@algorithmviz/blind75/{problem.title.toLowerCase().replace(/\s+/g, '-')}
+                  {user?.displayName ?? 'terminal'}@algorithmviz/blind75/{problem.title.toLowerCase().replace(/\s+/g, '-')}
                 </span>
                 <button
                   onClick={() => setIsProgressOpen(!isProgressOpen)}
@@ -341,6 +343,21 @@ function ProblemPage() {
                   ← Back to Problems
                 </Link>
               </div>
+
+              {/* Sign in banner for unauthenticated users */}
+              {!user && (
+                <div className="mx-4 mt-2 px-4 py-2 border border-[#30363d] rounded bg-[#161b22] flex items-center justify-between">
+                  <span className="text-xs text-gray-400">
+                    Sign in to save your progress across devices.
+                  </span>
+                  <Link
+                    to="/"
+                    className="px-2 py-0.5 border border-[var(--accent)] text-[var(--accent)] rounded text-xs font-semibold font-mono hover:bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] transition"
+                  >
+                    Sign In
+                  </Link>
+                </div>
+              )}
 
               {/* Progress Overlay */}
               {isProgressOpen && (

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PROBLEMS, CATEGORIES } from '../data/blind75Problems';
 import { useTrackerStore } from '../hooks/useTrackerStore';
+import { useAuth } from '../hooks/useAuth';
 import StatusEditDropdown from '../components/blind75/StatusEditDropdown';
 import TrackerDashboard from '../components/blind75/TrackerDashboard';
 
@@ -17,6 +18,7 @@ function Blind75Page() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const { tracker, getProgress, updateProgress } = useTrackerStore();
+  const { user } = useAuth();
 
   const getCategoryProblems = (category: string) => {
     return PROBLEMS.filter(p => p.category === category);
@@ -44,7 +46,7 @@ function Blind75Page() {
       {/* Top bar */}
       <div className="bg-[#161b22] px-6 py-3 border-b border-[#30363d] flex items-center justify-between">
         <span className="text-gray-500 text-xs">
-          terminal@algorithmviz/blind75{selectedCategory ? `/${selectedCategory.toLowerCase().replace(/\s+/g, '-')}` : ''}
+          {user?.displayName ?? 'terminal'}@algorithmviz/blind75{selectedCategory ? `/${selectedCategory.toLowerCase().replace(/\s+/g, '-')}` : ''}
         </span>
         <Link
           to="/"
@@ -76,6 +78,21 @@ function Blind75Page() {
             &gt; {totalSolved}/75 problems solved
           </p>
         </div>
+
+        {/* Sign in banner for unauthenticated users */}
+        {!user && (
+          <div className="mb-6 px-4 py-3 border border-[#30363d] rounded-lg bg-[#161b22] flex items-center justify-between">
+            <span className="text-sm text-gray-400">
+              Sign in to save your progress across devices.
+            </span>
+            <Link
+              to="/"
+              className="px-3 py-1 border border-[var(--accent)] text-[var(--accent)] rounded text-xs font-semibold font-mono hover:bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] transition"
+            >
+              Sign In
+            </Link>
+          </div>
+        )}
 
         {selectedCategory === null ? (
           /* ── Category Grid ── */
