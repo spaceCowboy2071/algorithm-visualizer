@@ -20,6 +20,10 @@ const VISUALIZER_PATHS: Record<number, string> = {
   46: '/visualizers/Linked_Lists/Reorder_List_Visual.html',
   67: '/visualizers/Trees/Invert_Binary_Tree_Visual.html',
   59: '/visualizers/Strings/Valid_Anagram_Visual.html',
+  63: '/visualizers/Trees/Level_Order_Traversal_Visual.html',
+  69: '/visualizers/Trees/Lowest_Common_Ancestor_BST_Visual.html',
+  73: '/visualizers/Trees/Subtree_of_Another_Tree_Visual.html',
+  74: '/visualizers/Trees/Validate_BST_Visual.html',
 };
 
 export function getVisualizerPath(problemId: number): string | null {

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Validate Binary Search Tree — Bounds Visual</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--surface2:#1c2333;--border:#30363d;--text:#e6edf3;--text-dim:#8b949e;--accent:#58a6ff;--green:#2ea043;--green-glow:#3fb950;--orange:#f0883e;--red:#f78166;--purple:#d2a8ff;--cyan:#79c0ff;--yellow:#e3b341;--code-bg:#0d1117;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.6;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+header{text-align:center;padding:3rem 0 2rem;position:relative;}
+header::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(46,160,67,0.08) 0%,transparent 70%);pointer-events:none;}
+h1{font-size:2.2rem;font-weight:700;letter-spacing:-0.03em;background:linear-gradient(135deg,var(--green-glow),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.25rem;}
+.subtitle{color:var(--text-dim);font-size:0.95rem;}
+.tag{display:inline-block;padding:0.2rem 0.65rem;border-radius:99px;font-size:0.75rem;font-weight:600;margin:0.75rem 0.2rem 0;}
+.tag-pattern{background:rgba(46,160,67,0.15);color:var(--green-glow);}
+.tag-med{background:rgba(240,136,62,0.15);color:var(--orange);}
+.tag-tree{background:rgba(210,168,255,0.15);color:var(--purple);}
+section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;margin:1.5rem 0;position:relative;overflow:hidden;}
+section::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green-glow),var(--accent),var(--purple));border-radius:12px 12px 0 0;}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:1rem;}
+p{margin-bottom:0.75rem;font-size:0.95rem;}
+.dim{color:var(--text-dim);}
+code{font-family:'JetBrains Mono',monospace;font-size:0.85em;background:var(--surface2);padding:0.1rem 0.4rem;border-radius:4px;}
+.callout{background:rgba(240,136,62,0.08);border-left:3px solid var(--orange);padding:0.75rem 1rem;border-radius:0 8px 8px 0;margin:1rem 0;font-size:0.9rem;}
+.callout strong{color:var(--orange);}
+.callout-green{background:rgba(46,160,67,0.08);border-left-color:var(--green);}
+.callout-green strong{color:var(--green-glow);}
+
+/* Tree */
+.tree-container{position:relative;width:100%;max-width:440px;margin:1rem auto;height:240px;}
+.tree-nd{position:absolute;width:50px;height:50px;border-radius:50%;border:2px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:700;transition:all 0.4s;z-index:2;}
+.tree-nd .bounds-label{position:absolute;bottom:-20px;font-size:0.55rem;font-weight:600;white-space:nowrap;color:var(--text-dim);}
+.tree-nd.checking{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 14px rgba(121,192,255,0.5);}
+.tree-nd.valid-nd{border-color:var(--green);color:var(--green-glow);background:rgba(46,160,67,0.12);}
+.tree-nd.invalid-nd{border-color:var(--red);color:var(--red);background:rgba(247,129,102,0.15);box-shadow:0 0 14px rgba(247,129,102,0.5);}
+.tree-nd.inactive{opacity:0.25;}
+.tree-edge{position:absolute;height:2px;background:var(--border);transform-origin:left center;z-index:1;}
+.tree-edge.valid-edge{background:var(--green);}
+
+/* Bounds display */
+.bounds-display{text-align:center;margin:1rem 0;}
+.bounds-inner{display:inline-block;padding:0.5rem 1.5rem;border-radius:10px;background:var(--surface2);border:1.5px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:0.9rem;transition:all 0.3s;min-width:300px;}
+.bounds-inner.valid-bounds{border-color:var(--green);color:var(--green-glow);}
+.bounds-inner.invalid-bounds{border-color:var(--red);color:var(--red);}
+.bounds-inner.checking-bounds{border-color:var(--cyan);color:var(--cyan);}
+.bound-low{color:var(--orange);font-weight:700;}
+.bound-high{color:var(--purple);font-weight:700;}
+.bound-val{color:var(--cyan);font-weight:700;}
+
+/* Phase */
+.phase-box{text-align:center;margin:0.75rem 0;}
+.phase-inner{display:inline-block;padding:0.5rem 1.5rem;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:0.82rem;font-weight:600;border:1.5px solid var(--border);background:var(--surface2);transition:all 0.3s;min-width:280px;}
+.phase-inner.check-phase{border-color:var(--cyan);color:var(--cyan);}
+.phase-inner.valid-phase{border-color:var(--green);color:var(--green-glow);}
+.phase-inner.invalid-phase{border-color:var(--red);color:var(--red);}
+.phase-inner.done-phase{border-color:var(--green);color:var(--green-glow);}
+
+/* Log */
+.status-bar{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;font-family:'JetBrains Mono',monospace;font-size:0.7rem;line-height:1.7;min-height:80px;max-height:220px;overflow-y:auto;margin:0.75rem 0;}
+.log-check{color:var(--cyan);}.log-valid{color:var(--green-glow);}.log-invalid{color:var(--red);font-weight:700;}.log-done{color:var(--green-glow);font-weight:700;}.log-init{color:var(--text-dim);}.log-null{color:var(--yellow);}
+
+/* Controls */
+.controls{display:flex;gap:0.75rem;justify-content:center;align-items:center;margin:1rem 0;flex-wrap:wrap;}
+button{font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;padding:0.5rem 1.25rem;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;transition:all 0.2s;}
+button:hover{background:rgba(88,166,255,0.1);border-color:var(--accent);color:var(--accent);}
+button.primary{background:rgba(46,160,67,0.15);border-color:var(--green);color:var(--green-glow);}
+button:disabled{opacity:0.3;cursor:not-allowed;}
+.ex-tab{transition:all 0.2s;}.ex-tab.active{background:rgba(46,160,67,0.2);border-color:var(--green);color:var(--green-glow);}
+.step-counter{font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text-dim);min-width:100px;text-align:center;}
+
+/* Code */
+.code-block{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;font-family:'JetBrains Mono',monospace;font-size:0.78rem;line-height:1.8;overflow-x:auto;counter-reset:line;margin:1rem 0;}
+.code-line{display:block;padding:0 0.5rem;border-radius:3px;white-space:pre;transition:background 0.3s;}
+.code-line::before{counter-increment:line;content:counter(line);display:inline-block;width:2rem;margin-right:1rem;text-align:right;color:#484f58;font-size:0.7rem;}
+.kw{color:#ff7b72;}.fn{color:#d2a8ff;}.num{color:#79c0ff;}.cmt{color:#484f58;font-style:italic;}
+
+.complexity-grid{display:flex;gap:2rem;flex-wrap:wrap;margin:1rem 0;}
+.complexity-item{flex:1;min-width:200px;}
+.complexity-item h3{font-size:1.1rem;font-weight:600;color:var(--accent);margin:0 0 0.25rem;}
+
+@media(max-width:700px){h1{font-size:1.7rem;}section{padding:1.25rem;}.tree-nd{width:42px;height:42px;font-size:0.95rem;}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+<h1>Validate Binary Search Tree</h1>
+<p class="subtitle">LeetCode #98 — DFS with Tightening Bounds</p>
+<div>
+  <span class="tag tag-pattern">DFS (min/max bounds)</span>
+  <span class="tag tag-med">Medium</span>
+  <span class="tag tag-tree">Trees</span>
+</div>
+</header>
+
+<section>
+<h2>1 — What's the problem?</h2>
+<p>Determine if a binary tree is a valid BST — every left descendant less than the node, every right descendant greater.</p>
+<div class="callout">
+<strong>The trap:</strong> You can't just check immediate children. A node might satisfy its parent but violate a grandparent's constraint. You need <strong>bounds that tighten as you go deeper</strong>.
+</div>
+<div class="callout callout-green">
+<strong>The rule:</strong> Going left → current value becomes the new ceiling. Going right → current value becomes the new floor. Start with <code>(-inf, inf)</code>.
+</div>
+</section>
+
+<section>
+<h2>2 — Step through it</h2>
+<p class="dim">Watch the bounds tighten at each level. Orange = floor (low). Purple = ceiling (high). The range narrows as you go deeper.</p>
+
+<div style="display:flex;gap:0.5rem;justify-content:center;margin:1rem 0;flex-wrap:wrap;">
+  <button class="ex-tab active" data-ex="ex1" onclick="switchExample('ex1')" style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;">Valid: [5,3,8,1,4]</button>
+  <button class="ex-tab" data-ex="ex2" onclick="switchExample('ex2')" style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;">Invalid: [5,1,4,null,null,3,6]</button>
+</div>
+
+<div class="phase-box"><div class="phase-inner" id="phase">—</div></div>
+
+<div class="tree-container" id="tree-container"></div>
+
+<div class="bounds-display"><div class="bounds-inner" id="bounds">—</div></div>
+
+<div class="status-bar" id="log"></div>
+
+<div class="controls">
+  <button onclick="resetSim()">Reset</button>
+  <button onclick="stepBack()" id="btn-prev">← Back</button>
+  <span class="step-counter" id="step-label">Step 0 / 0</span>
+  <button class="primary" onclick="stepForward()" id="btn-next">Next →</button>
+  <button onclick="togglePlay()" id="btn-play">▶ Auto</button>
+</div>
+</section>
+
+<section>
+<h2>3 — Complete implementation</h2>
+<div class="code-block">
+<span class="code-line"><span class="kw">def</span> <span class="fn">isValidBST</span>(self, root):</span>
+<span class="code-line">    <span class="kw">def</span> <span class="fn">valid</span>(node, low, high):</span>
+<span class="code-line">        <span class="kw">if not</span> node:                    <span class="cmt"># empty = valid</span></span>
+<span class="code-line">            <span class="kw">return</span> <span class="num">True</span></span>
+<span class="code-line">        <span class="kw">if not</span> (node.val > low <span class="kw">and</span> node.val < high):</span>
+<span class="code-line">            <span class="kw">return</span> <span class="num">False</span>                <span class="cmt"># out of bounds</span></span>
+<span class="code-line">        <span class="kw">return</span> (<span class="fn">valid</span>(node.left, low, node.val) <span class="kw">and</span>  <span class="cmt"># left: ceiling tightens</span></span>
+<span class="code-line">                <span class="fn">valid</span>(node.right, node.val, high))  <span class="cmt"># right: floor tightens</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">return</span> <span class="fn">valid</span>(root, <span class="fn">float</span>(<span class="num">'-inf'</span>), <span class="fn">float</span>(<span class="num">'inf'</span>))</span>
+</div>
+
+<div class="complexity-grid">
+  <div class="complexity-item">
+    <h3>Time: O(n)</h3>
+    <p class="dim" style="font-size:0.85rem;">Visit every node once. Short-circuits on first violation.</p>
+  </div>
+  <div class="complexity-item">
+    <h3>Space: O(h)</h3>
+    <p class="dim" style="font-size:0.85rem;">Call stack depth = tree height.</p>
+  </div>
+</div>
+
+<div class="callout callout-green">
+<strong>Pattern connection:</strong> The "pass constraints down" pattern appears in many tree problems. Lowest Common Ancestor passes a target to find. Serialize/Deserialize passes bounds to reconstruct. The key insight: parent information flows DOWN through parameters, child information flows UP through return values.
+</div>
+</section>
+
+</div>
+
+<script>
+const EXAMPLES = {
+  ex1: {
+    nodes: [
+      {v:5, x:196, y:20},
+      {v:3, x:96,  y:100},
+      {v:8, x:296, y:100},
+      {v:1, x:46,  y:180},
+      {v:4, x:146, y:180},
+    ],
+    edges: [[0,1],[0,2],[1,3],[1,4]],
+    steps: [
+      {phase:'Start: valid(5, -inf, inf)',phaseCls:'check-phase',active:0,validSet:new Set(),invalidSet:new Set(),
+       bounds:'<span class="bound-low">-inf</span> < <span class="bound-val">5</span> < <span class="bound-high">inf</span> → in range ✓',boundsCls:'checking-bounds',
+       log:'valid(5, -inf, inf): 5 in (-inf, inf)? Yes ✓',logCls:'log-check'},
+      {phase:'Go left: valid(3, -inf, 5)',phaseCls:'check-phase',active:1,validSet:new Set(),invalidSet:new Set(),
+       bounds:'<span class="bound-low">-inf</span> < <span class="bound-val">3</span> < <span class="bound-high">5</span> → in range ✓ (ceiling tightened to 5)',boundsCls:'checking-bounds',
+       log:'  valid(3, -inf, 5): 3 in (-inf, 5)? Yes ✓ [ceiling=5 from parent]',logCls:'log-check'},
+      {phase:'Go left: valid(1, -inf, 3)',phaseCls:'check-phase',active:3,validSet:new Set(),invalidSet:new Set(),
+       bounds:'<span class="bound-low">-inf</span> < <span class="bound-val">1</span> < <span class="bound-high">3</span> → in range ✓',boundsCls:'checking-bounds',
+       log:'    valid(1, -inf, 3): 1 in (-inf, 3)? Yes ✓',logCls:'log-check'},
+      {phase:'Node 1: children None → True',phaseCls:'valid-phase',active:3,validSet:new Set([3]),invalidSet:new Set(),
+       bounds:'Both children None → return True',boundsCls:'valid-bounds',
+       log:'    Both children None → True',logCls:'log-null'},
+      {phase:'Go right: valid(4, 3, 5)',phaseCls:'check-phase',active:4,validSet:new Set([3]),invalidSet:new Set(),
+       bounds:'<span class="bound-low">3</span> < <span class="bound-val">4</span> < <span class="bound-high">5</span> → in range ✓ (floor=3, ceiling=5)',boundsCls:'checking-bounds',
+       log:'    valid(4, 3, 5): 4 in (3, 5)? Yes ✓ [floor=3 from parent, ceiling=5 from grandparent!]',logCls:'log-check'},
+      {phase:'Node 4: children None → True',phaseCls:'valid-phase',active:4,validSet:new Set([3,4]),invalidSet:new Set(),
+       bounds:'Both children None → return True',boundsCls:'valid-bounds',
+       log:'    Both children None → True',logCls:'log-null'},
+      {phase:'Node 3: left=True AND right=True → True',phaseCls:'valid-phase',active:1,validSet:new Set([1,3,4]),invalidSet:new Set(),
+       bounds:'valid(3): True and True → True ✓',boundsCls:'valid-bounds',
+       log:'  valid(3): True and True → True ✓',logCls:'log-valid'},
+      {phase:'Go right: valid(8, 5, inf)',phaseCls:'check-phase',active:2,validSet:new Set([1,3,4]),invalidSet:new Set(),
+       bounds:'<span class="bound-low">5</span> < <span class="bound-val">8</span> < <span class="bound-high">inf</span> → in range ✓ (floor tightened to 5)',boundsCls:'checking-bounds',
+       log:'  valid(8, 5, inf): 8 in (5, inf)? Yes ✓ [floor=5 from parent]',logCls:'log-check'},
+      {phase:'Node 8: children None → True',phaseCls:'valid-phase',active:2,validSet:new Set([1,2,3,4]),invalidSet:new Set(),
+       bounds:'Both children None → return True',boundsCls:'valid-bounds',
+       log:'  Both children None → True',logCls:'log-null'},
+      {phase:'Root 5: left=True AND right=True → Valid BST!',phaseCls:'done-phase',active:-1,validSet:new Set([0,1,2,3,4]),invalidSet:new Set(),
+       bounds:'All nodes valid → return True ✓',boundsCls:'valid-bounds',
+       log:'valid(5): True and True → True! Valid BST!',logCls:'log-done'},
+    ]
+  },
+  ex2: {
+    nodes: [
+      {v:5, x:196, y:20},
+      {v:1, x:96,  y:100},
+      {v:4, x:296, y:100},
+      {v:3, x:246, y:180},
+      {v:6, x:346, y:180},
+    ],
+    edges: [[0,1],[0,2],[2,3],[2,4]],
+    steps: [
+      {phase:'Start: valid(5, -inf, inf)',phaseCls:'check-phase',active:0,validSet:new Set(),invalidSet:new Set(),
+       bounds:'<span class="bound-low">-inf</span> < <span class="bound-val">5</span> < <span class="bound-high">inf</span> → in range ✓',boundsCls:'checking-bounds',
+       log:'valid(5, -inf, inf): 5 in (-inf, inf)? Yes ✓',logCls:'log-check'},
+      {phase:'Go left: valid(1, -inf, 5)',phaseCls:'check-phase',active:1,validSet:new Set(),invalidSet:new Set(),
+       bounds:'<span class="bound-low">-inf</span> < <span class="bound-val">1</span> < <span class="bound-high">5</span> → in range ✓',boundsCls:'checking-bounds',
+       log:'  valid(1, -inf, 5): 1 in (-inf, 5)? Yes ✓',logCls:'log-check'},
+      {phase:'Node 1: children None → True',phaseCls:'valid-phase',active:1,validSet:new Set([1]),invalidSet:new Set(),
+       bounds:'Both children None → return True',boundsCls:'valid-bounds',
+       log:'  Both children None → True',logCls:'log-null'},
+      {phase:'Go right: valid(4, 5, inf)',phaseCls:'check-phase',active:2,validSet:new Set([1]),invalidSet:new Set(),
+       bounds:'<span class="bound-low">5</span> < <span class="bound-val">4</span> < <span class="bound-high">inf</span> → 4 NOT > 5 ✗ INVALID!',boundsCls:'invalid-bounds',
+       log:'  valid(4, 5, inf): 4 in (5, inf)? 4 ≤ 5 → FALSE! Node 4 violates the bound!',logCls:'log-invalid'},
+      {phase:'INVALID BST! Node 4 must be > 5 (in right subtree)',phaseCls:'invalid-phase',active:-1,validSet:new Set([1]),invalidSet:new Set([2]),
+       bounds:'Node 4 is in 5\'s right subtree but 4 < 5 → not a valid BST',boundsCls:'invalid-bounds',
+       log:'Return False. Node 4 is right child of 5 but 4 < 5. Invalid BST.',logCls:'log-invalid'},
+    ]
+  }
+};
+
+let activeEx = 'ex1';
+let exData;
+function loadExample() { exData = EXAMPLES[activeEx]; }
+loadExample();
+
+function switchExample(key) {
+  if (playInterval) togglePlay();
+  activeEx = key; loadExample(); current = 0;
+  document.querySelectorAll('.ex-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.ex-tab[data-ex="${key}"]`).classList.add('active');
+  drawTree(); render();
+}
+
+function drawTree() {
+  const container = document.getElementById('tree-container');
+  let html = '';
+  for (const [from, to] of exData.edges) {
+    const n1 = exData.nodes[from], n2 = exData.nodes[to];
+    const dx = n2.x - n1.x, dy = n2.y - n1.y;
+    const len = Math.sqrt(dx*dx + dy*dy);
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    html += `<div class="tree-edge" id="edge-${from}-${to}" style="left:${n1.x+25}px;top:${n1.y+25}px;width:${len-25}px;transform:rotate(${angle}deg);"></div>`;
+  }
+  for (let i = 0; i < exData.nodes.length; i++) {
+    const n = exData.nodes[i];
+    html += `<div class="tree-nd" id="node-${i}" style="left:${n.x}px;top:${n.y}px;">${n.v}</div>`;
+  }
+  container.innerHTML = html;
+}
+
+let current = 0;
+let playInterval = null;
+
+function render() {
+  const s = exData.steps[current];
+
+  document.getElementById('phase').textContent = s.phase;
+  document.getElementById('phase').className = 'phase-inner ' + s.phaseCls;
+
+  for (let i = 0; i < exData.nodes.length; i++) {
+    const el = document.getElementById('node-' + i);
+    let cls = 'tree-nd';
+    if (s.invalidSet.has(i)) cls += ' invalid-nd';
+    else if (i === s.active && (s.phaseCls === 'check-phase')) cls += ' checking';
+    else if (s.validSet.has(i)) cls += ' valid-nd';
+    else if (s.active >= 0 && i !== s.active && !s.validSet.has(i)) cls += ' inactive';
+    el.className = cls;
+  }
+
+  for (const [from, to] of exData.edges) {
+    const el = document.getElementById('edge-' + from + '-' + to);
+    el.className = (s.validSet.has(from) && s.validSet.has(to)) ? 'tree-edge valid-edge' : 'tree-edge';
+  }
+
+  const boundsEl = document.getElementById('bounds');
+  boundsEl.innerHTML = s.bounds;
+  boundsEl.className = 'bounds-inner ' + s.boundsCls;
+
+  const logEl = document.getElementById('log');
+  let logHtml = '';
+  for (let i = 0; i <= current; i++) {
+    logHtml += `<div class="${exData.steps[i].logCls}">${exData.steps[i].log}</div>`;
+  }
+  logEl.innerHTML = logHtml;
+  logEl.scrollTop = logEl.scrollHeight;
+
+  document.getElementById('step-label').textContent = `Step ${current} / ${exData.steps.length - 1}`;
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current >= exData.steps.length - 1;
+}
+
+function stepForward() { if (current < exData.steps.length - 1) { current++; render(); } else if (playInterval) togglePlay(); }
+function stepBack() { if (current > 0) { current--; render(); } }
+function resetSim() { if (playInterval) togglePlay(); current = 0; render(); }
+function togglePlay() {
+  if (playInterval) { clearInterval(playInterval); playInterval = null; document.getElementById('btn-play').textContent = '▶ Auto'; }
+  else { document.getElementById('btn-play').textContent = '⏸ Pause'; playInterval = setInterval(() => { if (current >= exData.steps.length - 1) { togglePlay(); return; } stepForward(); }, 1500); }
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); stepForward(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); stepBack(); }
+  if (e.key === 'r') resetSim();
+});
+drawTree(); render();
+</script>
+</body>
+</html>

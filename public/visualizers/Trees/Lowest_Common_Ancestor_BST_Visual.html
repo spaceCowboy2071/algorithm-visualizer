@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lowest Common Ancestor of BST — Visual Walkthrough</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--surface2:#1c2333;--border:#30363d;--text:#e6edf3;--text-dim:#8b949e;--accent:#58a6ff;--green:#2ea043;--green-glow:#3fb950;--orange:#f0883e;--red:#f78166;--purple:#d2a8ff;--cyan:#79c0ff;--yellow:#e3b341;--code-bg:#0d1117;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.6;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+header{text-align:center;padding:3rem 0 2rem;position:relative;}
+header::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(210,168,255,0.08) 0%,transparent 70%);pointer-events:none;}
+h1{font-size:2.2rem;font-weight:700;letter-spacing:-0.03em;background:linear-gradient(135deg,var(--purple),var(--yellow));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.25rem;}
+.subtitle{color:var(--text-dim);font-size:0.95rem;}
+.tag{display:inline-block;padding:0.2rem 0.65rem;border-radius:99px;font-size:0.75rem;font-weight:600;margin:0.75rem 0.2rem 0;}
+.tag-pattern{background:rgba(210,168,255,0.15);color:var(--purple);}
+.tag-med{background:rgba(240,136,62,0.15);color:var(--orange);}
+.tag-tree{background:rgba(210,168,255,0.15);color:var(--purple);}
+section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;margin:1.5rem 0;position:relative;overflow:hidden;}
+section::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--purple),var(--yellow),var(--green-glow));border-radius:12px 12px 0 0;}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:1rem;}
+p{margin-bottom:0.75rem;font-size:0.95rem;}
+.dim{color:var(--text-dim);}
+code{font-family:'JetBrains Mono',monospace;font-size:0.85em;background:var(--surface2);padding:0.1rem 0.4rem;border-radius:4px;}
+.callout{background:rgba(240,136,62,0.08);border-left:3px solid var(--orange);padding:0.75rem 1rem;border-radius:0 8px 8px 0;margin:1rem 0;font-size:0.9rem;}
+.callout strong{color:var(--orange);}
+.callout-green{background:rgba(46,160,67,0.08);border-left-color:var(--green);}
+.callout-green strong{color:var(--green-glow);}
+
+/* Tree */
+.tree-container{position:relative;width:100%;max-width:480px;margin:1rem auto;height:280px;}
+.tree-nd{position:absolute;width:48px;height:48px;border-radius:50%;border:2px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;transition:all 0.4s;z-index:2;}
+.tree-nd .nd-label{position:absolute;top:-16px;font-size:0.55rem;font-weight:700;white-space:nowrap;}
+.tree-nd.cur-nd{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 14px rgba(121,192,255,0.5);}
+.tree-nd.p-nd{border-color:var(--orange);color:var(--orange);box-shadow:0 0 10px rgba(240,136,62,0.4);}
+.tree-nd.q-nd{border-color:var(--purple);color:var(--purple);box-shadow:0 0 10px rgba(210,168,255,0.4);}
+.tree-nd.found-nd{border-color:var(--green);color:var(--green-glow);box-shadow:0 0 16px rgba(46,160,67,0.5);background:rgba(46,160,67,0.15);}
+.tree-nd.visited{border-color:var(--text-dim);color:var(--text-dim);opacity:0.35;}
+.tree-nd.inactive{opacity:0.2;}
+.tree-edge{position:absolute;height:2px;background:var(--border);transform-origin:left center;z-index:1;}
+.tree-edge.path-edge{background:var(--cyan);box-shadow:0 0 4px rgba(121,192,255,0.3);}
+
+/* Decision display */
+.decision-box{text-align:center;margin:1rem 0;}
+.decision-inner{display:inline-block;padding:0.5rem 1.5rem;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:0.85rem;font-weight:600;border:1.5px solid var(--border);background:var(--surface2);transition:all 0.3s;min-width:300px;}
+.decision-inner.go-left{border-color:var(--cyan);color:var(--cyan);}
+.decision-inner.go-right{border-color:var(--orange);color:var(--orange);}
+.decision-inner.split{border-color:var(--green);color:var(--green-glow);}
+
+/* Log */
+.status-bar{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;font-family:'JetBrains Mono',monospace;font-size:0.72rem;line-height:1.7;min-height:80px;max-height:200px;overflow-y:auto;margin:0.75rem 0;}
+.log-left{color:var(--cyan);}.log-right{color:var(--orange);}.log-found{color:var(--green-glow);font-weight:700;}.log-init{color:var(--text-dim);}
+
+/* Controls */
+.controls{display:flex;gap:0.75rem;justify-content:center;align-items:center;margin:1rem 0;flex-wrap:wrap;}
+button{font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;padding:0.5rem 1.25rem;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;transition:all 0.2s;}
+button:hover{background:rgba(88,166,255,0.1);border-color:var(--accent);color:var(--accent);}
+button.primary{background:rgba(210,168,255,0.15);border-color:var(--purple);color:var(--purple);}
+button:disabled{opacity:0.3;cursor:not-allowed;}
+.ex-tab{transition:all 0.2s;}.ex-tab.active{background:rgba(210,168,255,0.2);border-color:var(--purple);color:var(--purple);}
+.step-counter{font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text-dim);min-width:100px;text-align:center;}
+
+/* Code */
+.code-block{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;font-family:'JetBrains Mono',monospace;font-size:0.8rem;line-height:1.8;overflow-x:auto;counter-reset:line;margin:1rem 0;}
+.code-line{display:block;padding:0 0.5rem;border-radius:3px;white-space:pre;transition:background 0.3s;}
+.code-line::before{counter-increment:line;content:counter(line);display:inline-block;width:2rem;margin-right:1rem;text-align:right;color:#484f58;font-size:0.72rem;}
+.kw{color:#ff7b72;}.fn{color:#d2a8ff;}.num{color:#79c0ff;}.cmt{color:#484f58;font-style:italic;}
+
+.complexity-grid{display:flex;gap:2rem;flex-wrap:wrap;margin:1rem 0;}
+.complexity-item{flex:1;min-width:200px;}
+.complexity-item h3{font-size:1.1rem;font-weight:600;color:var(--accent);margin:0 0 0.25rem;}
+
+@media(max-width:700px){h1{font-size:1.7rem;}section{padding:1.25rem;}.tree-nd{width:40px;height:40px;font-size:0.9rem;}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+<h1>Lowest Common Ancestor of BST</h1>
+<p class="subtitle">LeetCode #235 — Find the Split Point</p>
+<div>
+  <span class="tag tag-pattern">BST Property (split point)</span>
+  <span class="tag tag-med">Medium</span>
+  <span class="tag tag-tree">Trees</span>
+</div>
+</header>
+
+<section>
+<h2>1 — What's the problem?</h2>
+<p>Find the deepest node that has both <code>p</code> and <code>q</code> as descendants in a BST.</p>
+<div class="callout">
+<strong>The BST shortcut:</strong> Because values are sorted, you just walk one path. If both p and q are less than cur → go left. Both greater → go right. Otherwise they split (or one equals cur) → that's the LCA. No need to visit both subtrees.
+</div>
+<div class="callout callout-green">
+<strong>O(h) not O(n):</strong> You only walk one path from root to the answer. This is faster than the generic binary tree LCA which must explore both subtrees.
+</div>
+</section>
+
+<section>
+<h2>2 — Step through it</h2>
+<p class="dim">Watch cur walk down the tree following the BST property until p and q split to different sides.</p>
+
+<div style="display:flex;gap:0.5rem;justify-content:center;margin:1rem 0;flex-wrap:wrap;">
+  <button class="ex-tab active" data-ex="ex1" onclick="switchExample('ex1')" style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;">p=2, q=8 → LCA=6</button>
+  <button class="ex-tab" data-ex="ex2" onclick="switchExample('ex2')" style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;">p=2, q=4 → LCA=2</button>
+  <button class="ex-tab" data-ex="ex3" onclick="switchExample('ex3')" style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;">p=0, q=5 → LCA=2</button>
+</div>
+
+<div style="display:flex;justify-content:center;gap:1rem;margin:0.5rem 0;font-size:0.7rem;font-family:'JetBrains Mono',monospace;flex-wrap:wrap;">
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:50%;border:2px solid var(--cyan);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--cyan);">cur</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:50%;border:2px solid var(--orange);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--orange);">p</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:50%;border:2px solid var(--purple);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--purple);">q</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:50%;border:2px solid var(--green);background:rgba(46,160,67,0.15);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--green-glow);">LCA found</span></span>
+</div>
+
+<div class="decision-box"><div class="decision-inner" id="decision">—</div></div>
+
+<div class="tree-container" id="tree-container"></div>
+
+<div class="status-bar" id="log"></div>
+
+<div class="controls">
+  <button onclick="resetSim()">Reset</button>
+  <button onclick="stepBack()" id="btn-prev">← Back</button>
+  <span class="step-counter" id="step-label">Step 0 / 0</span>
+  <button class="primary" onclick="stepForward()" id="btn-next">Next →</button>
+  <button onclick="togglePlay()" id="btn-play">▶ Auto</button>
+</div>
+</section>
+
+<section>
+<h2>3 — Complete implementation</h2>
+<div class="code-block">
+<span class="code-line"><span class="kw">def</span> <span class="fn">lowestCommonAncestor</span>(self, root, p, q):</span>
+<span class="code-line">    cur = root</span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">while</span> cur:</span>
+<span class="code-line">        <span class="kw">if</span> p.val > cur.val <span class="kw">and</span> q.val > cur.val:</span>
+<span class="code-line">            cur = cur.right       <span class="cmt"># both greater → go right</span></span>
+<span class="code-line">        <span class="kw">elif</span> p.val < cur.val <span class="kw">and</span> q.val < cur.val:</span>
+<span class="code-line">            cur = cur.left        <span class="cmt"># both less → go left</span></span>
+<span class="code-line">        <span class="kw">else</span>:</span>
+<span class="code-line">            <span class="kw">return</span> cur            <span class="cmt"># split (or match) → LCA!</span></span>
+</div>
+
+<div class="complexity-grid">
+  <div class="complexity-item">
+    <h3>Time: O(h)</h3>
+    <p class="dim" style="font-size:0.85rem;">Walk one path from root to LCA. O(log n) balanced, O(n) skewed.</p>
+  </div>
+  <div class="complexity-item">
+    <h3>Space: O(1)</h3>
+    <p class="dim" style="font-size:0.85rem;">Iterative — just one pointer variable.</p>
+  </div>
+</div>
+
+<div class="callout callout-green">
+<strong>Pattern connection:</strong> This BST-walk-one-path technique also applies to Search in BST, Insert into BST, and Delete from BST. The "exploit sorted property to avoid exploring both subtrees" is the fundamental advantage of a BST over a generic binary tree.
+</div>
+</section>
+
+</div>
+
+<script>
+/*
+Tree:       6
+           / \
+          2   8
+         / \ / \
+        0  4 7  9
+          / \
+         3   5
+*/
+const NODES = [
+  {v:6, x:216, y:15},
+  {v:2, x:106, y:85},
+  {v:8, x:326, y:85},
+  {v:0, x:56,  y:160},
+  {v:4, x:156, y:160},
+  {v:7, x:276, y:160},
+  {v:9, x:376, y:160},
+  {v:3, x:126, y:235},
+  {v:5, x:186, y:235},
+];
+const EDGES = [[0,1],[0,2],[1,3],[1,4],[2,5],[2,6],[4,7],[4,8]];
+
+function nodeIdx(val) { return NODES.findIndex(n => n.v === val); }
+
+const EXAMPLES = {
+  ex1: {
+    p: 2, q: 8,
+    steps: [
+      {cur:6, decision:'p=2, q=8. Both on different sides of 6 → SPLIT!', decCls:'split', found:true,
+       log:'cur=6: p(2)<6 but q(8)>6 → split! LCA = 6', logCls:'log-found'},
+    ]
+  },
+  ex2: {
+    p: 2, q: 4,
+    steps: [
+      {cur:6, decision:'p=2, q=4. Both < 6 → go LEFT', decCls:'go-left', found:false,
+       log:'cur=6: p(2)<6 and q(4)<6 → both less, go left', logCls:'log-left'},
+      {cur:2, decision:'p=2, q=4. p equals cur! → SPLIT (node is its own ancestor)', decCls:'split', found:true,
+       log:'cur=2: p(2)==cur → split! LCA = 2 (node is its own ancestor)', logCls:'log-found'},
+    ]
+  },
+  ex3: {
+    p: 0, q: 5,
+    steps: [
+      {cur:6, decision:'p=0, q=5. Both < 6 → go LEFT', decCls:'go-left', found:false,
+       log:'cur=6: p(0)<6 and q(5)<6 → both less, go left', logCls:'log-left'},
+      {cur:2, decision:'p=0, q=5. p(0)<2 but q(5)>2 → SPLIT!', decCls:'split', found:true,
+       log:'cur=2: p(0)<2 but q(5)>2 → split! LCA = 2', logCls:'log-found'},
+    ]
+  }
+};
+
+let activeEx = 'ex1';
+let exData;
+function loadExample() { exData = EXAMPLES[activeEx]; }
+loadExample();
+
+function switchExample(key) {
+  if (playInterval) togglePlay();
+  activeEx = key; loadExample(); current = 0;
+  document.querySelectorAll('.ex-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.ex-tab[data-ex="${key}"]`).classList.add('active');
+  drawTree(); render();
+}
+
+function drawTree() {
+  const container = document.getElementById('tree-container');
+  let html = '';
+  for (const [from, to] of EDGES) {
+    const n1 = NODES[from], n2 = NODES[to];
+    const dx = n2.x - n1.x, dy = n2.y - n1.y;
+    const len = Math.sqrt(dx*dx + dy*dy);
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    html += `<div class="tree-edge" id="edge-${from}-${to}" style="left:${n1.x+24}px;top:${n1.y+24}px;width:${len-24}px;transform:rotate(${angle}deg);"></div>`;
+  }
+  for (let i = 0; i < NODES.length; i++) {
+    const n = NODES[i];
+    html += `<div class="tree-nd" id="node-${i}" style="left:${n.x}px;top:${n.y}px;">${n.v}</div>`;
+  }
+  container.innerHTML = html;
+}
+
+let current = 0;
+let playInterval = null;
+
+function getPath(curVal) {
+  const path = [];
+  let c = 0;
+  const visited = [0];
+  for (let i = 0; i < current; i++) {
+    const s = exData.steps[i];
+    if (!s.found) {
+      const nextIdx = nodeIdx(exData.steps[i+1] ? exData.steps[i+1].cur : s.cur);
+      visited.push(nextIdx);
+    }
+  }
+  return visited;
+}
+
+function render() {
+  const s = exData.steps[current];
+  const pIdx = nodeIdx(exData.p);
+  const qIdx = nodeIdx(exData.q);
+  const curIdx = nodeIdx(s.cur);
+
+  // Build visited set
+  const visited = new Set();
+  for (let i = 0; i < current; i++) {
+    visited.add(nodeIdx(exData.steps[i].cur));
+  }
+
+  // Decision
+  const decEl = document.getElementById('decision');
+  decEl.textContent = s.decision;
+  decEl.className = 'decision-inner ' + s.decCls;
+
+  // Update nodes
+  for (let i = 0; i < NODES.length; i++) {
+    const el = document.getElementById('node-' + i);
+    let cls = 'tree-nd';
+    let label = '';
+
+    if (s.found && i === curIdx) {
+      cls += ' found-nd';
+      label = '<span class="nd-label" style="color:var(--green-glow);">LCA!</span>';
+    } else if (i === curIdx) {
+      cls += ' cur-nd';
+      label = '<span class="nd-label" style="color:var(--cyan);">cur</span>';
+    } else if (i === pIdx) {
+      cls += ' p-nd';
+      label = '<span class="nd-label" style="color:var(--orange);">p</span>';
+    } else if (i === qIdx) {
+      cls += ' q-nd';
+      label = '<span class="nd-label" style="color:var(--purple);">q</span>';
+    } else if (visited.has(i)) {
+      cls += ' visited';
+    } else {
+      cls += ' inactive';
+    }
+
+    el.className = cls;
+    el.innerHTML = label + NODES[i].v;
+  }
+
+  // Highlight path edges
+  for (const [from, to] of EDGES) {
+    const el = document.getElementById('edge-' + from + '-' + to);
+    const fromVisited = visited.has(from) || from === curIdx;
+    const toVisited = visited.has(to) || to === curIdx;
+    el.className = (fromVisited && toVisited) ? 'tree-edge path-edge' : 'tree-edge';
+  }
+
+  // Log
+  const logEl = document.getElementById('log');
+  let logHtml = '<div class="log-init">cur = root (node 6). Find LCA of p=' + exData.p + ', q=' + exData.q + '</div>';
+  for (let i = 0; i <= current; i++) {
+    logHtml += `<div class="${exData.steps[i].logCls}">${exData.steps[i].log}</div>`;
+  }
+  logEl.innerHTML = logHtml;
+  logEl.scrollTop = logEl.scrollHeight;
+
+  document.getElementById('step-label').textContent = `Step ${current} / ${exData.steps.length - 1}`;
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current >= exData.steps.length - 1;
+}
+
+function stepForward() { if (current < exData.steps.length - 1) { current++; render(); } else if (playInterval) togglePlay(); }
+function stepBack() { if (current > 0) { current--; render(); } }
+function resetSim() { if (playInterval) togglePlay(); current = 0; render(); }
+function togglePlay() {
+  if (playInterval) { clearInterval(playInterval); playInterval = null; document.getElementById('btn-play').textContent = '▶ Auto'; }
+  else { document.getElementById('btn-play').textContent = '⏸ Pause'; playInterval = setInterval(() => { if (current >= exData.steps.length - 1) { togglePlay(); return; } stepForward(); }, 1500); }
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); stepForward(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); stepBack(); }
+  if (e.key === 'r') resetSim();
+});
+drawTree(); render();
+</script>
+</body>
+</html>

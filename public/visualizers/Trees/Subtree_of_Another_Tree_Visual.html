@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subtree of Another Tree — Visual Walkthrough</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--surface2:#1c2333;--border:#30363d;--text:#e6edf3;--text-dim:#8b949e;--accent:#58a6ff;--green:#2ea043;--green-glow:#3fb950;--orange:#f0883e;--red:#f78166;--purple:#d2a8ff;--cyan:#79c0ff;--yellow:#e3b341;--code-bg:#0d1117;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.6;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+header{text-align:center;padding:3rem 0 2rem;position:relative;}
+header::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(210,168,255,0.08) 0%,transparent 70%);pointer-events:none;}
+h1{font-size:2.2rem;font-weight:700;letter-spacing:-0.03em;background:linear-gradient(135deg,var(--purple),var(--green-glow));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.25rem;}
+.subtitle{color:var(--text-dim);font-size:0.95rem;}
+.tag{display:inline-block;padding:0.2rem 0.65rem;border-radius:99px;font-size:0.75rem;font-weight:600;margin:0.75rem 0.2rem 0;}
+.tag-pattern{background:rgba(210,168,255,0.15);color:var(--purple);}
+.tag-easy{background:rgba(0,135,90,0.15);color:#00875A;}
+.tag-tree{background:rgba(210,168,255,0.15);color:var(--purple);}
+section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;margin:1.5rem 0;position:relative;overflow:hidden;}
+section::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--purple),var(--cyan),var(--green-glow));border-radius:12px 12px 0 0;}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:1rem;}
+p{margin-bottom:0.75rem;font-size:0.95rem;}
+.dim{color:var(--text-dim);}
+code{font-family:'JetBrains Mono',monospace;font-size:0.85em;background:var(--surface2);padding:0.1rem 0.4rem;border-radius:4px;}
+.callout{background:rgba(240,136,62,0.08);border-left:3px solid var(--orange);padding:0.75rem 1rem;border-radius:0 8px 8px 0;margin:1rem 0;font-size:0.9rem;}
+.callout strong{color:var(--orange);}
+.callout-green{background:rgba(46,160,67,0.08);border-left-color:var(--green);}
+.callout-green strong{color:var(--green-glow);}
+
+/* Trees side by side */
+.trees-row{display:flex;gap:1.5rem;justify-content:center;align-items:flex-start;flex-wrap:wrap;margin:1rem 0;}
+.tree-panel{min-width:200px;}
+.tree-label{font-family:'JetBrains Mono',monospace;font-size:0.75rem;font-weight:600;text-align:center;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.05em;}
+.tree-label.root-label{color:var(--cyan);}
+.tree-label.sub-label{color:var(--purple);}
+
+/* Phase */
+.phase-box{text-align:center;margin:0.75rem 0;}
+.phase-inner{display:inline-block;padding:0.5rem 1.5rem;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:0.82rem;font-weight:600;border:1.5px solid var(--border);background:var(--surface2);transition:all 0.3s;min-width:260px;}
+.phase-inner.search{border-color:var(--cyan);color:var(--cyan);}
+.phase-inner.verify{border-color:var(--purple);color:var(--purple);}
+.phase-inner.fail-v{border-color:var(--red);color:var(--red);}
+.phase-inner.found{border-color:var(--green);color:var(--green-glow);}
+
+/* Log */
+.status-bar{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;font-family:'JetBrains Mono',monospace;font-size:0.7rem;line-height:1.7;min-height:80px;max-height:220px;overflow-y:auto;margin:0.75rem 0;}
+.log-search{color:var(--cyan);}.log-verify{color:var(--purple);}.log-match{color:var(--green-glow);font-weight:600;}.log-fail{color:var(--red);}.log-done{color:var(--green-glow);font-weight:700;}.log-init{color:var(--text-dim);}
+
+/* Controls */
+.controls{display:flex;gap:0.75rem;justify-content:center;align-items:center;margin:1rem 0;flex-wrap:wrap;}
+button{font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;padding:0.5rem 1.25rem;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;transition:all 0.2s;}
+button:hover{background:rgba(88,166,255,0.1);border-color:var(--accent);color:var(--accent);}
+button.primary{background:rgba(210,168,255,0.15);border-color:var(--purple);color:var(--purple);}
+button:disabled{opacity:0.3;cursor:not-allowed;}
+.step-counter{font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text-dim);min-width:100px;text-align:center;}
+
+/* Code */
+.code-block{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;font-family:'JetBrains Mono',monospace;font-size:0.78rem;line-height:1.8;overflow-x:auto;counter-reset:line;margin:1rem 0;}
+.code-line{display:block;padding:0 0.5rem;border-radius:3px;white-space:pre;transition:background 0.3s;}
+.code-line::before{counter-increment:line;content:counter(line);display:inline-block;width:2rem;margin-right:1rem;text-align:right;color:#484f58;font-size:0.7rem;}
+.kw{color:#ff7b72;}.fn{color:#d2a8ff;}.num{color:#79c0ff;}.cmt{color:#484f58;font-style:italic;}
+
+.complexity-grid{display:flex;gap:2rem;flex-wrap:wrap;margin:1rem 0;}
+.complexity-item{flex:1;min-width:200px;}
+.complexity-item h3{font-size:1.1rem;font-weight:600;color:var(--accent);margin:0 0 0.25rem;}
+
+@media(max-width:700px){h1{font-size:1.7rem;}section{padding:1.25rem;}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+<h1>Subtree of Another Tree</h1>
+<p class="subtitle">LeetCode #572 — DFS Search + Same Tree Verify</p>
+<div>
+  <span class="tag tag-pattern">DFS + isSameTree</span>
+  <span class="tag tag-easy">Easy</span>
+  <span class="tag tag-tree">Trees</span>
+</div>
+</header>
+
+<section>
+<h2>1 — What's the problem?</h2>
+<p>Return <code>True</code> if <code>subRoot</code> is an exact subtree of <code>root</code> — matching structure and values.</p>
+
+<div class="callout">
+<strong>Two layers:</strong> <code>isSubtree</code> is the detective searching room by room (walks root with <code>or</code>). <code>isSameTree</code> opens each door and checks if everything matches (verifies with <code>and</code>).
+</div>
+
+<div class="callout callout-green">
+<strong>Reuses Same Tree:</strong> You wrote <code>isSameTree</code> already — it's unchanged here. <code>isSubtree</code> just calls it at every node in root.
+</div>
+</section>
+
+<section>
+<h2>2 — Step through it</h2>
+<p class="dim">Cyan = isSubtree searching. Purple = isSameTree verifying. Green = match found.</p>
+
+<div style="display:flex;justify-content:center;gap:1rem;margin:0.5rem 0;font-size:0.7rem;font-family:'JetBrains Mono',monospace;flex-wrap:wrap;">
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--cyan);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--cyan);">isSubtree (search)</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--purple);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--purple);">isSameTree (verify)</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--green);background:rgba(46,160,67,0.1);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--green-glow);">Match!</span></span>
+</div>
+
+<div class="phase-box"><div class="phase-inner" id="phase">—</div></div>
+
+<div class="trees-row">
+  <div class="tree-panel">
+    <div class="tree-label root-label">root</div>
+    <svg id="tree-root" width="260" height="200" viewBox="0 0 260 200"></svg>
+  </div>
+  <div class="tree-panel">
+    <div class="tree-label sub-label">subRoot</div>
+    <svg id="tree-sub" width="200" height="140" viewBox="0 0 200 140"></svg>
+  </div>
+</div>
+
+<div class="status-bar" id="log"></div>
+
+<div class="controls">
+  <button onclick="resetSim()">Reset</button>
+  <button onclick="stepBack()" id="btn-prev">← Back</button>
+  <span class="step-counter" id="step-label">Step 0 / 0</span>
+  <button class="primary" onclick="stepForward()" id="btn-next">Next →</button>
+  <button onclick="togglePlay()" id="btn-play">▶ Auto</button>
+</div>
+</section>
+
+<section>
+<h2>3 — Complete implementation</h2>
+<div class="code-block">
+<span class="code-line"><span class="kw">def</span> <span class="fn">isSubtree</span>(self, root, subRoot):         <span class="cmt"># SEARCH</span></span>
+<span class="code-line">    <span class="kw">if not</span> subRoot:                          <span class="cmt"># empty subtree = always True</span></span>
+<span class="code-line">        <span class="kw">return</span> <span class="num">True</span></span>
+<span class="code-line">    <span class="kw">if not</span> root:                              <span class="cmt"># ran out of tree</span></span>
+<span class="code-line">        <span class="kw">return</span> <span class="num">False</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">if</span> self.<span class="fn">isSameTree</span>(root, subRoot):        <span class="cmt"># check THIS node</span></span>
+<span class="code-line">        <span class="kw">return</span> <span class="num">True</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">return</span> (self.<span class="fn">isSubtree</span>(root.left, subRoot) <span class="kw">or</span>  <span class="cmt"># search left</span></span>
+<span class="code-line">            self.<span class="fn">isSubtree</span>(root.right, subRoot))   <span class="cmt"># search right</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="kw">def</span> <span class="fn">isSameTree</span>(self, p, q):                    <span class="cmt"># VERIFY</span></span>
+<span class="code-line">    <span class="kw">if not</span> p <span class="kw">and not</span> q: <span class="kw">return</span> <span class="num">True</span>           <span class="cmt"># both None</span></span>
+<span class="code-line">    <span class="kw">if not</span> p <span class="kw">or not</span> q: <span class="kw">return</span> <span class="num">False</span>           <span class="cmt"># one None</span></span>
+<span class="code-line">    <span class="kw">if</span> p.val != q.val: <span class="kw">return</span> <span class="num">False</span>           <span class="cmt"># values differ</span></span>
+<span class="code-line">    <span class="kw">return</span> (self.<span class="fn">isSameTree</span>(p.left, q.left) <span class="kw">and</span></span>
+<span class="code-line">            self.<span class="fn">isSameTree</span>(p.right, q.right))</span>
+</div>
+
+<div class="complexity-grid">
+  <div class="complexity-item">
+    <h3>Time: O(n × m)</h3>
+    <p class="dim" style="font-size:0.85rem;">For each of n nodes in root, isSameTree may check up to m nodes in subRoot.</p>
+  </div>
+  <div class="complexity-item">
+    <h3>Space: O(h)</h3>
+    <p class="dim" style="font-size:0.85rem;">Call stack depth = height of root tree.</p>
+  </div>
+</div>
+
+<div class="callout callout-green">
+<strong>Pattern connection:</strong> This "search + verify" two-layer approach appears whenever you need to find a pattern within a larger structure. The key insight: <code>isSubtree</code> uses <code>or</code> (find it ANYWHERE), <code>isSameTree</code> uses <code>and</code> (ALL must match).
+</div>
+</section>
+
+</div>
+
+<script>
+/*
+root:       3          subRoot:   4
+           / \                   / \
+          4   5                 1   2
+         / \
+        1   2
+
+root nodes: 0=3, 1=4, 2=5, 3=1, 4=2
+sub nodes:  0=4, 1=1, 2=2
+*/
+
+const ROOT_NODES = [
+  {v:3, x:130, y:30},
+  {v:4, x:65,  y:100},
+  {v:5, x:195, y:100},
+  {v:1, x:33,  y:170},
+  {v:2, x:97,  y:170},
+];
+const ROOT_EDGES = [[0,1],[0,2],[1,3],[1,4]];
+
+const SUB_NODES = [
+  {v:4, x:100, y:25},
+  {v:1, x:50,  y:95},
+  {v:2, x:150, y:95},
+];
+const SUB_EDGES = [[0,1],[0,2]];
+
+const steps = [
+  // Init
+  {phase:'Start: isSubtree(3, subRoot)', phaseCls:'search',
+   rootHL:new Set(), rootActive:0, rootFail:new Set(), rootMatch:new Set(),
+   subHL:new Set(), subActive:-1, subFail:new Set(), subMatch:new Set(),
+   log:'isSubtree(3, subRoot): start searching', logCls:'log-search'},
+
+  // Try isSameTree at node 3
+  {phase:'Verify: isSameTree(3, 4)?', phaseCls:'verify',
+   rootHL:new Set([0]), rootActive:0, rootFail:new Set(), rootMatch:new Set(),
+   subHL:new Set([0]), subActive:0, subFail:new Set(), subMatch:new Set(),
+   log:'  isSameTree(3, 4): root=3 vs sub=4 → vals differ!', logCls:'log-fail'},
+
+  // isSameTree failed at node 3
+  {phase:'isSameTree → False. Search deeper.', phaseCls:'fail-v',
+   rootHL:new Set(), rootActive:0, rootFail:new Set([0]), rootMatch:new Set(),
+   subHL:new Set(), subActive:-1, subFail:new Set(), subMatch:new Set(),
+   log:'  → False. Node 3 is not the start. Search left...', logCls:'log-fail'},
+
+  // Search left: isSubtree(4, subRoot)
+  {phase:'Search left: isSubtree(4, subRoot)', phaseCls:'search',
+   rootHL:new Set(), rootActive:1, rootFail:new Set([0]), rootMatch:new Set(),
+   subHL:new Set(), subActive:-1, subFail:new Set(), subMatch:new Set(),
+   log:'isSubtree(4, subRoot): try node 4', logCls:'log-search'},
+
+  // Try isSameTree at node 4
+  {phase:'Verify: isSameTree(4, 4)?', phaseCls:'verify',
+   rootHL:new Set([1]), rootActive:1, rootFail:new Set([0]), rootMatch:new Set(),
+   subHL:new Set([0]), subActive:0, subFail:new Set(), subMatch:new Set(),
+   log:'  isSameTree(4, 4): root=4 vs sub=4 → match! Check children...', logCls:'log-verify'},
+
+  // Check left children: 1 vs 1
+  {phase:'Verify: isSameTree(1, 1)?', phaseCls:'verify',
+   rootHL:new Set([1,3]), rootActive:3, rootFail:new Set([0]), rootMatch:new Set(),
+   subHL:new Set([0,1]), subActive:1, subFail:new Set(), subMatch:new Set(),
+   log:'    isSameTree(1, 1): match! Children are both None → True', logCls:'log-match'},
+
+  // Check right children: 2 vs 2
+  {phase:'Verify: isSameTree(2, 2)?', phaseCls:'verify',
+   rootHL:new Set([1,4]), rootActive:4, rootFail:new Set([0]), rootMatch:new Set([3]),
+   subHL:new Set([0,2]), subActive:2, subFail:new Set(), subMatch:new Set([1]),
+   log:'    isSameTree(2, 2): match! Children are both None → True', logCls:'log-match'},
+
+  // isSameTree at 4 returns True
+  {phase:'isSameTree(4, 4) → True!', phaseCls:'found',
+   rootHL:new Set(), rootActive:-1, rootFail:new Set([0]), rootMatch:new Set([1,3,4]),
+   subHL:new Set(), subActive:-1, subFail:new Set(), subMatch:new Set([0,1,2]),
+   log:'  isSameTree(4, 4): left=True AND right=True → True!', logCls:'log-match'},
+
+  // Done
+  {phase:'Found! return True', phaseCls:'found',
+   rootHL:new Set(), rootActive:-1, rootFail:new Set(), rootMatch:new Set([1,3,4]),
+   subHL:new Set(), subActive:-1, subFail:new Set(), subMatch:new Set([0,1,2]),
+   log:'isSubtree → True! subRoot is a subtree of root. (Never checked node 5 — short circuit)', logCls:'log-done'},
+];
+
+let current = 0;
+let playInterval = null;
+
+function drawSVG(svgId, nodes, edges, activeIdx, hlSet, failSet, matchSet) {
+  const svg = document.getElementById(svgId);
+  let html = '';
+
+  for (const [from, to] of edges) {
+    const n1 = nodes[from], n2 = nodes[to];
+    let color = '#30363d';
+    if (matchSet.has(from) && matchSet.has(to)) color = '#3fb950';
+    else if (hlSet.has(from) && hlSet.has(to)) color = '#d2a8ff';
+    html += `<line x1="${n1.x}" y1="${n1.y+18}" x2="${n2.x}" y2="${n2.y-18}" stroke="${color}" stroke-width="2"/>`;
+  }
+
+  for (let i = 0; i < nodes.length; i++) {
+    const n = nodes[i];
+    let fill = '#161b22', stroke = '#30363d', textFill = '#e6edf3', sw = 2;
+
+    if (matchSet.has(i)) {
+      stroke = '#3fb950'; textFill = '#3fb950'; fill = 'rgba(46,160,67,0.12)'; sw = 3;
+    } else if (i === activeIdx && hlSet.size > 0) {
+      stroke = '#d2a8ff'; textFill = '#d2a8ff'; fill = 'rgba(210,168,255,0.1)'; sw = 3;
+    } else if (i === activeIdx) {
+      stroke = '#79c0ff'; textFill = '#79c0ff'; fill = 'rgba(121,192,255,0.1)'; sw = 3;
+    } else if (failSet.has(i)) {
+      stroke = '#f78166'; textFill = '#f78166'; fill = 'rgba(247,129,102,0.08)'; sw = 2;
+    } else if (hlSet.has(i)) {
+      stroke = '#d2a8ff'; textFill = '#d2a8ff'; fill = 'rgba(210,168,255,0.08)';
+    }
+
+    html += `<circle cx="${n.x}" cy="${n.y}" r="20" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+    html += `<text x="${n.x}" y="${n.y+5}" text-anchor="middle" fill="${textFill}" font-family="JetBrains Mono,monospace" font-size="14" font-weight="700">${n.v}</text>`;
+  }
+
+  svg.innerHTML = html;
+}
+
+function render() {
+  const s = steps[current];
+
+  document.getElementById('phase').textContent = s.phase;
+  document.getElementById('phase').className = 'phase-inner ' + s.phaseCls;
+
+  drawSVG('tree-root', ROOT_NODES, ROOT_EDGES, s.rootActive, s.rootHL, s.rootFail, s.rootMatch);
+  drawSVG('tree-sub', SUB_NODES, SUB_EDGES, s.subActive, s.subHL, s.subFail, s.subMatch);
+
+  const logEl = document.getElementById('log');
+  let logHtml = '';
+  for (let i = 0; i <= current; i++) {
+    logHtml += `<div class="${steps[i].logCls}">${steps[i].log}</div>`;
+  }
+  logEl.innerHTML = logHtml;
+  logEl.scrollTop = logEl.scrollHeight;
+
+  document.getElementById('step-label').textContent = `Step ${current} / ${steps.length - 1}`;
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current >= steps.length - 1;
+}
+
+function stepForward() { if (current < steps.length - 1) { current++; render(); } else if (playInterval) togglePlay(); }
+function stepBack() { if (current > 0) { current--; render(); } }
+function resetSim() { if (playInterval) togglePlay(); current = 0; render(); }
+function togglePlay() {
+  if (playInterval) { clearInterval(playInterval); playInterval = null; document.getElementById('btn-play').textContent = '▶ Auto'; }
+  else { document.getElementById('btn-play').textContent = '⏸ Pause'; playInterval = setInterval(() => { if (current >= steps.length - 1) { togglePlay(); return; } stepForward(); }, 1500); }
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); stepForward(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); stepBack(); }
+  if (e.key === 'r') resetSim();
+});
+render();
+</script>
+</body>
+</html>
