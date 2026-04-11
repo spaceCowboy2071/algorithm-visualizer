@@ -10,6 +10,33 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./server/migrations:/docker-entrypoint-initdb.d
+    # Health check: Docker pings PostgreSQL every 3 seconds.
+    # "pg_isready" is a built-in PostgreSQL command that checks if the database
+    # is accepting connections. Express won't start until this passes.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./server
+    ports:
+      - '4000:4000'
+    environment:
+      # Inside Docker, "postgres" is the hostname of the postgres service above.
+      # NOT "localhost" — each container has its own localhost.
+      DATABASE_URL: postgresql://postgres:dev@postgres:5432/algorithmviz
+      JWT_SECRET: dev-jwt-secret-docker
+      REFRESH_TOKEN_SECRET: dev-refresh-secret-docker
+      PORT: '4000'
+      CORS_ORIGIN: http://localhost:5173
+      GOOGLE_CLIENT_ID: placeholder
+    depends_on:
+      postgres:
+        # Wait until PostgreSQL is actually accepting connections,
+        # not just until the container has started.
+        condition: service_healthy
 
 volumes:
   pgdata:

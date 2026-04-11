@@ -1,0 +1,11 @@
+node_modules
+dist
+.env
+.env.example
+tests
+*.test.ts
+vitest.config.ts
+migrations
+docs
+CLAUDE.md
+.gitignore
