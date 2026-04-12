@@ -101,14 +101,14 @@ A comprehensive LeetCode interview preparation platform featuring:
 - **Code Editor**: Monaco Editor (VS Code)
 - **Deployment**: Vercel
 
-### Backend (in progress)
+### Backend
 - **Server**: Node.js + Express 5 + TypeScript
-- **Database**: PostgreSQL 16 (via `pg` connection pool)
+- **Database**: PostgreSQL 16 on AWS RDS (via `pg` connection pool)
 - **Auth**: JWT + bcrypt + Google OAuth + refresh token rotation
 - **Validation**: Zod (runtime request validation)
 - **Security**: express-rate-limit, httpOnly cookies, SHA-256 token hashing
-- **Containerization**: Docker Compose (PostgreSQL)
-- **Deployment**: AWS EC2 + RDS (planned)
+- **Containerization**: Docker (multi-stage build, ECR image registry)
+- **Deployment**: AWS EC2 (t2.micro) + RDS (db.t3.micro) + CloudFront (HTTPS/SSL)
 
 ## Getting Started
 
@@ -165,7 +165,7 @@ The optimized build will be in the `dist/` folder.
 
 **Completed (Backend)**:
 - Express 5 + TypeScript server with PostgreSQL connection pool and health check endpoint
-- Docker Compose for PostgreSQL 16 with auto-migration
+- Docker Compose for local development (PostgreSQL 16 with auto-migration)
 - Database schema: users, progress, and refresh_tokens tables
 - Full authentication system: signup, login, Google OAuth, refresh token rotation with reuse detection
 - JWT access tokens (15 min) + httpOnly refresh token cookies (7 days)
@@ -173,15 +173,18 @@ The optimized build will be in the `dist/` folder.
 - Zod runtime request validation on all auth endpoints
 - Rate limiting on auth routes (10 req / 15 min per IP)
 - JWT authentication middleware for protected routes
-
-**In Progress**:
-- Backend Phase 2: Progress CRUD routes, integration tests, frontend auth integration
+- Progress CRUD routes: GET all/single/dashboard + PUT upsert with COALESCE partial updates
+- Integration tests: 44 tests (Vitest + Supertest) covering auth and progress routes
+- Frontend auth integration: API service with silent refresh, AuthContext, BIOS login screen
+- Tracker server sync: auth-aware store, hydration on login, fire-and-forget PUT on changes
+- AWS deployment: EC2 (Express Docker container) + RDS (PostgreSQL) + CloudFront (HTTPS) + ECR (image registry)
+- Multi-stage Dockerfile with production-only dependencies (~110-130MB image)
+- Cross-device progress persistence — sign in on any device, pick up where you left off
 
 **Planned**:
 - Additional sorting algorithms (Insertion, Selection, Heap, Radix)
-- Remaining 62 Blind 75 HTML problem visualizers
-- AWS deployment (EC2 + RDS) with GitHub Actions CI/CD
-- User accounts with cross-device progress persistence
+- Remaining Blind 75 HTML problem visualizers (23 of 75 complete)
+- GitHub Actions CI/CD pipeline (lint → type check → test → build → deploy)
 - Password reset flow (SendGrid)
 - Spaced repetition reminders for problem review
 
