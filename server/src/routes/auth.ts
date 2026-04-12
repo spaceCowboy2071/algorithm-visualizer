@@ -45,10 +45,12 @@ async function createAndSetRefreshToken(userId: string, res: Response): Promise<
     [tokenHash, userId, expiresAt]
   );
 
+  const isProduction = process.env.NODE_ENV === 'production';
+
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'strict',
     path: '/api/auth/refresh',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
   });

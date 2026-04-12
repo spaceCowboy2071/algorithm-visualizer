@@ -7,6 +7,9 @@ import progressRoutes from './routes/progress';
 
 const app = express();
 
+// Trust proxies (CloudFront/ALB) so express-rate-limit reads the real client IP
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
