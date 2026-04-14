@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kth Smallest Element in BST — Inorder Traversal Visual</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--surface2:#1c2333;--border:#30363d;--text:#e6edf3;--text-dim:#8b949e;--accent:#58a6ff;--green:#2ea043;--green-glow:#3fb950;--orange:#f0883e;--red:#f78166;--purple:#d2a8ff;--cyan:#79c0ff;--yellow:#e3b341;--code-bg:#0d1117;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.6;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+header{text-align:center;padding:3rem 0 2rem;position:relative;}
+header::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(227,179,65,0.08) 0%,transparent 70%);pointer-events:none;}
+h1{font-size:2.2rem;font-weight:700;letter-spacing:-0.03em;background:linear-gradient(135deg,var(--yellow),var(--green-glow));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.25rem;}
+.subtitle{color:var(--text-dim);font-size:0.95rem;}
+.tag{display:inline-block;padding:0.2rem 0.65rem;border-radius:99px;font-size:0.75rem;font-weight:600;margin:0.75rem 0.2rem 0;}
+.tag-pattern{background:rgba(227,179,65,0.15);color:var(--yellow);}
+.tag-med{background:rgba(240,136,62,0.15);color:var(--orange);}
+.tag-tree{background:rgba(210,168,255,0.15);color:var(--purple);}
+section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;margin:1.5rem 0;position:relative;overflow:hidden;}
+section::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--yellow),var(--green-glow),var(--accent));border-radius:12px 12px 0 0;}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:1rem;}
+p{margin-bottom:0.75rem;font-size:0.95rem;}
+.dim{color:var(--text-dim);}
+code{font-family:'JetBrains Mono',monospace;font-size:0.85em;background:var(--surface2);padding:0.1rem 0.4rem;border-radius:4px;}
+.callout{background:rgba(240,136,62,0.08);border-left:3px solid var(--orange);padding:0.75rem 1rem;border-radius:0 8px 8px 0;margin:1rem 0;font-size:0.9rem;}
+.callout strong{color:var(--orange);}
+.callout-green{background:rgba(46,160,67,0.08);border-left-color:var(--green);}
+.callout-green strong{color:var(--green-glow);}
+
+/* Layout */
+.sim-layout{display:flex;gap:1.5rem;flex-wrap:wrap;margin:1rem 0;}
+.sim-left{flex:1.2;min-width:280px;}
+.sim-right{flex:1;min-width:220px;}
+
+/* Tree */
+.tree-container{position:relative;width:100%;max-width:360px;margin:0.5rem auto;height:260px;}
+.tree-nd{position:absolute;width:44px;height:44px;border-radius:50%;border:2px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;transition:all 0.4s;z-index:2;}
+.tree-nd.pushing{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 10px rgba(121,192,255,0.4);}
+.tree-nd.popping{border-color:var(--orange);color:var(--orange);box-shadow:0 0 14px rgba(240,136,62,0.5);}
+.tree-nd.found-nd{border-color:var(--green);color:var(--green-glow);box-shadow:0 0 16px rgba(46,160,67,0.5);background:rgba(46,160,67,0.15);}
+.tree-nd.visited{border-color:var(--green);color:var(--green-glow);background:rgba(46,160,67,0.08);opacity:0.5;}
+.tree-nd.on-stack{border-color:var(--yellow);color:var(--yellow);background:rgba(227,179,65,0.08);}
+.tree-nd.inactive{opacity:0.2;}
+.tree-edge{position:absolute;height:2px;background:var(--border);transform-origin:left center;z-index:1;}
+
+/* Stack display */
+.stack-label{font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.25rem;}
+.stack-container{width:70px;min-height:200px;border:2px solid var(--border);border-top:none;border-radius:0 0 10px 10px;display:flex;flex-direction:column-reverse;align-items:center;padding:6px;gap:3px;position:relative;background:var(--surface2);margin:0 auto;}
+.stack-container::before{content:'';position:absolute;top:-2px;left:-8px;right:-8px;height:2px;background:var(--border);}
+.stack-item{width:52px;height:36px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:0.95rem;font-weight:700;border-radius:6px;border:2px solid var(--yellow);color:var(--yellow);background:rgba(227,179,65,0.08);transition:all 0.3s;}
+.stack-item.top{box-shadow:0 0 8px rgba(227,179,65,0.3);}
+.stack-item.popping-item{border-color:var(--orange);color:var(--orange);background:rgba(240,136,62,0.1);}
+.stack-empty{color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:0.7rem;text-align:center;padding:1rem 0;}
+
+/* Sorted output */
+.sorted-area{margin:0.75rem 0;}
+.sorted-row{display:flex;gap:4px;flex-wrap:wrap;align-items:center;min-height:38px;}
+.sorted-item{width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:0.9rem;font-weight:700;border-radius:6px;border:1.5px solid var(--green);color:var(--green-glow);background:rgba(46,160,67,0.08);transition:all 0.3s;}
+.sorted-item.kth{border-color:var(--green);color:var(--green-glow);background:rgba(46,160,67,0.2);box-shadow:0 0 12px rgba(46,160,67,0.4);}
+.sorted-item.newest{border-color:var(--orange);color:var(--orange);background:rgba(240,136,62,0.1);}
+.k-label{font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--text-dim);text-align:center;}
+
+/* Phase */
+.phase-box{text-align:center;margin:0.75rem 0;}
+.phase-inner{display:inline-block;padding:0.4rem 1.25rem;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.82rem;font-weight:600;border:1.5px solid var(--border);background:var(--surface2);transition:all 0.3s;min-width:260px;}
+.phase-inner.push-phase{border-color:var(--cyan);color:var(--cyan);}
+.phase-inner.pop-phase{border-color:var(--orange);color:var(--orange);}
+.phase-inner.found-phase{border-color:var(--green);color:var(--green-glow);}
+
+/* Log */
+.status-bar{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;font-family:'JetBrains Mono',monospace;font-size:0.7rem;line-height:1.7;min-height:80px;max-height:200px;overflow-y:auto;margin:0.75rem 0;}
+.log-push{color:var(--cyan);}.log-pop{color:var(--orange);font-weight:600;}.log-found{color:var(--green-glow);font-weight:700;}.log-init{color:var(--text-dim);}
+
+/* Controls */
+.controls{display:flex;gap:0.75rem;justify-content:center;align-items:center;margin:1rem 0;flex-wrap:wrap;}
+button{font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;padding:0.5rem 1.25rem;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;transition:all 0.2s;}
+button:hover{background:rgba(88,166,255,0.1);border-color:var(--accent);color:var(--accent);}
+button.primary{background:rgba(227,179,65,0.15);border-color:var(--yellow);color:var(--yellow);}
+button:disabled{opacity:0.3;cursor:not-allowed;}
+.step-counter{font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text-dim);min-width:100px;text-align:center;}
+
+/* Code */
+.code-block{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;font-family:'JetBrains Mono',monospace;font-size:0.78rem;line-height:1.8;overflow-x:auto;counter-reset:line;margin:1rem 0;}
+.code-line{display:block;padding:0 0.5rem;border-radius:3px;white-space:pre;transition:background 0.3s;}
+.code-line::before{counter-increment:line;content:counter(line);display:inline-block;width:2rem;margin-right:1rem;text-align:right;color:#484f58;font-size:0.7rem;}
+.kw{color:#ff7b72;}.fn{color:#d2a8ff;}.num{color:#79c0ff;}.cmt{color:#484f58;font-style:italic;}
+.code-tab{padding:0.6rem 1.25rem;font-size:0.85rem;font-weight:600;color:var(--text-dim);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s;}
+.code-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+.complexity-grid{display:flex;gap:2rem;flex-wrap:wrap;margin:1rem 0;}
+.complexity-item{flex:1;min-width:200px;}
+.complexity-item h3{font-size:1.1rem;font-weight:600;color:var(--accent);margin:0 0 0.25rem;}
+
+@media(max-width:700px){h1{font-size:1.7rem;}section{padding:1.25rem;}.sim-layout{flex-direction:column;}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+<h1>Kth Smallest Element in BST</h1>
+<p class="subtitle">LeetCode #230 — Inorder Traversal</p>
+<div>
+  <span class="tag tag-pattern">Inorder Traversal (stack)</span>
+  <span class="tag tag-med">Medium</span>
+  <span class="tag tag-tree">Trees</span>
+</div>
+</header>
+
+<section>
+<h2>1 — What's the problem?</h2>
+<p>Find the kth smallest value in a BST.</p>
+<div class="callout">
+<strong>Key insight:</strong> Inorder traversal of a BST visits nodes in sorted order (left → process → right). So the kth node you pop is the kth smallest.
+</div>
+<div class="callout callout-green">
+<strong>Iterative stack beats recursive:</strong> The stack approach stops after exactly k pops — O(h+k) time. The recursive approach builds the full sorted list — O(n) time. For k=1 on a huge tree, that's a big difference.
+</div>
+</section>
+
+<section>
+<h2>2 — Step through it</h2>
+<p class="dim">Watch the stack fill as we go left, then pop nodes in sorted order until we hit k.</p>
+
+<div style="display:flex;justify-content:center;gap:1rem;margin:0.5rem 0;font-size:0.7rem;font-family:'JetBrains Mono',monospace;flex-wrap:wrap;">
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--cyan);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--cyan);">Push (go left)</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--orange);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--orange);">Pop (next smallest)</span></span>
+  <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid var(--green);background:rgba(46,160,67,0.15);vertical-align:middle;margin-right:3px;"></span><span style="color:var(--green-glow);">kth found!</span></span>
+</div>
+
+<div class="phase-box"><div class="phase-inner" id="phase">—</div></div>
+
+<div class="sim-layout">
+  <div class="sim-left">
+    <div class="tree-container" id="tree-container"></div>
+  </div>
+  <div class="sim-right">
+    <div class="stack-label">Stack</div>
+    <div class="stack-container" id="stack-container"><div class="stack-empty">empty</div></div>
+    <div class="sorted-area">
+      <div class="stack-label" style="margin-top:1rem;">Sorted output (k=3)</div>
+      <div class="sorted-row" id="sorted-row"></div>
+    </div>
+  </div>
+</div>
+
+<div class="status-bar" id="log"></div>
+
+<div class="controls">
+  <button onclick="resetSim()">Reset</button>
+  <button onclick="stepBack()" id="btn-prev">← Back</button>
+  <span class="step-counter" id="step-label">Step 0 / 0</span>
+  <button class="primary" onclick="stepForward()" id="btn-next">Next →</button>
+  <button onclick="togglePlay()" id="btn-play">▶ Auto</button>
+</div>
+</section>
+
+<section>
+<h2>3 — Complete implementation</h2>
+
+<div style="display:flex;gap:0;border-bottom:2px solid var(--border);">
+  <div class="code-tab active" data-ct="ct-iter" onclick="switchCodeTab('ct-iter')">Iterative (optimal)</div>
+  <div class="code-tab" data-ct="ct-rec" onclick="switchCodeTab('ct-rec')">Recursive (simple)</div>
+</div>
+
+<div id="ct-iter" class="code-panel">
+<div class="code-block">
+<span class="code-line"><span class="kw">def</span> <span class="fn">kthSmallest</span>(self, root, k):</span>
+<span class="code-line">    stack = []</span>
+<span class="code-line">    cur = root</span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="kw">while</span> stack <span class="kw">or</span> cur:        <span class="cmt"># while there's work to do</span></span>
+<span class="code-line">        <span class="kw">while</span> cur:               <span class="cmt"># go as far left as possible</span></span>
+<span class="code-line">            stack.<span class="fn">append</span>(cur)</span>
+<span class="code-line">            cur = cur.left</span>
+<span class="code-line"></span>
+<span class="code-line">        cur = stack.<span class="fn">pop</span>()       <span class="cmt"># next smallest</span></span>
+<span class="code-line">        k -= <span class="num">1</span></span>
+<span class="code-line">        <span class="kw">if</span> k == <span class="num">0</span>:              <span class="cmt"># found kth!</span></span>
+<span class="code-line">            <span class="kw">return</span> cur.val</span>
+<span class="code-line"></span>
+<span class="code-line">        cur = cur.right          <span class="cmt"># try right subtree</span></span>
+</div>
+<p class="dim" style="font-size:0.85rem;">O(h+k) time — stops after k pops. O(h) space for the stack.</p>
+</div>
+
+<div id="ct-rec" class="code-panel" style="display:none;">
+<div class="code-block">
+<span class="code-line"><span class="kw">def</span> <span class="fn">kthSmallest</span>(self, root, k):</span>
+<span class="code-line">    sorted_list = self.<span class="fn">inorder</span>(root)</span>
+<span class="code-line">    <span class="kw">return</span> sorted_list[k - <span class="num">1</span>]</span>
+<span class="code-line"></span>
+<span class="code-line"><span class="kw">def</span> <span class="fn">inorder</span>(self, node):</span>
+<span class="code-line">    <span class="kw">if not</span> node:</span>
+<span class="code-line">        <span class="kw">return</span> []</span>
+<span class="code-line">    <span class="kw">return</span> self.<span class="fn">inorder</span>(node.left) + [node.val] + self.<span class="fn">inorder</span>(node.right)</span>
+</div>
+<p class="dim" style="font-size:0.85rem;">O(n) time — builds full sorted list. O(n) space. Simpler but slower. An interviewer will ask "can you stop early?"</p>
+</div>
+
+<div class="complexity-grid">
+  <div class="complexity-item">
+    <h3>Iterative: O(h + k) time</h3>
+    <p class="dim" style="font-size:0.85rem;">Go left O(h), pop k times. Stops early.</p>
+  </div>
+  <div class="complexity-item">
+    <h3>Space: O(h)</h3>
+    <p class="dim" style="font-size:0.85rem;">Stack depth = tree height.</p>
+  </div>
+</div>
+
+<div class="callout callout-green">
+<strong>Pattern connection:</strong> Inorder traversal is the foundation for BST Iterator, Validate BST (alternative to bounds — check if inorder is sorted), and Convert BST to Sorted Linked List. The iterative stack pattern is also used in preorder and postorder iterative traversals.
+</div>
+</section>
+
+</div>
+
+<script>
+/*
+Tree:     5       k=3, answer=3
+         / \
+        3   6
+       / \
+      2   4
+     /
+    1
+
+Inorder: 1, 2, 3 ← stop here! k=3
+*/
+const NODES = [
+  {v:5, x:176, y:15},
+  {v:3, x:96,  y:85},
+  {v:6, x:256, y:85},
+  {v:2, x:56,  y:155},
+  {v:4, x:136, y:155},
+  {v:1, x:26,  y:225},
+];
+const EDGES = [[0,1],[0,2],[1,3],[1,4],[3,5]];
+const K = 3;
+
+function nodeIdx(val) { return NODES.findIndex(n => n.v === val); }
+
+// Steps for iterative inorder with k=3
+const steps = [
+  {phase:'Start: cur=5, stack=[]', phaseCls:'push-phase',
+   stack:[], cur:0, popping:-1, visited:new Set(), onStack:new Set(), sorted:[], kLeft:3, found:false,
+   log:'Initialize: cur=5, stack=[], k=3', logCls:'log-init'},
+
+  // Push 5, go left
+  {phase:'Push 5 → go left', phaseCls:'push-phase',
+   stack:[0], cur:1, popping:-1, visited:new Set(), onStack:new Set([0]), sorted:[], kLeft:3, found:false,
+   log:'Push 5. cur=5.left=3', logCls:'log-push'},
+
+  // Push 3, go left
+  {phase:'Push 3 → go left', phaseCls:'push-phase',
+   stack:[0,1], cur:3, popping:-1, visited:new Set(), onStack:new Set([0,1]), sorted:[], kLeft:3, found:false,
+   log:'Push 3. cur=3.left=2', logCls:'log-push'},
+
+  // Push 2, go left
+  {phase:'Push 2 → go left', phaseCls:'push-phase',
+   stack:[0,1,3], cur:5, popping:-1, visited:new Set(), onStack:new Set([0,1,3]), sorted:[], kLeft:3, found:false,
+   log:'Push 2. cur=2.left=1', logCls:'log-push'},
+
+  // Push 1, go left → None
+  {phase:'Push 1 → left is None, stop pushing', phaseCls:'push-phase',
+   stack:[0,1,3,5], cur:-1, popping:-1, visited:new Set(), onStack:new Set([0,1,3,5]), sorted:[], kLeft:3, found:false,
+   log:'Push 1. cur=1.left=None → stop going left', logCls:'log-push'},
+
+  // Pop 1 → k=2
+  {phase:'Pop 1 → 1st smallest! k=2', phaseCls:'pop-phase',
+   stack:[0,1,3], cur:5, popping:5, visited:new Set([5]), onStack:new Set([0,1,3]), sorted:[1], kLeft:2, found:false,
+   log:'Pop 1. k=3→2. 1st smallest = 1. cur=1.right=None', logCls:'log-pop'},
+
+  // Pop 2 → k=1
+  {phase:'Pop 2 → 2nd smallest! k=1', phaseCls:'pop-phase',
+   stack:[0,1], cur:3, popping:3, visited:new Set([5,3]), onStack:new Set([0,1]), sorted:[1,2], kLeft:1, found:false,
+   log:'Pop 2. k=2→1. 2nd smallest = 2. cur=2.right=None', logCls:'log-pop'},
+
+  // Pop 3 → k=0 → FOUND!
+  {phase:'Pop 3 → 3rd smallest! k=0 → FOUND!', phaseCls:'found-phase',
+   stack:[0], cur:1, popping:1, visited:new Set([5,3,1]), onStack:new Set([0]), sorted:[1,2,3], kLeft:0, found:true,
+   log:'Pop 3. k=1→0. 3rd smallest = 3 → RETURN 3!', logCls:'log-found'},
+
+  // Done
+  {phase:'Answer: 3 (stopped early — never visited 4, 5, or 6!)', phaseCls:'found-phase',
+   stack:[], cur:-1, popping:-1, visited:new Set([5,3,1]), onStack:new Set(), sorted:[1,2,3], kLeft:0, found:true,
+   log:'Done! kthSmallest = 3. Only visited 4 of 6 nodes — early stop!', logCls:'log-found'},
+];
+
+let current = 0;
+let playInterval = null;
+
+function drawTree() {
+  const container = document.getElementById('tree-container');
+  let html = '';
+  for (const [from, to] of EDGES) {
+    const n1 = NODES[from], n2 = NODES[to];
+    const dx = n2.x - n1.x, dy = n2.y - n1.y;
+    const len = Math.sqrt(dx*dx + dy*dy);
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    html += `<div class="tree-edge" id="edge-${from}-${to}" style="left:${n1.x+22}px;top:${n1.y+22}px;width:${len-22}px;transform:rotate(${angle}deg);"></div>`;
+  }
+  for (let i = 0; i < NODES.length; i++) {
+    const n = NODES[i];
+    html += `<div class="tree-nd" id="node-${i}" style="left:${n.x}px;top:${n.y}px;">${n.v}</div>`;
+  }
+  container.innerHTML = html;
+}
+
+function render() {
+  const s = steps[current];
+
+  document.getElementById('phase').textContent = s.phase;
+  document.getElementById('phase').className = 'phase-inner ' + s.phaseCls;
+
+  // Tree nodes
+  for (let i = 0; i < NODES.length; i++) {
+    const el = document.getElementById('node-' + i);
+    let cls = 'tree-nd';
+    if (s.found && s.popping === i) cls += ' found-nd';
+    else if (i === s.popping) cls += ' popping';
+    else if (i === s.cur && s.phaseCls === 'push-phase') cls += ' pushing';
+    else if (s.visited.has(i)) cls += ' visited';
+    else if (s.onStack.has(i)) cls += ' on-stack';
+    else if (!s.found) cls += ' inactive';
+    else cls += ' inactive';
+    el.className = cls;
+  }
+
+  // Stack
+  const stackEl = document.getElementById('stack-container');
+  if (s.stack.length === 0) {
+    stackEl.innerHTML = '<div class="stack-empty">empty</div>';
+  } else {
+    let sHtml = '';
+    for (let i = 0; i < s.stack.length; i++) {
+      const isTop = i === s.stack.length - 1;
+      sHtml += `<div class="stack-item${isTop ? ' top' : ''}">${NODES[s.stack[i]].v}</div>`;
+    }
+    stackEl.innerHTML = sHtml;
+  }
+
+  // Sorted output
+  const sortedRow = document.getElementById('sorted-row');
+  if (s.sorted.length === 0) {
+    sortedRow.innerHTML = '<span style="color:var(--text-dim);font-family:\'JetBrains Mono\',monospace;font-size:0.8rem;">waiting for first pop...</span>';
+  } else {
+    let srHtml = '';
+    for (let i = 0; i < s.sorted.length; i++) {
+      const isNewest = i === s.sorted.length - 1 && !s.found;
+      const isKth = i === s.sorted.length - 1 && s.found;
+      let cls = 'sorted-item';
+      if (isKth) cls += ' kth';
+      else if (isNewest) cls += ' newest';
+      srHtml += `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">`;
+      srHtml += `<div class="${cls}">${s.sorted[i]}</div>`;
+      srHtml += `<span class="k-label">${isKth ? 'k='+K+'!' : '#'+(i+1)}</span>`;
+      srHtml += `</div>`;
+    }
+    sortedRow.innerHTML = srHtml;
+  }
+
+  // Log
+  const logEl = document.getElementById('log');
+  let logHtml = '';
+  for (let i = 0; i <= current; i++) {
+    logHtml += `<div class="${steps[i].logCls}">${steps[i].log}</div>`;
+  }
+  logEl.innerHTML = logHtml;
+  logEl.scrollTop = logEl.scrollHeight;
+
+  document.getElementById('step-label').textContent = `Step ${current} / ${steps.length - 1}`;
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current >= steps.length - 1;
+}
+
+function switchCodeTab(id) {
+  document.querySelectorAll('.code-panel').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).style.display = 'block';
+  document.querySelector(`.code-tab[data-ct="${id}"]`).classList.add('active');
+}
+
+function stepForward() { if (current < steps.length - 1) { current++; render(); } else if (playInterval) togglePlay(); }
+function stepBack() { if (current > 0) { current--; render(); } }
+function resetSim() { if (playInterval) togglePlay(); current = 0; render(); }
+function togglePlay() {
+  if (playInterval) { clearInterval(playInterval); playInterval = null; document.getElementById('btn-play').textContent = '▶ Auto'; }
+  else { document.getElementById('btn-play').textContent = '⏸ Pause'; playInterval = setInterval(() => { if (current >= steps.length - 1) { togglePlay(); return; } stepForward(); }, 1200); }
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); stepForward(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); stepBack(); }
+  if (e.key === 'r') resetSim();
+});
+drawTree(); render();
+</script>
+</body>
+</html>

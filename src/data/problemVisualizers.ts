@@ -24,6 +24,7 @@ const VISUALIZER_PATHS: Record<number, string> = {
   69: '/visualizers/Trees/Lowest_Common_Ancestor_BST_Visual.html',
   73: '/visualizers/Trees/Subtree_of_Another_Tree_Visual.html',
   74: '/visualizers/Trees/Validate_BST_Visual.html',
+  68: '/visualizers/Trees/Kth_Smallest_BST_Visual.html',
 };
 
 export function getVisualizerPath(problemId: number): string | null {
