@@ -1,0 +1,161 @@
+# ──────────────────────────────────────────────────────────────
+# CI/CD Pipeline — Express API Server
+#
+# Trigger:  push to main that touches server/ files
+# Job 1:   Lint (tsc --noEmit) + Integration tests (44 tests against ephemeral PostgreSQL)
+# Job 2:   Docker build → push to ECR → SSH deploy to EC2
+#
+# Required GitHub Secrets:
+#   AWS_ACCESS_KEY_ID       — algorithmviz-deployer IAM user
+#   AWS_SECRET_ACCESS_KEY   — algorithmviz-deployer IAM user
+#   AWS_ACCOUNT_ID          — 12-digit AWS account ID (for ECR registry URL)
+#   EC2_SSH_KEY             — contents of algorithmviz-key.pem
+#   EC2_HOST                — EC2 public DNS or IP address
+# ──────────────────────────────────────────────────────────────
+
+name: Deploy Server
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'server/**'
+
+jobs:
+  # ── Job 1: Lint & Test ──────────────────────────────────────
+  # Validates code quality and correctness before anything touches AWS.
+  # Runs on a fresh Ubuntu VM with an ephemeral PostgreSQL container
+  # that is created for the test run and destroyed when the job ends.
+  ci:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+
+    # Service containers run alongside the job. This PostgreSQL instance
+    # is the ephemeral database — it exists only for the ~2 minutes the
+    # tests take to run, then GitHub throws it away.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: dev
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        # GitHub Actions needs to know when PostgreSQL is ready to accept
+        # connections. Without this health check, the test step might start
+        # before PostgreSQL finishes initializing and fail with ECONNREFUSED.
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install dependencies
+        working-directory: server
+        run: npm ci
+
+      # tsc --noEmit: type-checks all TypeScript without producing output files.
+      # Catches type errors, missing imports, wrong function signatures, etc.
+      - name: Lint (type check)
+        working-directory: server
+        run: npm run lint
+
+      # Runs all 44 integration tests (auth + progress routes) against
+      # the ephemeral PostgreSQL service above. The global-setup.ts creates
+      # the algorithmviz_test database and runs the schema migration.
+      - name: Run integration tests
+        working-directory: server
+        run: npm test
+
+  # ── Job 2: Build & Deploy ───────────────────────────────────
+  # Only runs if the ci job passes (needs: ci).
+  # Builds the Docker image, pushes to ECR, then SSHs into EC2
+  # to pull the new image and restart the container.
+  deploy:
+    name: Build & Deploy
+    needs: ci
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Injects AWS credentials into the environment so subsequent steps
+      # (ECR login, docker push) can authenticate with AWS.
+      # These come from the algorithmviz-deployer IAM user — scoped to
+      # ECR + EC2 + RDS only, not root account credentials.
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      # Authenticates Docker with ECR so we can push images.
+      # Outputs the registry URL (e.g., 123456789.dkr.ecr.us-east-2.amazonaws.com)
+      # which we reference in the next step.
+      - name: Login to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Builds the multi-stage Dockerfile (compile TypeScript → production image).
+      # Tags the image twice:
+      #   1. :latest — EC2 always pulls this tag to get the current version
+      #   2. :<git-sha> — unique tag for rollback (you can deploy any past commit)
+      - name: Build, tag, and push Docker image
+        working-directory: server
+        env:
+          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+          ECR_REPOSITORY: algorithm-visualizer-api
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      # SSHs into the EC2 instance and:
+      #   1. Logs Docker into ECR (so it can pull the new image)
+      #   2. Pulls the latest image
+      #   3. Stops and removes the old container (|| true so it doesn't fail if no container exists)
+      #   4. Starts a new container with the production env vars from ~/.env on EC2
+      #   5. Cleans up old unused images to save disk space
+      #   6. Verifies the server is healthy by hitting the health endpoint
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            ECR_IMAGE="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-2.amazonaws.com/algorithm-visualizer-api:latest"
+
+            aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-2.amazonaws.com
+
+            docker pull $ECR_IMAGE
+
+            docker stop algorithmviz-api || true
+            docker rm algorithmviz-api || true
+
+            docker run -d \
+              --name algorithmviz-api \
+              -p 4000:4000 \
+              --env-file ~/.env \
+              --restart unless-stopped \
+              $ECR_IMAGE
+
+            docker image prune -f
+
+            sleep 5
+            curl -f http://localhost:4000/api/health || echo "WARNING: Health check failed"
