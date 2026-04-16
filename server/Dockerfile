@@ -31,6 +31,12 @@ RUN npm ci --omit=dev
 # Copy the compiled JavaScript from the build stage
 COPY --from=build /app/dist ./dist
 
+# Accept the git commit SHA at build time and bake it into the image
+# as an environment variable. The CI/CD pipeline passes this via --build-arg.
+# Defaults to "dev" for local Docker builds where no SHA is provided.
+ARG COMMIT_SHA=dev
+ENV COMMIT_SHA=$COMMIT_SHA
+
 # Tell Docker this container listens on port 4000
 EXPOSE 4000
 

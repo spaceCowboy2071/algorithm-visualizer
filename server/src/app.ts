@@ -30,6 +30,7 @@ app.get('/api/health', async (_req, res) => {
       status: 'ok',
       database: 'connected',
       timestamp: result.rows[0].now,
+      commit: process.env.COMMIT_SHA || 'dev',
     });
   } catch {
     res.status(503).json({
