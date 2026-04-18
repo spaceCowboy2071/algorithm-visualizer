@@ -28,7 +28,16 @@ export const progressUpdateSchema = z.object({
   savedCodePython: z.string().optional(),
 });
 
+// Envelope-only validation: trust frontend on individual stroke shape, but enforce
+// top-level structure and cap array length to defend against bloat payloads.
+export const sketchUpdateSchema = z.object({
+  strokes: z.array(z.unknown()).max(2000, 'Too many strokes (max 2000)'),
+  canvasWidth: z.number().int().min(0).max(10000),
+  canvasHeight: z.number().int().min(0).max(10000),
+});
+
 export type SignupInput = z.infer<typeof signupSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type GoogleAuthInput = z.infer<typeof googleAuthSchema>;
 export type ProgressUpdateInput = z.infer<typeof progressUpdateSchema>;
+export type SketchUpdateInput = z.infer<typeof sketchUpdateSchema>;
