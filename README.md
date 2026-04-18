@@ -54,10 +54,11 @@ A comprehensive LeetCode interview preparation platform featuring:
 - **Category-based Navigation**: Filter problems by topic with pattern labels (e.g., "Two Pointers", "Hash Map", "DFS / BFS")
 - **Difficulty Badges**: Color-coded Easy, Medium, Hard indicators
 - **Code Playground**: Integrated Monaco editor (VS Code) for solving problems, with time/space complexity inputs below the editor
-- **Interactive Visualizers**: Step-through HTML visualizers for select problems with animated state, live code highlighting, and complexity analysis (13 of 75 complete)
+- **Interactive Visualizers**: Step-through HTML visualizers for select problems with animated state, live code highlighting, and complexity analysis (24 of 75 complete)
 - **Study Tracker**: Rich per-problem progress tracking — status (Not Started / Studied / In Progress / Review Needed / Solved), confidence level (1-5), solved independently, solved under 20 min, attempt count (auto-incremented), notes, and complexity analysis
 - **Dashboard**: Aggregate stats overlay with solved/studied/in-progress counts, average confidence, completion percentage, and per-category progress bars
 - **Progress Overlay**: Centered modal on each problem page for quick status/confidence updates without leaving the editor
+- **Sketch Zone**: Draggable, resizable whiteboard window on every problem page for sketching algorithm approaches. HTML5 Canvas + perfect-freehand brush, 5 tools (pencil, brush, rectangle, circle, line), 8-color paper-friendly ink palette, 3 stroke sizes, undo/redo/clear, inline rename, server-persisted per problem (sign in to save)
 
 ### Educational Features
 - **X-Ray Code Viewer**: Live code execution visualization
@@ -99,6 +100,7 @@ A comprehensive LeetCode interview preparation platform featuring:
 - **Styling**: Tailwind CSS 4
 - **Routing**: React Router v7
 - **Code Editor**: Monaco Editor (VS Code)
+- **Drawing**: HTML5 Canvas + perfect-freehand (smoothed brush strokes for the Sketch Zone)
 - **Deployment**: Vercel
 
 ### Backend
@@ -155,7 +157,8 @@ The optimized build will be in the `dist/` folder.
 - Blind 75 study tracker with status/confidence/attempts/notes, dashboard overlay, and per-problem progress overlay
 - Monaco code editor with browser-based code execution (Web Worker + Pyodide for Python, native Function() for JavaScript)
 - Time/space complexity validation with pair matching for all 75 problems
-- 13 interactive HTML problem visualizers (Two Sum, Container With Most Water, Maximum Subarray, Product of Array Except Self, Contains Duplicate, 3Sum, Best Time to Buy and Sell Stock, Clone Graph, Number of Islands, Reverse Linked List, Longest Substring Without Repeating Characters, Valid Palindrome, Valid Parentheses)
+- 24 interactive HTML problem visualizers across Arrays, Graphs, Linked Lists, Strings, and Trees
+- Sketch Zone — draggable/resizable whiteboard window on every problem page (5 tools, 8-ink paper palette, 3 sizes, undo/redo, inline rename, server-persisted per problem)
 - X-Ray Code Viewer with line highlighting (JS + Python + Pseudocode)
 - Complexity analysis panels (How/When/Where/Why)
 - Step forward/backward time-travel navigation
@@ -166,25 +169,26 @@ The optimized build will be in the `dist/` folder.
 **Completed (Backend)**:
 - Express 5 + TypeScript server with PostgreSQL connection pool and health check endpoint
 - Docker Compose for local development (PostgreSQL 16 with auto-migration)
-- Database schema: users, progress, and refresh_tokens tables
+- Database schema: users, progress, refresh_tokens, and sketches tables
 - Full authentication system: signup, login, Google OAuth, refresh token rotation with reuse detection
 - JWT access tokens (15 min) + httpOnly refresh token cookies (7 days)
 - bcrypt password hashing (salt rounds 12)
-- Zod runtime request validation on all auth endpoints
+- Zod runtime request validation on all routes
 - Rate limiting on auth routes (10 req / 15 min per IP)
 - JWT authentication middleware for protected routes
 - Progress CRUD routes: GET all/single/dashboard + PUT upsert with COALESCE partial updates
-- Integration tests: 44 tests (Vitest + Supertest) covering auth and progress routes
+- Sketches CRUD routes: GET (with empty-default fallback), PUT (upsert), DELETE (idempotent), envelope-only validation with bloat caps
+- Integration tests: 64 tests (Vitest + Supertest) covering auth, progress, and sketches routes including per-user data isolation
 - Frontend auth integration: API service with silent refresh, AuthContext, BIOS login screen
 - Tracker server sync: auth-aware store, hydration on login, fire-and-forget PUT on changes
 - AWS deployment: EC2 (Express Docker container) + RDS (PostgreSQL) + CloudFront (HTTPS) + ECR (image registry)
 - Multi-stage Dockerfile with production-only dependencies (~110-130MB image)
+- GitHub Actions CI/CD: two-job pipeline (lint + integration tests against ephemeral PostgreSQL → Docker build + ECR push + SSH deploy to EC2)
 - Cross-device progress persistence — sign in on any device, pick up where you left off
 
 **Planned**:
 - Additional sorting algorithms (Insertion, Selection, Heap, Radix)
-- Remaining Blind 75 HTML problem visualizers (23 of 75 complete)
-- GitHub Actions CI/CD pipeline (lint → type check → test → build → deploy)
+- Remaining Blind 75 HTML problem visualizers (24 of 75 complete)
 - Password reset flow (SendGrid)
 - Spaced repetition reminders for problem review
 
