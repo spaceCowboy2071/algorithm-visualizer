@@ -7,6 +7,7 @@ import { PROBLEMS } from '../data/blind75Problems';
 import { useTrackerStore } from '../hooks/useTrackerStore';
 import { useAuth } from '../hooks/useAuth';
 import StatusEditDropdown from '../components/blind75/StatusEditDropdown';
+import SketchZone from '../components/blind75/SketchZone';
 import { executeCode, setPyodideStatusCallback } from '../services/codeRunner';
 import { validateComplexity } from '../utils/complexityValidator';
 import TestResults from '../components/shared/TestResults';
@@ -52,6 +53,9 @@ function ProblemPage() {
 
   // Tab state for left panel
   const [activeTab, setActiveTab] = useState<'description' | 'visualizer'>('description');
+
+  // Sketch Zone floating window state
+  const [isSketchZoneOpen, setIsSketchZoneOpen] = useState(false);
 
   // Test execution state
   const [testResult, setTestResult] = useState<TestRunResult | null>(null);
@@ -474,19 +478,19 @@ function ProblemPage() {
               <div className="flex-1 flex overflow-hidden">
                 {/* Left Panel - Problem Description / Visualizer */}
                 <div className="w-1/2 border-r border-[#30363d] flex flex-col overflow-hidden">
-                  {/* Tab Bar - only shown when a visualizer exists */}
-                  {visualizerPath && (
-                    <div className="flex border-b border-[#30363d] bg-[#161b22] shrink-0">
-                      <button
-                        onClick={() => setActiveTab('description')}
-                        className={`px-4 py-2 text-xs font-semibold font-mono transition ${
-                          activeTab === 'description'
-                            ? 'text-[var(--accent)] border-b-2 border-[var(--accent)] bg-[#0d1117]'
-                            : 'text-gray-500 hover:text-gray-300'
-                        }`}
-                      >
-                        Description
-                      </button>
+                  {/* Tab Bar — always shown (Sketch Zone is universal) */}
+                  <div className="flex border-b border-[#30363d] bg-[#161b22] shrink-0">
+                    <button
+                      onClick={() => setActiveTab('description')}
+                      className={`px-4 py-2 text-xs font-semibold font-mono transition ${
+                        activeTab === 'description'
+                          ? 'text-[var(--accent)] border-b-2 border-[var(--accent)] bg-[#0d1117]'
+                          : 'text-gray-500 hover:text-gray-300'
+                      }`}
+                    >
+                      Description
+                    </button>
+                    {visualizerPath && (
                       <button
                         onClick={() => setActiveTab('visualizer')}
                         className={`px-4 py-2 text-xs font-semibold font-mono transition ${
@@ -497,8 +501,18 @@ function ProblemPage() {
                       >
                         Visualizer
                       </button>
-                    </div>
-                  )}
+                    )}
+                    <button
+                      onClick={() => setIsSketchZoneOpen(!isSketchZoneOpen)}
+                      className={`ml-auto px-4 py-2 text-xs font-semibold font-mono transition ${
+                        isSketchZoneOpen
+                          ? 'text-[var(--accent)] border-b-2 border-[var(--accent)] bg-[#0d1117]'
+                          : 'text-gray-500 hover:text-gray-300'
+                      }`}
+                    >
+                      Sketch Zone
+                    </button>
+                  </div>
 
                   {/* Tab Content */}
                   {activeTab === 'visualizer' && visualizerPath ? (
@@ -761,6 +775,13 @@ function ProblemPage() {
                 </div>
               </div>
             </div>
+
+      {/* Sketch Zone floating window */}
+      <SketchZone
+        isOpen={isSketchZoneOpen}
+        onClose={() => setIsSketchZoneOpen(false)}
+        problemId={Number(problemId)}
+      />
 
       {/* Submit Result Modal */}
       {submitResult && (
