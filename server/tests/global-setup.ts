@@ -29,10 +29,14 @@ export async function setup() {
   });
   await testClient.connect();
 
-  const migrationSQL = fs.readFileSync(
-    path.resolve(__dirname, '../migrations/001_init.sql'),
-    'utf-8'
-  );
-  await testClient.query(migrationSQL);
+  const migrationsDir = path.resolve(__dirname, '../migrations');
+  const migrationFiles = fs
+    .readdirSync(migrationsDir)
+    .filter((f) => f.endsWith('.sql'))
+    .sort();
+  for (const file of migrationFiles) {
+    const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf-8');
+    await testClient.query(sql);
+  }
   await testClient.end();
 }

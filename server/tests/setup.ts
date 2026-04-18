@@ -3,7 +3,7 @@ import { pool } from '../src/db';
 
 // Clean slate before every test — wipe all rows from all tables
 beforeEach(async () => {
-  await pool.query('TRUNCATE users, progress, refresh_tokens CASCADE');
+  await pool.query('TRUNCATE users, progress, refresh_tokens, sketches CASCADE');
 });
 
 // Drain the connection pool when the process exits (after all test files finish).
