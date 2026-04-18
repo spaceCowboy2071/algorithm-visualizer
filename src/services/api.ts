@@ -187,6 +187,22 @@ export interface DashboardStats {
   avgConfidence: number;
 }
 
+// ── Sketches Types ──
+
+export interface SketchData {
+  name?: string;
+  strokes: unknown[];        // server uses envelope-only validation; client owns the shape
+  canvasWidth: number;
+  canvasHeight: number;
+}
+
+export interface SketchRecord {
+  id?: string;
+  problemId: number;
+  strokeData: SketchData;
+  updatedAt: string | null;  // null when no row exists yet (empty default response)
+}
+
 // ── Auth API ──
 
 export const auth = {
@@ -246,5 +262,24 @@ export const progress = {
 
   dashboard(): Promise<DashboardStats> {
     return request('/api/progress/dashboard');
+  },
+};
+
+// ── Sketches API ──
+
+export const sketches = {
+  get(problemId: number): Promise<SketchRecord> {
+    return request(`/api/sketches/${problemId}`);
+  },
+
+  save(problemId: number, payload: SketchData): Promise<SketchRecord> {
+    return request(`/api/sketches/${problemId}`, {
+      method: 'PUT',
+      body: payload,
+    });
+  },
+
+  remove(problemId: number): Promise<void> {
+    return request(`/api/sketches/${problemId}`, { method: 'DELETE' });
   },
 };

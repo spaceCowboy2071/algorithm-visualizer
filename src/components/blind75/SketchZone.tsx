@@ -1,5 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { getStroke } from 'perfect-freehand';
+import { sketches as sketchesApi } from '../../services/api';
+import { useAuth } from '../../hooks/useAuth';
 
 interface SketchZoneProps {
   isOpen: boolean;
@@ -151,6 +153,39 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
   const [inProgressStroke, setInProgressStroke] = useState<Stroke | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawingRef = useRef(false);
+
+  // Sketch metadata + persistence state
+  const { user } = useAuth();
+  const defaultName = `Sketch Zone — Problem ${problemId}`;
+  const [sketchName, setSketchName] = useState<string>(defaultName);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+
+  // Hydrate from server on mount (auth'd users only). Unauth'd users start blank.
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    sketchesApi.get(problemId)
+      .then(record => {
+        if (cancelled) return;
+        const data = record.strokeData;
+        if (data.strokes && data.strokes.length > 0) {
+          setStrokes(data.strokes as Stroke[]);
+        }
+        if (data.name) {
+          setSketchName(data.name);
+        }
+      })
+      .catch(err => console.error('Failed to load sketch:', err));
+    return () => { cancelled = true; };
+  }, [problemId, user]);
+
+  // Reset transient "saved"/"error" feedback after 1.5s
+  useEffect(() => {
+    if (saveState !== 'saved' && saveState !== 'error') return;
+    const t = setTimeout(() => setSaveState('idle'), 1500);
+    return () => clearTimeout(t);
+  }, [saveState]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (isDragging) {
@@ -321,6 +356,31 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
     setInProgressStroke(null);
   };
 
+  const handleSave = async () => {
+    if (!user || saveState === 'saving') return;
+    const canvas = canvasRef.current;
+    const rect = canvas?.getBoundingClientRect();
+    setSaveState('saving');
+    try {
+      await sketchesApi.save(problemId, {
+        name: sketchName,
+        strokes,
+        canvasWidth: rect ? Math.floor(rect.width) : 0,
+        canvasHeight: rect ? Math.floor(rect.height) : 0,
+      });
+      setSaveState('saved');
+    } catch (err) {
+      console.error('Failed to save sketch:', err);
+      setSaveState('error');
+    }
+  };
+
+  const commitNameEdit = (newName: string) => {
+    const trimmed = newName.trim();
+    setSketchName(trimmed.length > 0 ? trimmed : defaultName);
+    setIsEditingName(false);
+  };
+
   const handleResizeMouseDown = (e: React.MouseEvent, direction: string) => {
     e.stopPropagation();
     setResizeDirection(direction);
@@ -344,6 +404,18 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
   const dividerClass = isLandscape ? 'w-px h-6' : 'h-px w-6';
   const groupDirection = isLandscape ? 'flex-row' : 'flex-col';
 
+  // Visual color tint for the Save button based on its current state
+  const saveBg =
+    saveState === 'saved' ? '#9ec97a' :
+    saveState === 'error' ? '#d97a7a' :
+    'transparent';
+  const saveTitle =
+    !user ? 'Sign in to save' :
+    saveState === 'saving' ? 'Saving…' :
+    saveState === 'saved' ? 'Saved' :
+    saveState === 'error' ? 'Save failed' :
+    'Save';
+
   const Toolbar = (
     <div
       className={`flex gap-2 items-center ${
@@ -351,6 +423,19 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
       }`}
       style={{ background: PAPER_BG_DARKER, borderColor: PAPER_BORDER }}
     >
+      {/* Save (top-left) */}
+      <button
+        onClick={handleSave}
+        disabled={!user || saveState === 'saving'}
+        title={saveTitle}
+        className="p-1.5 rounded transition hover:bg-black/10 disabled:opacity-30 disabled:hover:bg-transparent"
+        style={{ color: INK, background: saveBg }}
+      >
+        <SaveIcon />
+      </button>
+
+      <div style={{ background: PAPER_BORDER }} className={dividerClass} />
+
       {/* Tool selector */}
       <div className={`flex gap-1 ${groupDirection}`}>
         {TOOLS.map(({ id, label, Icon }) => (
@@ -443,14 +528,6 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
         >
           <ClearIcon />
         </button>
-        <button
-          disabled
-          title="Save (coming in Step 6)"
-          className="p-1.5 rounded transition opacity-30 cursor-not-allowed"
-          style={{ color: INK }}
-        >
-          <SaveIcon />
-        </button>
       </div>
     </div>
   );
@@ -478,12 +555,36 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
           style={{ background: PAPER_BG_DARKER, borderBottom: `1px solid ${PAPER_BORDER}` }}
         >
           <div className="flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke={INK} strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-            </svg>
-            <span className="text-sm font-semibold" style={{ color: INK }}>
-              Sketch Zone — Problem {problemId}
-            </span>
+            {/* Pencil icon — click to toggle rename mode */}
+            <button
+              onClick={(e) => { e.stopPropagation(); setIsEditingName(prev => !prev); }}
+              onMouseDown={(e) => e.stopPropagation()}
+              className="p-0.5 rounded hover:bg-black/10 transition cursor-pointer"
+              style={{ color: INK }}
+              title={isEditingName ? 'Done renaming' : 'Rename sketch'}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+            </button>
+            {isEditingName ? (
+              <input
+                autoFocus
+                defaultValue={sketchName}
+                onMouseDown={(e) => e.stopPropagation()}
+                onBlur={(e) => commitNameEdit(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') commitNameEdit((e.target as HTMLInputElement).value);
+                  if (e.key === 'Escape') setIsEditingName(false);
+                }}
+                className="text-sm font-semibold bg-transparent border-b outline-none px-1"
+                style={{ color: INK, borderColor: INK, minWidth: '200px' }}
+              />
+            ) : (
+              <span className="text-sm font-semibold" style={{ color: INK }}>
+                {sketchName}
+              </span>
+            )}
           </div>
           <button
             onClick={onClose}

@@ -30,7 +30,9 @@ export const progressUpdateSchema = z.object({
 
 // Envelope-only validation: trust frontend on individual stroke shape, but enforce
 // top-level structure and cap array length to defend against bloat payloads.
+// `name` is optional — frontend allows users to rename their sketch.
 export const sketchUpdateSchema = z.object({
+  name: z.string().max(100).optional(),
   strokes: z.array(z.unknown()).max(2000, 'Too many strokes (max 2000)'),
   canvasWidth: z.number().int().min(0).max(10000),
   canvasHeight: z.number().int().min(0).max(10000),
