@@ -145,6 +145,11 @@ jobs:
 
             docker pull $ECR_IMAGE
 
+            # Run pending migrations against RDS using the new image, in an
+            # ephemeral container. If this fails, the script exits non-zero
+            # and the old container keeps serving traffic — no downtime.
+            docker run --rm --env-file ~/.env $ECR_IMAGE node dist/migrate.js
+
             docker stop algorithmviz-api || true
             docker rm algorithmviz-api || true
 

@@ -31,6 +31,9 @@ RUN npm ci --omit=dev
 # Copy the compiled JavaScript from the build stage
 COPY --from=build /app/dist ./dist
 
+# Copy migration SQL files — read at runtime by dist/migrate.js
+COPY migrations ./migrations
+
 # Accept the git commit SHA at build time and bake it into the image
 # as an environment variable. The CI/CD pipeline passes this via --build-arg.
 # Defaults to "dev" for local Docker builds where no SHA is provided.
