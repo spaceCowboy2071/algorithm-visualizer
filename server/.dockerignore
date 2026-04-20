@@ -5,7 +5,6 @@ dist
 tests
 *.test.ts
 vitest.config.ts
-migrations
 docs
 CLAUDE.md
 .gitignore
