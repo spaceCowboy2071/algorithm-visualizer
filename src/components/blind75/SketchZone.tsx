@@ -202,6 +202,54 @@ function isStrokeHit(p: [number, number], s: Stroke, threshold: number): boolean
   }
 }
 
+// Apply one eraser event (point + radius) to an array of strokes.
+// - Freehand (pencil/brush): walks the point array, splits the stroke wherever
+//   points fall inside the eraser circle. One stroke becomes 0, 1, or many
+//   sub-strokes. Sub-strokes shorter than 2 points are dropped (no visible line).
+// - Shapes (rect/circle/line): atomic units. Dropped entirely if the eraser
+//   touches their outline; otherwise untouched.
+// Returns `changed: false` if nothing was affected, so callers can skip
+// triggering re-renders / history updates.
+function eraseFromStrokes(
+  strokes: Stroke[],
+  ex: number,
+  ey: number,
+  er: number,
+): { next: Stroke[]; changed: boolean } {
+  const next: Stroke[] = [];
+  let changed = false;
+  for (const s of strokes) {
+    if (s.tool === 'pencil' || s.tool === 'brush') {
+      let buffer: [number, number][] = [];
+      const parts: [number, number][][] = [];
+      let touched = false;
+      for (const [px, py] of s.points) {
+        if (Math.hypot(px - ex, py - ey) < er) {
+          if (buffer.length >= 2) parts.push(buffer);
+          buffer = [];
+          touched = true;
+        } else {
+          buffer.push([px, py]);
+        }
+      }
+      if (buffer.length >= 2) parts.push(buffer);
+      if (!touched) {
+        next.push(s);
+      } else {
+        changed = true;
+        for (const pts of parts) next.push({ ...s, points: pts });
+      }
+    } else {
+      if (isStrokeHit([ex, ey], s, er)) {
+        changed = true;
+      } else {
+        next.push(s);
+      }
+    }
+  }
+  return { next, changed };
+}
+
 function SketchZone({ isOpen, onClose, problemId }: SketchZoneProps) {
   if (!isOpen) return null;
   return <SketchZoneInner onClose={onClose} problemId={problemId} />;
@@ -256,14 +304,22 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawingRef = useRef(false);
 
-  // Eraser mid-drag state. erasedInDrag is the set of stroke refs that have
-  // been swept-over but not yet committed. Keeping it in state (not a ref)
-  // lets the render loop filter these out so strokes vanish as you sweep.
-  // Object references are used as Set keys — strokes are immutable, so their
-  // references are stable across snapshots.
-  const [erasedInDrag, setErasedInDrag] = useState<Set<Stroke>>(() => new Set());
+  // Eraser mid-drag state. workingStrokes holds the canvas state as it's being
+  // mutated by an in-progress eraser drag — freehand strokes get split, shapes
+  // get removed. Null means no drag is active. Committed as a single snapshot
+  // on mouseup so one undo restores the whole drag.
+  // didEraseRef tracks whether anything actually changed during the drag so we
+  // don't push a no-op snapshot for a drag that touched nothing.
+  const [workingStrokes, setWorkingStrokes] = useState<Stroke[] | null>(null);
   const isErasingRef = useRef(false);
-  const visibleStrokes = erasedInDrag.size === 0 ? strokes : strokes.filter(s => !erasedInDrag.has(s));
+  const didEraseRef = useRef(false);
+  const visibleStrokes = workingStrokes ?? strokes;
+
+  // Eraser cursor preview position (in canvas coords). Cleared when the mouse
+  // leaves the canvas. The render is gated on currentTool === 'eraser', so a
+  // stale value left over from a previous eraser session can't become visible
+  // while a different tool is active.
+  const [eraserCursor, setEraserCursor] = useState<[number, number] | null>(null);
 
   // Sketch metadata + persistence state
   const { user } = useAuth();
@@ -408,13 +464,17 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
     e.stopPropagation();
     const [x, y] = getCanvasCoords(e);
 
-    // Eraser: start a sweep. Also hit-test the initial point so a single click
-    // (no subsequent mousemove) still deletes whatever it lands on.
+    // Eraser: start a sweep. Also run the eraser at the initial point so a
+    // single click (no subsequent mousemove) still erases whatever it lands on.
     if (currentTool === 'eraser') {
       isErasingRef.current = true;
+      didEraseRef.current = false;
       const radius = ERASER_RADIUS[currentSize];
-      const hits = strokes.filter(s => isStrokeHit([x, y], s, radius));
-      if (hits.length > 0) setErasedInDrag(new Set(hits));
+      const { next, changed } = eraseFromStrokes(strokes, x, y, radius);
+      if (changed) didEraseRef.current = true;
+      // Always set workingStrokes so visibleStrokes reflects the in-progress
+      // erase even if the initial click missed everything.
+      setWorkingStrokes(changed ? next : strokes);
       return;
     }
 
@@ -440,17 +500,18 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
   const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const [x, y] = getCanvasCoords(e);
 
+    // Track cursor position for the eraser preview whenever the eraser tool is
+    // active — not just during an active drag. This is how the user sees where
+    // the eraser will act before clicking.
+    if (currentTool === 'eraser') setEraserCursor([x, y]);
+
     if (isErasingRef.current) {
       const radius = ERASER_RADIUS[currentSize];
-      setErasedInDrag(prev => {
-        let next: Set<Stroke> | null = null;
-        for (const s of strokes) {
-          if (!prev.has(s) && isStrokeHit([x, y], s, radius)) {
-            if (!next) next = new Set(prev);
-            next.add(s);
-          }
-        }
-        return next ?? prev;
+      setWorkingStrokes(prev => {
+        if (!prev) return prev;
+        const { next, changed } = eraseFromStrokes(prev, x, y, radius);
+        if (changed) didEraseRef.current = true;
+        return changed ? next : prev;
       });
       return;
     }
@@ -466,14 +527,15 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
   };
 
   const commitInProgressStroke = () => {
-    // Eraser: commit the swept strokes as a single snapshot so one undo restores
-    // the whole drag.
+    // Eraser: commit the working stroke array as a single snapshot so one undo
+    // restores the whole drag.
     if (isErasingRef.current) {
       isErasingRef.current = false;
-      if (erasedInDrag.size > 0) {
-        pushSnapshot(strokes.filter(s => !erasedInDrag.has(s)));
-        setErasedInDrag(new Set());
+      if (didEraseRef.current && workingStrokes) {
+        pushSnapshot(workingStrokes);
       }
+      didEraseRef.current = false;
+      setWorkingStrokes(null);
       return;
     }
     if (!isDrawingRef.current) return;
@@ -482,6 +544,13 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
       pushSnapshot([...strokes, inProgressStroke]);
     }
     setInProgressStroke(null);
+  };
+
+  // Mouse-leaving the canvas: commit any in-progress drag AND clear the eraser
+  // preview so the floating indicator doesn't stick around over the toolbar.
+  const handleCanvasMouseLeave = () => {
+    setEraserCursor(null);
+    commitInProgressStroke();
   };
 
   // ─── Toolbar action handlers ───
@@ -749,18 +818,46 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
           {Toolbar}
           {/* Drawing canvas — fills remaining body area */}
           <div
-            className="flex-1 overflow-hidden"
+            className="flex-1 overflow-hidden relative"
             style={{ background: PAPER_BG, minHeight: 0, minWidth: 0 }}
           >
             <canvas
               ref={canvasRef}
-              className="cursor-crosshair touch-none"
-              style={{ display: 'block', width: '100%', height: '100%' }}
+              className="touch-none"
+              style={{
+                display: 'block',
+                width: '100%',
+                height: '100%',
+                cursor: currentTool === 'eraser' ? 'none' : 'crosshair',
+              }}
               onMouseDown={handleCanvasMouseDown}
               onMouseMove={handleCanvasMouseMove}
               onMouseUp={commitInProgressStroke}
-              onMouseLeave={commitInProgressStroke}
+              onMouseLeave={handleCanvasMouseLeave}
             />
+            {/* Eraser cursor preview — shows where the eraser will act, sized to
+                the active radius. pointer-events: none so it can't steal events. */}
+            {currentTool === 'eraser' && eraserCursor && (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: eraserCursor[0] - ERASER_RADIUS[currentSize],
+                  top: eraserCursor[1] - ERASER_RADIUS[currentSize],
+                  width: ERASER_RADIUS[currentSize] * 2,
+                  height: ERASER_RADIUS[currentSize] * 2,
+                  pointerEvents: 'none',
+                  borderRadius: '50%',
+                  border: `1.5px dashed ${INK}`,
+                  background: 'rgba(255, 255, 255, 0.25)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: INK,
+                }}
+              >
+                <EraserIcon />
+              </div>
+            )}
           </div>
         </div>
 
@@ -821,9 +918,12 @@ function LineIcon() {
 }
 
 function EraserIcon() {
+  // Old-school rectangular rubber eraser — horizontal block with a divider
+  // line showing the two-tone body (like the classic pink/blue school eraser).
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 3.75 20.25 7.5M7.5 20.25H4.5v-3l12.75-12.75 3 3L7.5 20.25Zm0 0h12" />
+    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinejoin="round" strokeLinecap="round">
+      <rect x="3" y="9" width="18" height="7" rx="1.5" />
+      <line x1="10" y1="9" x2="10" y2="16" />
     </svg>
   );
 }
