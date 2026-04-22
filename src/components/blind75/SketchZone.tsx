@@ -46,6 +46,15 @@ const INK_PALETTE = [
 // Stroke widths in pixels per size tier.
 const SIZE_PX: Record<Size, number> = { sm: 2, md: 4, lg: 8 };
 
+// Cap on undo depth. 100 is generous for a whiteboard scratchpad; beyond this
+// the oldest snapshot is dropped so memory stays bounded.
+const MAX_HISTORY = 100;
+
+interface History {
+  snapshots: Stroke[][];
+  index: number;
+}
+
 // ─── Drawing primitives ───
 // Each tool gets its own rendering path. Pencil/brush use the freehand `points`
 // array; rect/circle/line use the start/end coordinate fields.
@@ -148,8 +157,24 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
   const [currentTool, setCurrentTool] = useState<Tool>('pencil');
   const [currentColor, setCurrentColor] = useState<string>(INK_PALETTE[0]);
   const [currentSize, setCurrentSize] = useState<Size>('md');
-  const [strokes, setStrokes] = useState<Stroke[]>([]);
-  const [redoStack, setRedoStack] = useState<Stroke[]>([]);
+  // Snapshot-based history. Every mutation (add stroke, erase, paste, clear)
+  // pushes a full snapshot of the strokes array. Undo/redo just slides `index`.
+  // Snapshots share stroke references — they're immutable — so memory is cheap.
+  const [history, setHistory] = useState<History>({ snapshots: [[]], index: 0 });
+  const strokes = history.snapshots[history.index];
+  const canUndo = history.index > 0;
+  const canRedo = history.index < history.snapshots.length - 1;
+  const pushSnapshot = useCallback((next: Stroke[]) => {
+    setHistory(prev => {
+      // Drop any "future" snapshots beyond current index — new edit invalidates redo.
+      const base = prev.snapshots.slice(0, prev.index + 1);
+      base.push(next);
+      if (base.length > MAX_HISTORY) {
+        return { snapshots: base.slice(-MAX_HISTORY), index: MAX_HISTORY - 1 };
+      }
+      return { snapshots: base, index: prev.index + 1 };
+    });
+  }, []);
   const [inProgressStroke, setInProgressStroke] = useState<Stroke | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawingRef = useRef(false);
@@ -170,7 +195,9 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
         if (cancelled) return;
         const data = record.strokeData;
         if (data.strokes && data.strokes.length > 0) {
-          setStrokes(data.strokes as Stroke[]);
+          // Replace the baseline snapshot, don't stack on top. Otherwise
+          // hitting undo right after load would clear the whole sketch.
+          setHistory({ snapshots: [data.strokes as Stroke[]], index: 0 });
         }
         if (data.name) {
           setSketchName(data.name);
@@ -329,30 +356,25 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
     if (!isDrawingRef.current) return;
     isDrawingRef.current = false;
     if (inProgressStroke) {
-      setStrokes(prev => [...prev, inProgressStroke]);
-      setRedoStack([]);
+      pushSnapshot([...strokes, inProgressStroke]);
     }
     setInProgressStroke(null);
   };
 
   // ─── Toolbar action handlers ───
   const handleUndo = () => {
-    if (strokes.length === 0) return;
-    const last = strokes[strokes.length - 1];
-    setStrokes(prev => prev.slice(0, -1));
-    setRedoStack(prev => [...prev, last]);
+    setHistory(prev => prev.index === 0 ? prev : { ...prev, index: prev.index - 1 });
   };
 
   const handleRedo = () => {
-    if (redoStack.length === 0) return;
-    const last = redoStack[redoStack.length - 1];
-    setStrokes(prev => [...prev, last]);
-    setRedoStack(prev => prev.slice(0, -1));
+    setHistory(prev =>
+      prev.index === prev.snapshots.length - 1 ? prev : { ...prev, index: prev.index + 1 }
+    );
   };
 
   const handleClear = () => {
-    setStrokes([]);
-    setRedoStack([]);
+    if (strokes.length === 0 && !inProgressStroke) return;
+    pushSnapshot([]);
     setInProgressStroke(null);
   };
 
@@ -503,7 +525,7 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
       <div className={`flex gap-1 ${groupDirection}`}>
         <button
           onClick={handleUndo}
-          disabled={strokes.length === 0}
+          disabled={!canUndo}
           title="Undo"
           className="p-1.5 rounded transition hover:bg-black/10 disabled:opacity-30 disabled:hover:bg-transparent"
           style={{ color: INK }}
@@ -512,7 +534,7 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
         </button>
         <button
           onClick={handleRedo}
-          disabled={redoStack.length === 0}
+          disabled={!canRedo}
           title="Redo"
           className="p-1.5 rounded transition hover:bg-black/10 disabled:opacity-30 disabled:hover:bg-transparent"
           style={{ color: INK }}
