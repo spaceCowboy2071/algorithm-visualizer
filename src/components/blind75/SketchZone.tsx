@@ -9,11 +9,16 @@ interface SketchZoneProps {
   problemId: number;
 }
 
-type Tool = 'pencil' | 'brush' | 'rect' | 'circle' | 'line';
+// StrokeTool = tools that produce a drawn stroke on the canvas.
+// Tool = everything the toolbar can select, including non-stroke-producing tools
+// like the eraser. Keeping these separate means drawStroke's switch stays
+// exhaustive and we can't accidentally create a Stroke with tool: 'eraser'.
+type StrokeTool = 'pencil' | 'brush' | 'rect' | 'circle' | 'line';
+type Tool = StrokeTool | 'eraser';
 type Size = 'sm' | 'md' | 'lg';
 
 interface Stroke {
-  tool: Tool;
+  tool: StrokeTool;
   color: string;
   size: Size;
   points: [number, number][];     // freehand (pencil/brush)
@@ -45,6 +50,10 @@ const INK_PALETTE = [
 
 // Stroke widths in pixels per size tier.
 const SIZE_PX: Record<Size, number> = { sm: 2, md: 4, lg: 8 };
+
+// Eraser hit-test radius per size tier — larger than stroke width so the
+// eraser feels forgiving (you don't need pixel-perfect aim).
+const ERASER_RADIUS: Record<Size, number> = { sm: 12, md: 20, lg: 32 };
 
 // Cap on undo depth. 100 is generous for a whiteboard scratchpad; beyond this
 // the oldest snapshot is dropped so memory stays bounded.
@@ -125,6 +134,74 @@ function drawStroke(ctx: CanvasRenderingContext2D, s: Stroke) {
   }
 }
 
+// ─── Hit-test helpers ───
+// Used by the eraser (and later, the selector tool) to decide whether a cursor
+// position "touches" a given stroke. All tests treat strokes as outlines
+// (consistent with how drawStroke renders them — no filled shapes).
+
+// Shortest distance from point p to the segment a→b.
+function distToSegment(p: [number, number], a: [number, number], b: [number, number]): number {
+  const [px, py] = p;
+  const [ax, ay] = a;
+  const [bx, by] = b;
+  const dx = bx - ax;
+  const dy = by - ay;
+  const len2 = dx * dx + dy * dy;
+  if (len2 === 0) return Math.hypot(px - ax, py - ay);
+  // Project p onto the line, clamp to [0, 1] so we stay within the segment.
+  const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / len2));
+  return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+}
+
+function isStrokeHit(p: [number, number], s: Stroke, threshold: number): boolean {
+  switch (s.tool) {
+    case 'pencil':
+    case 'brush': {
+      // Freehand — check distance to every consecutive-point segment.
+      if (s.points.length === 0) return false;
+      if (s.points.length === 1) return Math.hypot(p[0] - s.points[0][0], p[1] - s.points[0][1]) < threshold;
+      for (let i = 1; i < s.points.length; i++) {
+        if (distToSegment(p, s.points[i - 1], s.points[i]) < threshold) return true;
+      }
+      return false;
+    }
+    case 'rect': {
+      if (s.startX === undefined || s.startY === undefined || s.endX === undefined || s.endY === undefined) return false;
+      const x1 = Math.min(s.startX, s.endX);
+      const y1 = Math.min(s.startY, s.endY);
+      const x2 = Math.max(s.startX, s.endX);
+      const y2 = Math.max(s.startY, s.endY);
+      // Rect is outlined, not filled — check all 4 edges.
+      return (
+        distToSegment(p, [x1, y1], [x2, y1]) < threshold ||
+        distToSegment(p, [x2, y1], [x2, y2]) < threshold ||
+        distToSegment(p, [x2, y2], [x1, y2]) < threshold ||
+        distToSegment(p, [x1, y2], [x1, y1]) < threshold
+      );
+    }
+    case 'circle': {
+      if (s.startX === undefined || s.startY === undefined || s.endX === undefined || s.endY === undefined) return false;
+      const cx = (s.startX + s.endX) / 2;
+      const cy = (s.startY + s.endY) / 2;
+      const rx = Math.abs(s.endX - s.startX) / 2;
+      const ry = Math.abs(s.endY - s.startY) / 2;
+      if (rx === 0 || ry === 0) return false;
+      // Normalize to unit circle: point-on-ellipse satisfies nx²+ny² = 1.
+      // |sqrt(nx²+ny²) - 1| is the approximate signed distance in normalized space;
+      // multiplying by mean radius gets us back to canvas pixels (accurate enough
+      // for hit detection, cheap to compute — no iterative solver needed).
+      const nx = (p[0] - cx) / rx;
+      const ny = (p[1] - cy) / ry;
+      const meanR = (rx + ry) / 2;
+      return Math.abs(Math.sqrt(nx * nx + ny * ny) - 1) * meanR < threshold;
+    }
+    case 'line': {
+      if (s.startX === undefined || s.startY === undefined || s.endX === undefined || s.endY === undefined) return false;
+      return distToSegment(p, [s.startX, s.startY], [s.endX, s.endY]) < threshold;
+    }
+  }
+}
+
 function SketchZone({ isOpen, onClose, problemId }: SketchZoneProps) {
   if (!isOpen) return null;
   return <SketchZoneInner onClose={onClose} problemId={problemId} />;
@@ -178,6 +255,15 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
   const [inProgressStroke, setInProgressStroke] = useState<Stroke | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawingRef = useRef(false);
+
+  // Eraser mid-drag state. erasedInDrag is the set of stroke refs that have
+  // been swept-over but not yet committed. Keeping it in state (not a ref)
+  // lets the render loop filter these out so strokes vanish as you sweep.
+  // Object references are used as Set keys — strokes are immutable, so their
+  // references are stable across snapshots.
+  const [erasedInDrag, setErasedInDrag] = useState<Set<Stroke>>(() => new Set());
+  const isErasingRef = useRef(false);
+  const visibleStrokes = erasedInDrag.size === 0 ? strokes : strokes.filter(s => !erasedInDrag.has(s));
 
   // Sketch metadata + persistence state
   const { user } = useAuth();
@@ -300,7 +386,7 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
       if (canvas.width !== targetW) canvas.width = targetW;
       if (canvas.height !== targetH) canvas.height = targetH;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (const s of strokes) drawStroke(ctx, s);
+      for (const s of visibleStrokes) drawStroke(ctx, s);
       if (inProgressStroke) drawStroke(ctx, inProgressStroke);
     };
 
@@ -308,7 +394,7 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
     const observer = new ResizeObserver(syncAndDraw);
     observer.observe(canvas);
     return () => observer.disconnect();
-  }, [strokes, inProgressStroke]);
+  }, [visibleStrokes, inProgressStroke]);
 
   // ─── Canvas mouse handlers ───
   const getCanvasCoords = (e: React.MouseEvent<HTMLCanvasElement>): [number, number] => {
@@ -321,6 +407,17 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.stopPropagation();
     const [x, y] = getCanvasCoords(e);
+
+    // Eraser: start a sweep. Also hit-test the initial point so a single click
+    // (no subsequent mousemove) still deletes whatever it lands on.
+    if (currentTool === 'eraser') {
+      isErasingRef.current = true;
+      const radius = ERASER_RADIUS[currentSize];
+      const hits = strokes.filter(s => isStrokeHit([x, y], s, radius));
+      if (hits.length > 0) setErasedInDrag(new Set(hits));
+      return;
+    }
+
     isDrawingRef.current = true;
     if (currentTool === 'pencil' || currentTool === 'brush') {
       setInProgressStroke({
@@ -341,8 +438,24 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
   };
 
   const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawingRef.current) return;
     const [x, y] = getCanvasCoords(e);
+
+    if (isErasingRef.current) {
+      const radius = ERASER_RADIUS[currentSize];
+      setErasedInDrag(prev => {
+        let next: Set<Stroke> | null = null;
+        for (const s of strokes) {
+          if (!prev.has(s) && isStrokeHit([x, y], s, radius)) {
+            if (!next) next = new Set(prev);
+            next.add(s);
+          }
+        }
+        return next ?? prev;
+      });
+      return;
+    }
+
+    if (!isDrawingRef.current) return;
     setInProgressStroke(prev => {
       if (!prev) return null;
       if (prev.tool === 'pencil' || prev.tool === 'brush') {
@@ -353,6 +466,16 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
   };
 
   const commitInProgressStroke = () => {
+    // Eraser: commit the swept strokes as a single snapshot so one undo restores
+    // the whole drag.
+    if (isErasingRef.current) {
+      isErasingRef.current = false;
+      if (erasedInDrag.size > 0) {
+        pushSnapshot(strokes.filter(s => !erasedInDrag.has(s)));
+        setErasedInDrag(new Set());
+      }
+      return;
+    }
     if (!isDrawingRef.current) return;
     isDrawingRef.current = false;
     if (inProgressStroke) {
@@ -421,6 +544,7 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
     { id: 'rect', label: 'Rectangle', Icon: RectIcon },
     { id: 'circle', label: 'Circle', Icon: CircleIcon },
     { id: 'line', label: 'Line', Icon: LineIcon },
+    { id: 'eraser', label: 'Eraser', Icon: EraserIcon },
   ];
 
   const dividerClass = isLandscape ? 'w-px h-6' : 'h-px w-6';
@@ -692,6 +816,14 @@ function LineIcon() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
       <line x1="5" y1="19" x2="19" y2="5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function EraserIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 3.75 20.25 7.5M7.5 20.25H4.5v-3l12.75-12.75 3 3L7.5 20.25Zm0 0h12" />
     </svg>
   );
 }
