@@ -13,7 +13,7 @@ interface SketchZoneProps {
 // Tool = everything the toolbar can select, including non-stroke-producing tools
 // like the eraser. Keeping these separate means drawStroke's switch stays
 // exhaustive and we can't accidentally create a Stroke with tool: 'eraser'.
-type StrokeTool = 'pencil' | 'brush' | 'rect' | 'circle' | 'line';
+type StrokeTool = 'pencil' | 'brush' | 'rect' | 'circle' | 'line' | 'grid';
 type Tool = StrokeTool | 'eraser';
 type Size = 'sm' | 'md' | 'lg';
 
@@ -22,10 +22,12 @@ interface Stroke {
   color: string;
   size: Size;
   points: [number, number][];     // freehand (pencil/brush)
-  startX?: number;                // shapes (rect/circle/line)
+  startX?: number;                // shapes (rect/circle/line/grid)
   startY?: number;
   endX?: number;
   endY?: number;
+  rows?: number;                  // grid only
+  cols?: number;                  // grid only
 }
 
 const PAPER_BG = '#EBDFCE';
@@ -131,6 +133,33 @@ function drawStroke(ctx: CanvasRenderingContext2D, s: Stroke) {
       ctx.stroke();
       return;
     }
+    case 'grid': {
+      if (s.startX === undefined || s.startY === undefined || s.endX === undefined || s.endY === undefined) return;
+      const x1 = Math.min(s.startX, s.endX);
+      const y1 = Math.min(s.startY, s.endY);
+      const x2 = Math.max(s.startX, s.endX);
+      const y2 = Math.max(s.startY, s.endY);
+      const w = x2 - x1;
+      const h = y2 - y1;
+      const rows = Math.max(1, s.rows ?? 1);
+      const cols = Math.max(1, s.cols ?? 1);
+      // Outer frame.
+      ctx.strokeRect(x1, y1, w, h);
+      // Interior dividers — single beginPath/stroke pair for efficiency.
+      ctx.beginPath();
+      for (let i = 1; i < cols; i++) {
+        const x = x1 + (w * i) / cols;
+        ctx.moveTo(x, y1);
+        ctx.lineTo(x, y2);
+      }
+      for (let i = 1; i < rows; i++) {
+        const y = y1 + (h * i) / rows;
+        ctx.moveTo(x1, y);
+        ctx.lineTo(x2, y);
+      }
+      ctx.stroke();
+      return;
+    }
   }
 }
 
@@ -198,6 +227,34 @@ function isStrokeHit(p: [number, number], s: Stroke, threshold: number): boolean
     case 'line': {
       if (s.startX === undefined || s.startY === undefined || s.endX === undefined || s.endY === undefined) return false;
       return distToSegment(p, [s.startX, s.startY], [s.endX, s.endY]) < threshold;
+    }
+    case 'grid': {
+      if (s.startX === undefined || s.startY === undefined || s.endX === undefined || s.endY === undefined) return false;
+      const x1 = Math.min(s.startX, s.endX);
+      const y1 = Math.min(s.startY, s.endY);
+      const x2 = Math.max(s.startX, s.endX);
+      const y2 = Math.max(s.startY, s.endY);
+      const w = x2 - x1;
+      const h = y2 - y1;
+      const rows = Math.max(1, s.rows ?? 1);
+      const cols = Math.max(1, s.cols ?? 1);
+      // Outer frame edges.
+      if (
+        distToSegment(p, [x1, y1], [x2, y1]) < threshold ||
+        distToSegment(p, [x2, y1], [x2, y2]) < threshold ||
+        distToSegment(p, [x2, y2], [x1, y2]) < threshold ||
+        distToSegment(p, [x1, y2], [x1, y1]) < threshold
+      ) return true;
+      // Interior gridlines — eraser hits any line inside the grid.
+      for (let i = 1; i < cols; i++) {
+        const x = x1 + (w * i) / cols;
+        if (distToSegment(p, [x, y1], [x, y2]) < threshold) return true;
+      }
+      for (let i = 1; i < rows; i++) {
+        const y = y1 + (h * i) / rows;
+        if (distToSegment(p, [x1, y], [x2, y]) < threshold) return true;
+      }
+      return false;
     }
   }
 }
@@ -282,6 +339,11 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
   const [currentTool, setCurrentTool] = useState<Tool>('pencil');
   const [currentColor, setCurrentColor] = useState<string>(INK_PALETTE[0]);
   const [currentSize, setCurrentSize] = useState<Size>('md');
+  // Grid tool dimensions — default 3x3 (sensible for matrix problems). 1 is
+  // technically allowed (degenerates to a rect) but we don't bother forbidding
+  // it. Cap at 20 so a fat-fingered input doesn't render hundreds of lines.
+  const [gridRows, setGridRows] = useState(3);
+  const [gridCols, setGridCols] = useState(3);
   // Snapshot-based history. Every mutation (add stroke, erase, paste, clear)
   // pushes a full snapshot of the strokes array. Undo/redo just slides `index`.
   // Snapshots share stroke references — they're immutable — so memory is cheap.
@@ -493,6 +555,9 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
         size: currentSize,
         points: [],
         startX: x, startY: y, endX: x, endY: y,
+        // Grid carries its row/col counts on the stroke itself so each grid
+        // can have different dimensions independent of the current toolbar state.
+        ...(currentTool === 'grid' ? { rows: gridRows, cols: gridCols } : {}),
       });
     }
   };
@@ -613,8 +678,11 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
     { id: 'rect', label: 'Rectangle', Icon: RectIcon },
     { id: 'circle', label: 'Circle', Icon: CircleIcon },
     { id: 'line', label: 'Line', Icon: LineIcon },
+    { id: 'grid', label: 'Grid', Icon: GridIcon },
     { id: 'eraser', label: 'Eraser', Icon: EraserIcon },
   ];
+
+  const clampGridDim = (n: number) => Math.max(1, Math.min(20, Math.floor(n) || 1));
 
   const dividerClass = isLandscape ? 'w-px h-6' : 'h-px w-6';
   const groupDirection = isLandscape ? 'flex-row' : 'flex-col';
@@ -711,6 +779,51 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
           </button>
         ))}
       </div>
+
+      {/* Grid dimensions — only shown when the grid tool is active. Same
+          conditional-render pattern as the eraser cursor preview. */}
+      {currentTool === 'grid' && (
+        <>
+          <div style={{ background: PAPER_BORDER }} className={dividerClass} />
+          <div className={`flex gap-1 items-center ${groupDirection}`}>
+            <input
+              type="number"
+              min={1}
+              max={20}
+              value={gridRows}
+              onChange={e => setGridRows(clampGridDim(Number(e.target.value)))}
+              title="Rows"
+              className="text-[10px] font-bold rounded text-center"
+              style={{
+                color: INK,
+                background: PAPER_BG,
+                border: `1px solid ${PAPER_BORDER}`,
+                width: '32px',
+                height: '22px',
+                padding: '0 2px',
+              }}
+            />
+            <span className="text-[10px] font-bold" style={{ color: INK }}>×</span>
+            <input
+              type="number"
+              min={1}
+              max={20}
+              value={gridCols}
+              onChange={e => setGridCols(clampGridDim(Number(e.target.value)))}
+              title="Columns"
+              className="text-[10px] font-bold rounded text-center"
+              style={{
+                color: INK,
+                background: PAPER_BG,
+                border: `1px solid ${PAPER_BORDER}`,
+                width: '32px',
+                height: '22px',
+                padding: '0 2px',
+              }}
+            />
+          </div>
+        </>
+      )}
 
       <div style={{ background: PAPER_BORDER }} className={dividerClass} />
 
@@ -913,6 +1026,20 @@ function LineIcon() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
       <line x1="5" y1="19" x2="19" y2="5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function GridIcon() {
+  // 3x3 grid — outer rect plus two interior lines in each direction. Reads
+  // immediately as "grid" at toolbar size.
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6} strokeLinejoin="round">
+      <rect x="4" y="4" width="16" height="16" rx="1" />
+      <line x1="9.33" y1="4" x2="9.33" y2="20" />
+      <line x1="14.67" y1="4" x2="14.67" y2="20" />
+      <line x1="4" y1="9.33" x2="20" y2="9.33" />
+      <line x1="4" y1="14.67" x2="20" y2="14.67" />
     </svg>
   );
 }
