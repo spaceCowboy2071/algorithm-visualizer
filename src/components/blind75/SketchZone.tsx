@@ -14,7 +14,9 @@ interface SketchZoneProps {
 // like the eraser. Keeping these separate means drawStroke's switch stays
 // exhaustive and we can't accidentally create a Stroke with tool: 'eraser'.
 type StrokeTool = 'pencil' | 'brush' | 'rect' | 'circle' | 'line' | 'grid';
-type Tool = StrokeTool | 'eraser';
+type Tool = StrokeTool | 'eraser' | 'selector';
+
+interface Rect { x1: number; y1: number; x2: number; y2: number }
 type Size = 'sm' | 'md' | 'lg';
 
 interface Stroke {
@@ -307,6 +309,90 @@ function eraseFromStrokes(
   return { next, changed };
 }
 
+// Mirror of eraseFromStrokes, but instead of dropping points inside the eraser
+// circle, this KEEPS points inside the selection rectangle and splits whenever
+// the stroke exits. Returns both halves so the caller can use one for move
+// (selected = follows cursor, remaining = stays put) or both for duplicate
+// (originals stay, selected gets cloned + translated).
+//
+// Shapes (rect/circle/line/grid) are routed atomically: included whole if the
+// bbox intersects the selection, excluded entirely otherwise. Same Option-2
+// hybrid rule as the eraser.
+function splitStrokesByRect(
+  strokes: Stroke[],
+  rect: Rect,
+): { selected: Stroke[]; remaining: Stroke[] } {
+  const selected: Stroke[] = [];
+  const remaining: Stroke[] = [];
+  for (const s of strokes) {
+    if (s.tool === 'pencil' || s.tool === 'brush') {
+      let inBuf: [number, number][] = [];
+      let outBuf: [number, number][] = [];
+      for (const [px, py] of s.points) {
+        const isIn = px >= rect.x1 && px <= rect.x2 && py >= rect.y1 && py <= rect.y2;
+        if (isIn) {
+          if (outBuf.length >= 2) remaining.push({ ...s, points: outBuf });
+          outBuf = [];
+          inBuf.push([px, py]);
+        } else {
+          if (inBuf.length >= 2) selected.push({ ...s, points: inBuf });
+          inBuf = [];
+          outBuf.push([px, py]);
+        }
+      }
+      if (inBuf.length >= 2) selected.push({ ...s, points: inBuf });
+      if (outBuf.length >= 2) remaining.push({ ...s, points: outBuf });
+    } else {
+      // Shape: bbox intersection. rows/cols ride along untouched.
+      const sx1 = Math.min(s.startX!, s.endX!);
+      const sy1 = Math.min(s.startY!, s.endY!);
+      const sx2 = Math.max(s.startX!, s.endX!);
+      const sy2 = Math.max(s.startY!, s.endY!);
+      const intersects = !(sx2 < rect.x1 || sx1 > rect.x2 || sy2 < rect.y1 || sy1 > rect.y2);
+      if (intersects) selected.push(s);
+      else remaining.push(s);
+    }
+  }
+  return { selected, remaining };
+}
+
+// Shift a stroke by (dx, dy). Freehand: shift every point. Shapes: shift the
+// start/end coords. Grid's rows/cols don't need touching — they're counts, not
+// coordinates.
+function translateStroke(s: Stroke, dx: number, dy: number): Stroke {
+  if (s.tool === 'pencil' || s.tool === 'brush') {
+    return { ...s, points: s.points.map(([x, y]) => [x + dx, y + dy] as [number, number]) };
+  }
+  return {
+    ...s,
+    startX: (s.startX ?? 0) + dx,
+    startY: (s.startY ?? 0) + dy,
+    endX: (s.endX ?? 0) + dx,
+    endY: (s.endY ?? 0) + dy,
+  };
+}
+
+// Bounding box of any stroke — used to translate the selection rect along with
+// content during move and after paste.
+function strokeBbox(s: Stroke): Rect {
+  if (s.tool === 'pencil' || s.tool === 'brush') {
+    let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
+    for (const [px, py] of s.points) {
+      if (px < x1) x1 = px;
+      if (py < y1) y1 = py;
+      if (px > x2) x2 = px;
+      if (py > y2) y2 = py;
+    }
+    return { x1, y1, x2, y2 };
+  }
+  return {
+    x1: Math.min(s.startX!, s.endX!),
+    y1: Math.min(s.startY!, s.endY!),
+    x2: Math.max(s.startX!, s.endX!),
+    y2: Math.max(s.startY!, s.endY!),
+  };
+}
+
 function SketchZone({ isOpen, onClose, problemId }: SketchZoneProps) {
   if (!isOpen) return null;
   return <SketchZoneInner onClose={onClose} problemId={problemId} />;
@@ -375,13 +461,71 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
   const [workingStrokes, setWorkingStrokes] = useState<Stroke[] | null>(null);
   const isErasingRef = useRef(false);
   const didEraseRef = useRef(false);
-  const visibleStrokes = workingStrokes ?? strokes;
 
   // Eraser cursor preview position (in canvas coords). Cleared when the mouse
   // leaves the canvas. The render is gated on currentTool === 'eraser', so a
   // stale value left over from a previous eraser session can't become visible
   // while a different tool is active.
   const [eraserCursor, setEraserCursor] = useState<[number, number] | null>(null);
+
+  // Selector state machine. Single discriminated union holds whichever data
+  // the current mode needs — keeps related state from drifting out of sync.
+  // `idle`        — no selection, no drag in progress.
+  // `drawing-rect` — user is dragging a selection rectangle.
+  // `selected`    — selection committed; user can drag inside to move,
+  //                 Alt-drag to duplicate, or use keyboard (Esc/Del/Ctrl-CXV).
+  // `moving`      — user is dragging selected content. isDuplicate=false → move
+  //                 (originals lifted); true → duplicate (originals stay, copy floats).
+  type SelectorState =
+    | { mode: 'idle' }
+    | { mode: 'drawing-rect'; rect: Rect }
+    | { mode: 'selected'; rect: Rect; selected: Stroke[]; remaining: Stroke[] }
+    | { mode: 'moving'; rect: Rect; selected: Stroke[]; remaining: Stroke[]; dx: number; dy: number; isDuplicate: boolean };
+  const [selectorState, setSelectorState] = useState<SelectorState>({ mode: 'idle' });
+  // Clipboard persists across selections / tool switches. Independent state so
+  // copy-then-switch-tool-then-paste doesn't lose the buffer.
+  const [clipboard, setClipboard] = useState<Stroke[] | null>(null);
+  // Track which mouse button started the active drag so the selector's
+  // mousemove handler can route into the right branch.
+  const isSelectingRef = useRef(false);
+  const isMovingRef = useRef(false);
+  const moveStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  // Wrapping setCurrentTool ensures selection state never lingers across tool
+  // switches — the underlying strokes can drift out from under a stale
+  // selection if e.g. the user erases something while still "in" the selector.
+  // Doing it here (synchronously, in the click handler path) avoids the
+  // setState-in-effect anti-pattern that the lint rule warns about.
+  const switchTool = useCallback((next: Tool) => {
+    setCurrentTool(prev => {
+      if (prev === 'selector' && next !== 'selector') {
+        setSelectorState({ mode: 'idle' });
+      }
+      return next;
+    });
+  }, []);
+
+  // Standard "paste-and-offset-it" displacement so the user can see the new
+  // copy without it landing exactly on top of the original.
+  const PASTE_OFFSET = 20;
+
+  // Render layer logic, in priority order:
+  //   1. Eraser drag in progress → show the in-progress mutated strokes.
+  //   2. Selector move/duplicate in progress → show originals (or remaining,
+  //      for move) plus the translated selection floating with the cursor.
+  //   3. Otherwise → just the committed strokes.
+  // Has to live AFTER selectorState is declared (temporal dead zone), so it
+  // can't be co-located with the eraser state above.
+  let visibleStrokes: Stroke[];
+  if (workingStrokes) {
+    visibleStrokes = workingStrokes;
+  } else if (selectorState.mode === 'moving') {
+    const { selected, remaining, dx, dy, isDuplicate } = selectorState;
+    const translated = selected.map(s => translateStroke(s, dx, dy));
+    visibleStrokes = isDuplicate ? [...strokes, ...translated] : [...remaining, ...translated];
+  } else {
+    visibleStrokes = strokes;
+  }
 
   // Sketch metadata + persistence state
   const { user } = useAuth();
@@ -417,6 +561,69 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
     const t = setTimeout(() => setSaveState('idle'), 1500);
     return () => clearTimeout(t);
   }, [saveState]);
+
+  // Keyboard shortcuts for the selector. Document-level listener — the canvas
+  // doesn't take focus reliably. Gated on currentTool === 'selector' so we
+  // don't intercept these globally.
+  // - Escape: deselect.
+  // - Delete/Backspace: drop the selected content from the canvas.
+  // - Ctrl/Cmd+C: copy selected → clipboard (canvas unchanged).
+  // - Ctrl/Cmd+X: cut selected → clipboard, drop from canvas.
+  // - Ctrl/Cmd+V: paste clipboard at PASTE_OFFSET, becomes the new selection.
+  useEffect(() => {
+    if (currentTool !== 'selector') return;
+    const handler = (e: KeyboardEvent) => {
+      // Don't hijack typing into the rename / grid number inputs.
+      const tag = (document.activeElement?.tagName ?? '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea') return;
+
+      const mod = e.ctrlKey || e.metaKey;
+      if (e.key === 'Escape' && selectorState.mode !== 'idle') {
+        setSelectorState({ mode: 'idle' });
+        return;
+      }
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectorState.mode === 'selected') {
+        e.preventDefault();
+        pushSnapshot(selectorState.remaining);
+        setSelectorState({ mode: 'idle' });
+        return;
+      }
+      if (mod && e.key.toLowerCase() === 'c' && selectorState.mode === 'selected') {
+        e.preventDefault();
+        setClipboard(selectorState.selected);
+        return;
+      }
+      if (mod && e.key.toLowerCase() === 'x' && selectorState.mode === 'selected') {
+        e.preventDefault();
+        setClipboard(selectorState.selected);
+        pushSnapshot(selectorState.remaining);
+        setSelectorState({ mode: 'idle' });
+        return;
+      }
+      if (mod && e.key.toLowerCase() === 'v' && clipboard && clipboard.length > 0) {
+        e.preventDefault();
+        const pasted = clipboard.map(s => translateStroke(s, PASTE_OFFSET, PASTE_OFFSET));
+        const next = [...strokes, ...pasted];
+        pushSnapshot(next);
+        // The pasted content becomes the new selection so the user can drag
+        // it into position immediately.
+        const bboxes = pasted.map(strokeBbox);
+        const x1 = Math.min(...bboxes.map(b => b.x1));
+        const y1 = Math.min(...bboxes.map(b => b.y1));
+        const x2 = Math.max(...bboxes.map(b => b.x2));
+        const y2 = Math.max(...bboxes.map(b => b.y2));
+        setSelectorState({
+          mode: 'selected',
+          rect: { x1, y1, x2, y2 },
+          selected: pasted,
+          remaining: strokes,
+        });
+        return;
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [currentTool, selectorState, clipboard, strokes, pushSnapshot]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (isDragging) {
@@ -506,13 +713,40 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       for (const s of visibleStrokes) drawStroke(ctx, s);
       if (inProgressStroke) drawStroke(ctx, inProgressStroke);
+
+      // Selection rectangle overlay (drag preview OR committed selection).
+      // During a move/duplicate drag, translate the rect along with the content.
+      let overlay: Rect | null = null;
+      if (selectorState.mode === 'drawing-rect' || selectorState.mode === 'selected') {
+        overlay = selectorState.rect;
+      } else if (selectorState.mode === 'moving') {
+        const r = selectorState.rect;
+        overlay = {
+          x1: r.x1 + selectorState.dx, y1: r.y1 + selectorState.dy,
+          x2: r.x2 + selectorState.dx, y2: r.y2 + selectorState.dy,
+        };
+      }
+      if (overlay) {
+        const ox = Math.min(overlay.x1, overlay.x2);
+        const oy = Math.min(overlay.y1, overlay.y2);
+        const ow = Math.abs(overlay.x2 - overlay.x1);
+        const oh = Math.abs(overlay.y2 - overlay.y1);
+        ctx.save();
+        ctx.strokeStyle = INK;
+        ctx.lineWidth = 1;
+        ctx.setLineDash([6, 4]);
+        ctx.fillStyle = 'rgba(58, 46, 31, 0.05)';  // very faint INK fill
+        ctx.fillRect(ox, oy, ow, oh);
+        ctx.strokeRect(ox, oy, ow, oh);
+        ctx.restore();
+      }
     };
 
     syncAndDraw();
     const observer = new ResizeObserver(syncAndDraw);
     observer.observe(canvas);
     return () => observer.disconnect();
-  }, [visibleStrokes, inProgressStroke]);
+  }, [visibleStrokes, inProgressStroke, selectorState]);
 
   // ─── Canvas mouse handlers ───
   const getCanvasCoords = (e: React.MouseEvent<HTMLCanvasElement>): [number, number] => {
@@ -525,6 +759,37 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     e.stopPropagation();
     const [x, y] = getCanvasCoords(e);
+
+    // Selector: three branches depending on current state.
+    // - If a selection is committed AND the click landed inside its rect →
+    //   start a move (or a duplicate, if Alt is held at mousedown).
+    // - Otherwise (no selection, or click outside an existing one) → start
+    //   drawing a new selection rectangle. Any prior selection is dropped.
+    if (currentTool === 'selector') {
+      if (
+        selectorState.mode === 'selected' &&
+        x >= selectorState.rect.x1 && x <= selectorState.rect.x2 &&
+        y >= selectorState.rect.y1 && y <= selectorState.rect.y2
+      ) {
+        isMovingRef.current = true;
+        moveStartRef.current = { x, y };
+        setSelectorState({
+          ...selectorState,
+          mode: 'moving',
+          dx: 0,
+          dy: 0,
+          // Lock duplicate intent at mousedown — releasing Alt mid-drag should
+          // NOT switch back to move mode.
+          isDuplicate: e.altKey,
+        });
+        return;
+      }
+      // Click outside any committed selection (or no selection yet) → start
+      // drawing a new rect.
+      isSelectingRef.current = true;
+      setSelectorState({ mode: 'drawing-rect', rect: { x1: x, y1: y, x2: x, y2: y } });
+      return;
+    }
 
     // Eraser: start a sweep. Also run the eraser at the initial point so a
     // single click (no subsequent mousemove) still erases whatever it lands on.
@@ -565,6 +830,20 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
   const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const [x, y] = getCanvasCoords(e);
 
+    // Selector: extending a drag-rect, or translating an in-progress move.
+    if (isSelectingRef.current && selectorState.mode === 'drawing-rect') {
+      setSelectorState({
+        mode: 'drawing-rect',
+        rect: { ...selectorState.rect, x2: x, y2: y },
+      });
+      return;
+    }
+    if (isMovingRef.current && selectorState.mode === 'moving' && moveStartRef.current) {
+      const start = moveStartRef.current;
+      setSelectorState({ ...selectorState, dx: x - start.x, dy: y - start.y });
+      return;
+    }
+
     // Track cursor position for the eraser preview whenever the eraser tool is
     // active — not just during an active drag. This is how the user sees where
     // the eraser will act before clicking.
@@ -592,6 +871,58 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
   };
 
   const commitInProgressStroke = () => {
+    // Selector: finishing a drag-rect → split strokes by the rect, transition
+    // to 'selected' (or back to idle if nothing was caught).
+    if (isSelectingRef.current && selectorState.mode === 'drawing-rect') {
+      isSelectingRef.current = false;
+      // Normalize rect so x1<=x2, y1<=y2 (user might drag in any direction).
+      const r = selectorState.rect;
+      const norm = {
+        x1: Math.min(r.x1, r.x2), y1: Math.min(r.y1, r.y2),
+        x2: Math.max(r.x1, r.x2), y2: Math.max(r.y1, r.y2),
+      };
+      // Tiny drag (basically a click) or empty selection → just deselect.
+      if (norm.x2 - norm.x1 < 3 || norm.y2 - norm.y1 < 3) {
+        setSelectorState({ mode: 'idle' });
+        return;
+      }
+      const { selected, remaining } = splitStrokesByRect(strokes, norm);
+      if (selected.length === 0) {
+        setSelectorState({ mode: 'idle' });
+        return;
+      }
+      setSelectorState({ mode: 'selected', rect: norm, selected, remaining });
+      return;
+    }
+    // Selector: finishing a move/duplicate → commit the resulting strokes as a
+    // snapshot. The new selection rect is the old rect translated by (dx,dy)
+    // so the user can keep manipulating from where they dropped.
+    if (isMovingRef.current && selectorState.mode === 'moving') {
+      isMovingRef.current = false;
+      moveStartRef.current = null;
+      const { rect, selected, remaining, dx, dy, isDuplicate } = selectorState;
+      // Click-without-drag inside the selection (dx/dy still 0) → no real
+      // mutation, so don't push a no-op snapshot. Just snap back to 'selected'.
+      if (dx === 0 && dy === 0 && !isDuplicate) {
+        setSelectorState({ mode: 'selected', rect, selected, remaining });
+        return;
+      }
+      const translated = selected.map(s => translateStroke(s, dx, dy));
+      const nextStrokes = isDuplicate ? [...strokes, ...translated] : [...remaining, ...translated];
+      pushSnapshot(nextStrokes);
+      const newRect = { x1: rect.x1 + dx, y1: rect.y1 + dy, x2: rect.x2 + dx, y2: rect.y2 + dy };
+      // After move, the new "selected" is the translated copy in its new home,
+      // and "remaining" is everything else on the canvas. After duplicate, same
+      // logic — selection now points at the duplicate, not the original.
+      setSelectorState({
+        mode: 'selected',
+        rect: newRect,
+        selected: translated,
+        remaining: isDuplicate ? strokes : remaining,
+      });
+      return;
+    }
+
     // Eraser: commit the working stroke array as a single snapshot so one undo
     // restores the whole drag.
     if (isErasingRef.current) {
@@ -679,6 +1010,7 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
     { id: 'circle', label: 'Circle', Icon: CircleIcon },
     { id: 'line', label: 'Line', Icon: LineIcon },
     { id: 'grid', label: 'Grid', Icon: GridIcon },
+    { id: 'selector', label: 'Selector (drag to select; drag inside to move; Alt-drag to duplicate; Ctrl+C/X/V)', Icon: SelectorIcon },
     { id: 'eraser', label: 'Eraser', Icon: EraserIcon },
   ];
 
@@ -724,7 +1056,7 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
         {TOOLS.map(({ id, label, Icon }) => (
           <button
             key={id}
-            onClick={() => setCurrentTool(id)}
+            onClick={() => switchTool(id)}
             title={label}
             className="p-1.5 rounded transition hover:bg-black/10"
             style={{
@@ -941,7 +1273,10 @@ function SketchZoneInner({ onClose, problemId }: Omit<SketchZoneProps, 'isOpen'>
                 display: 'block',
                 width: '100%',
                 height: '100%',
-                cursor: currentTool === 'eraser' ? 'none' : 'crosshair',
+                cursor:
+                  currentTool === 'eraser' ? 'none' :
+                  currentTool === 'selector' && selectorState.mode === 'selected' ? 'move' :
+                  'crosshair',
               }}
               onMouseDown={handleCanvasMouseDown}
               onMouseMove={handleCanvasMouseMove}
@@ -1026,6 +1361,17 @@ function LineIcon() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
       <line x1="5" y1="19" x2="19" y2="5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function SelectorIcon() {
+  // Dashed rectangle with a small arrow cursor in the corner — reads as
+  // "selection marquee" at toolbar size.
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3.5" y="3.5" width="13" height="13" strokeDasharray="2.5 2" />
+      <path d="M13 13 L21 13 L17.5 16.5 L20 20.5 L17.5 22 L15 18 L13 21 Z" fill="currentColor" stroke="none" />
     </svg>
   );
 }
