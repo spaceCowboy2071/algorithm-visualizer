@@ -38,8 +38,20 @@ export const sketchUpdateSchema = z.object({
   canvasHeight: z.number().int().min(0).max(10000),
 });
 
+// Whiteboards use the same envelope shape as sketches: { name?, strokes,
+// canvasWidth, canvasHeight }. Defined as a separate schema (not reusing
+// sketchUpdateSchema) so the two features can evolve independently — adding
+// a whiteboard-specific field later wouldn't risk breaking sketches.
+export const whiteboardUpdateSchema = z.object({
+  name: z.string().max(100).optional(),
+  strokes: z.array(z.unknown()).max(2000, 'Too many strokes (max 2000)'),
+  canvasWidth: z.number().int().min(0).max(10000),
+  canvasHeight: z.number().int().min(0).max(10000),
+});
+
 export type SignupInput = z.infer<typeof signupSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type GoogleAuthInput = z.infer<typeof googleAuthSchema>;
 export type ProgressUpdateInput = z.infer<typeof progressUpdateSchema>;
 export type SketchUpdateInput = z.infer<typeof sketchUpdateSchema>;
+export type WhiteboardUpdateInput = z.infer<typeof whiteboardUpdateSchema>;
