@@ -24,14 +24,22 @@ export function setAccessToken(token: string | null): void {
 }
 
 // ── Stampede Prevention ──
-// If multiple requests get 401 simultaneously, only the FIRST one triggers
-// a refresh. The rest wait for that single refresh to complete, then retry
-// with the new token. Without this, you'd fire N refresh requests at once.
+// All calls that hit /api/auth/refresh route through silentRefresh so a single
+// in-flight promise is shared across every caller. Two refresh-token-rotation
+// scenarios this protects against:
+//   1. Multiple requests get 401 simultaneously — without dedup we'd fire N
+//      refresh requests, each rotating the token, and the server's reuse
+//      detection would nuke all sessions.
+//   2. React 19 Strict Mode double-fires AuthContext's silent-refresh-on-mount
+//      effect in dev. Without dedup, the second fire replays the just-rotated
+//      token, triggers reuse detection, and logs the user out on every page
+//      refresh.
+// Returning null on failure (instead of throwing) lets callers branch with a
+// simple `if (data)` rather than try/catch.
 
-let refreshPromise: Promise<string | null> | null = null;
+let refreshPromise: Promise<AuthResponse | null> | null = null;
 
-async function refreshAccessToken(): Promise<string | null> {
-  // If a refresh is already in-flight, piggyback on it
+export async function silentRefresh(): Promise<AuthResponse | null> {
   if (refreshPromise) return refreshPromise;
 
   refreshPromise = (async () => {
@@ -42,20 +50,19 @@ async function refreshAccessToken(): Promise<string | null> {
       });
 
       if (!res.ok) {
-        // Refresh failed — token expired or revoked. User must log in again.
         setAccessToken(null);
         return null;
       }
 
-      const data = await res.json();
+      const data = (await res.json()) as AuthResponse;
       setAccessToken(data.token);
-      return data.token;
+      return data;
     } catch {
-      // Network error — can't reach server
       setAccessToken(null);
       return null;
     } finally {
-      // Clear the lock so future 401s can trigger a new refresh
+      // Clear the lock so future refresh attempts (e.g., next page load,
+      // next 401) can fire fresh.
       refreshPromise = null;
     }
   })();
@@ -113,13 +120,13 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
 
   // ── Silent Refresh on 401 ──
   // If the access token expired, try to refresh and retry the request ONCE.
-  // skipAuth requests (login/signup) should not trigger refresh on failure.
+  // skipAuth requests (login/signup/refresh) should not trigger refresh on failure.
   if (res.status === 401 && !skipAuth) {
-    const newToken = await refreshAccessToken();
+    const refreshed = await silentRefresh();
 
-    if (newToken) {
+    if (refreshed) {
       // Retry the original request with the fresh token
-      headers['Authorization'] = `Bearer ${newToken}`;
+      headers['Authorization'] = `Bearer ${refreshed.token}`;
       res = await fetch(`${API_URL}${endpoint}`, { ...config, headers });
     }
   }
@@ -230,12 +237,11 @@ export const auth = {
     });
   },
 
-  refresh(): Promise<AuthResponse> {
-    return request('/api/auth/refresh', {
-      method: 'POST',
-      skipAuth: true, // refresh uses cookie, not Bearer token
-    });
-  },
+  // Note: refresh is exposed at module scope as `silentRefresh` (above) rather
+  // than on the auth namespace, because it has stampede-prevention semantics
+  // that callers must not bypass. Calling `request('/api/auth/refresh')`
+  // directly would skip the dedup lock and risk double-rotating the refresh
+  // token under React Strict Mode or concurrent 401s.
 
   me(): Promise<MeResponse> {
     return request('/api/auth/me');

@@ -12,7 +12,7 @@
 // about React context — AuthContext calls its exported functions directly.
 
 import { useState, useEffect, useCallback, type ReactNode } from 'react';
-import { auth, progress as progressApi, setAccessToken, type AuthUser } from '../services/api';
+import { auth, progress as progressApi, setAccessToken, silentRefresh, type AuthUser } from '../services/api';
 import { AuthContext } from './authConstants';
 import {
   setAuthenticated,
@@ -38,31 +38,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ── Silent Refresh on Mount ──
   // When the app loads, we don't know if the user is logged in. The access
   // token (in-memory) is gone after a page refresh. But the httpOnly refresh
-  // token cookie persists. So we try POST /api/auth/refresh — if the cookie
-  // is valid, we get a new access token and user info back.
+  // token cookie persists. So we hit /api/auth/refresh — if the cookie is
+  // valid, we get a new access token and user info back.
+  //
+  // We use the module-scoped `silentRefresh` (not auth.refresh) because it has
+  // stampede protection. React 19 Strict Mode mounts → unmounts → remounts
+  // every effect in dev, and without dedup the second call would replay the
+  // just-rotated refresh token, trigger the server's reuse detection, and
+  // delete every session for this user. silentRefresh shares one in-flight
+  // promise across both invocations so only one rotation actually happens.
   useEffect(() => {
     let cancelled = false;
 
     async function tryRefresh() {
-      try {
-        const data = await auth.refresh();
-        if (!cancelled) {
-          setAccessToken(data.token);
-          setUser(data.user);
-          setAuthenticated(true);
-          await hydrateTracker();
-        }
-      } catch {
-        // No valid refresh token — user is not logged in. That's fine.
-        if (!cancelled) {
-          setAccessToken(null);
-          setUser(null);
-          setAuthenticated(false);
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
+      // silentRefresh internally calls setAccessToken on success/failure, so
+      // we don't duplicate that here. It also never throws — returns null on
+      // any failure — which lets us branch with a simple `if (data)`.
+      const data = await silentRefresh();
+      if (cancelled) return;
+
+      if (data) {
+        setUser(data.user);
+        setAuthenticated(true);
+        await hydrateTracker();
+      } else {
+        setUser(null);
+        setAuthenticated(false);
+      }
+
+      if (!cancelled) {
+        setIsLoading(false);
       }
     }
 
