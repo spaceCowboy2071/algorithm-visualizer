@@ -7,23 +7,74 @@
 //
 // Visual metaphor: a bright whiteboard mounted on a dark wall. The page chrome
 // is dark; the canvas inside is light.
-//
-// Step 5 ships the layout shell. Step 6 will add save/load wiring — for now,
-// no `onSave` prop is passed to <DrawingCanvas>, so the Save button doesn't
-// render at all (DrawingCanvas conditionally renders it only when onSave is
-// provided).
 
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { DrawingCanvas } from '../components/shared/DrawingCanvas';
+import { DrawingCanvas, type SaveData } from '../components/shared/DrawingCanvas';
+import { whiteboards as whiteboardsApi } from '../services/api';
+import type { Stroke } from '../components/shared/drawingEngine';
 
 function WhiteBoardPage() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   // Reference panel is closed by default. Step 7 will wire the open-state
   // content (problem picker + description). For Step 5 we just reserve the
   // layout space — the toggle button works visually but doesn't reveal content.
   const [isReferenceOpen, setIsReferenceOpen] = useState(false);
+
+  // ── Hydration state ──
+  // We gate the <DrawingCanvas> render on `loaded` because DrawingCanvas reads
+  // initialStrokes once at mount via useState's lazy initializer. If we mount
+  // it before hydration completes, the loaded data arrives too late and the
+  // canvas stays blank. Brief blank window during the network call is the
+  // tradeoff — same pattern as SketchZone.
+  const [loaded, setLoaded] = useState(false);
+  const [initialStrokes, setInitialStrokes] = useState<Stroke[]>([]);
+
+  // Hydrate from server on mount. Critically, we wait for auth to RESOLVE
+  // (authLoading === false) before deciding what to do — otherwise on page
+  // refresh we'd see user=null first (silent refresh still in flight),
+  // immediately mount DrawingCanvas with empty strokes, then have the loaded
+  // data arrive too late to seed the canvas (initialStrokes is read once at
+  // mount via lazy useState). The authLoading dep ensures we mount the canvas
+  // exactly once, after auth state is settled.
+  useEffect(() => {
+    if (authLoading) return; // wait for silent-refresh-on-mount to settle
+
+    if (!user) {
+      setLoaded(true); // unauth'd: skip the fetch, canvas mounts blank
+      return;
+    }
+
+    let cancelled = false;
+    whiteboardsApi.get()
+      .then(record => {
+        if (cancelled) return;
+        const data = record.strokeData;
+        if (data.strokes && data.strokes.length > 0) {
+          setInitialStrokes(data.strokes as Stroke[]);
+        }
+        setLoaded(true);
+      })
+      .catch(err => {
+        console.error('Failed to load whiteboard:', err);
+        if (!cancelled) setLoaded(true);
+      });
+    return () => { cancelled = true; };
+  }, [user, authLoading]);
+
+  // Save handler — DrawingCanvas calls this with current strokes/dimensions
+  // when the user clicks Save in the toolbar. DrawingCanvas tracks its own
+  // save state machine (idle/saving/saved/error) based on this promise's
+  // resolution. We don't pass a name because the whiteboard is 1-of-1 per
+  // user and naming would be redundant.
+  const handleSave = useCallback(async (data: SaveData) => {
+    await whiteboardsApi.save({
+      strokes: data.strokes,
+      canvasWidth: data.canvasWidth,
+      canvasHeight: data.canvasHeight,
+    });
+  }, []);
 
   return (
     <div className="h-screen bg-[#0d1117] font-mono text-[var(--accent)] flex flex-col">
@@ -67,15 +118,22 @@ function WhiteBoardPage() {
           )}
         </div>
 
-        {/* Center: drawing canvas. flex-col wrapper because DrawingCanvas's
-            root is itself a flex container that lays out toolbar + canvas
-            internally. */}
+        {/* Center: drawing canvas. Gated on `loaded` so DrawingCanvas mounts
+            with seeded strokes (it reads initialStrokes once at mount). The
+            outer wrapper keeps its dimensions regardless of `loaded`, so the
+            layout doesn't shift when the canvas pops in. */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          <DrawingCanvas
-            theme="whiteboard"
-            toolbarPosition="top"
-            className="flex-1"
-          />
+          {loaded && (
+            <DrawingCanvas
+              initialStrokes={initialStrokes}
+              theme="whiteboard"
+              toolbarPosition="top"
+              onSave={handleSave}
+              saveDisabled={!user}
+              saveTitle={user ? 'Save' : 'Sign in to save'}
+              className="flex-1"
+            />
+          )}
         </div>
 
         {/* Right: chat / collab placeholder. Fixed width. Step 5 just shows

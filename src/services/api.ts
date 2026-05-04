@@ -210,6 +210,23 @@ export interface SketchRecord {
   updatedAt: string | null;  // null when no row exists yet (empty default response)
 }
 
+// ── Whiteboards Types ──
+// Same JSONB envelope shape as sketches — strokes + canvas dimensions — but
+// no name field (one whiteboard per user; naming would be redundant) and no
+// problemId (URL has no parameter, the JWT identifies the user).
+
+export interface WhiteboardData {
+  strokes: unknown[];        // server uses envelope-only validation; client owns the shape
+  canvasWidth: number;
+  canvasHeight: number;
+}
+
+export interface WhiteboardRecord {
+  id?: string;
+  strokeData: WhiteboardData;
+  updatedAt: string | null;  // null when no row exists yet (empty default response)
+}
+
 // ── Auth API ──
 
 export const auth = {
@@ -287,5 +304,23 @@ export const sketches = {
 
   remove(problemId: number): Promise<void> {
     return request(`/api/sketches/${problemId}`, { method: 'DELETE' });
+  },
+};
+
+// ── Whiteboards API ──
+// One whiteboard per authenticated user — JWT identifies which one, so no URL
+// parameter. No DELETE for v1 (PUT with empty strokes is the "clear" operation;
+// removing the row entirely has no user-facing equivalent for one-per-user data).
+
+export const whiteboards = {
+  get(): Promise<WhiteboardRecord> {
+    return request('/api/whiteboards');
+  },
+
+  save(payload: WhiteboardData): Promise<WhiteboardRecord> {
+    return request('/api/whiteboards', {
+      method: 'PUT',
+      body: payload,
+    });
   },
 };
