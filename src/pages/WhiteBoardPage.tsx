@@ -1,9 +1,9 @@
 // ── WhiteBoardPage ──
 // Standalone /whiteboard route. Full-page layout with the dark CRT-terminal
 // chrome (matches the rest of the app) wrapping a glossy whiteboard-themed
-// <DrawingCanvas> in the center. Left side reserves space for a future Blind 75
-// reference panel (Step 7); right side reserves space for a future collaboration
-// panel.
+// <DrawingCanvas> in the center. Left side has a collapsible Blind 75
+// reference panel (problem picker + description); right side reserves space
+// for a future collaboration panel.
 //
 // Visual metaphor: a bright whiteboard mounted on a dark wall. The page chrome
 // is dark; the canvas inside is light.
@@ -14,35 +14,38 @@ import { useAuth } from '../hooks/useAuth';
 import { DrawingCanvas, type SaveData } from '../components/shared/DrawingCanvas';
 import { whiteboards as whiteboardsApi } from '../services/api';
 import type { Stroke } from '../components/shared/drawingEngine';
+import { PROBLEMS, type Blind75Problem } from '../data/blind75Problems';
+import { getProblemById } from '../data/problemsData';
+import ProblemDescription from '../components/blind75/ProblemDescription';
+
+function getDifficultyColor(difficulty: string): string {
+  switch (difficulty) {
+    case 'Easy': return 'text-green-500';
+    case 'Medium': return 'text-yellow-500';
+    case 'Hard': return 'text-red-500';
+    default: return 'text-gray-500';
+  }
+}
 
 function WhiteBoardPage() {
   const { user, isLoading: authLoading } = useAuth();
-  // Reference panel is closed by default. Step 7 will wire the open-state
-  // content (problem picker + description). For Step 5 we just reserve the
-  // layout space — the toggle button works visually but doesn't reveal content.
   const [isReferenceOpen, setIsReferenceOpen] = useState(false);
 
-  // ── Hydration state ──
-  // We gate the <DrawingCanvas> render on `loaded` because DrawingCanvas reads
-  // initialStrokes once at mount via useState's lazy initializer. If we mount
-  // it before hydration completes, the loaded data arrives too late and the
-  // canvas stays blank. Brief blank window during the network call is the
-  // tradeoff — same pattern as SketchZone.
+  // Reference panel state
+  // selectedProblemId === null  → picker mode (search + list)
+  // selectedProblemId !== null  → view mode (description for that problem)
+  const [selectedProblemId, setSelectedProblemId] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // ── Hydration state (Step 6) ──
   const [loaded, setLoaded] = useState(false);
   const [initialStrokes, setInitialStrokes] = useState<Stroke[]>([]);
 
-  // Hydrate from server on mount. Critically, we wait for auth to RESOLVE
-  // (authLoading === false) before deciding what to do — otherwise on page
-  // refresh we'd see user=null first (silent refresh still in flight),
-  // immediately mount DrawingCanvas with empty strokes, then have the loaded
-  // data arrive too late to seed the canvas (initialStrokes is read once at
-  // mount via lazy useState). The authLoading dep ensures we mount the canvas
-  // exactly once, after auth state is settled.
   useEffect(() => {
-    if (authLoading) return; // wait for silent-refresh-on-mount to settle
+    if (authLoading) return;
 
     if (!user) {
-      setLoaded(true); // unauth'd: skip the fetch, canvas mounts blank
+      setLoaded(true);
       return;
     }
 
@@ -63,11 +66,6 @@ function WhiteBoardPage() {
     return () => { cancelled = true; };
   }, [user, authLoading]);
 
-  // Save handler — DrawingCanvas calls this with current strokes/dimensions
-  // when the user clicks Save in the toolbar. DrawingCanvas tracks its own
-  // save state machine (idle/saving/saved/error) based on this promise's
-  // resolution. We don't pass a name because the whiteboard is 1-of-1 per
-  // user and naming would be redundant.
   const handleSave = useCallback(async (data: SaveData) => {
     await whiteboardsApi.save({
       strokes: data.strokes,
@@ -76,10 +74,22 @@ function WhiteBoardPage() {
     });
   }, []);
 
+  // ── Filtered problems for the picker ──
+  const filteredProblems = PROBLEMS.filter(p =>
+    p.title.toLowerCase().includes(searchQuery.toLowerCase().trim())
+  );
+
+  // ── Selected problem lookup ──
+  const selectedBlind75 = selectedProblemId !== null
+    ? PROBLEMS.find(p => p.id === selectedProblemId) ?? null
+    : null;
+  const selectedFullData = selectedProblemId !== null
+    ? getProblemById(selectedProblemId)
+    : null;
+
   return (
     <div className="h-screen bg-[#0d1117] font-mono text-[var(--accent)] flex flex-col">
-      {/* Title bar — terminal-style, matches other pages. Username shows when
-          authenticated, otherwise falls back to 'terminal'. */}
+      {/* Title bar */}
       <div className="bg-[#161b22] px-6 py-3 border-b border-[#30363d] flex items-center justify-between flex-shrink-0">
         <span className="text-gray-500 text-xs">
           {user?.displayName ?? 'terminal'}@algorithmviz/whiteboard
@@ -92,13 +102,9 @@ function WhiteBoardPage() {
         </Link>
       </div>
 
-      {/* Body — three columns: reference panel | canvas | chat panel.
-          overflow-hidden so DrawingCanvas's ResizeObserver doesn't see
-          scrollbars cycling. */}
+      {/* Body — three columns: reference panel | canvas | chat panel */}
       <div className="flex-1 flex flex-row overflow-hidden">
-        {/* Left: reference panel (Step 7 fills the open-state content). When
-            closed it's a thin sidebar showing just the toggle button — a hint
-            to the user that there's something there to expand. */}
+        {/* Left: reference panel (Blind 75 picker + description) */}
         <div
           className={`bg-[#161b22] border-r border-[#30363d] transition-all duration-200 flex flex-col flex-shrink-0 ${
             isReferenceOpen ? 'w-[360px]' : 'w-[40px]'
@@ -111,17 +117,76 @@ function WhiteBoardPage() {
           >
             {isReferenceOpen ? '◀' : '▶'}
           </button>
-          {isReferenceOpen && (
-            <div className="flex-1 px-3 pb-3 text-xs text-gray-500 overflow-auto">
-              <p className="opacity-50 mt-2">Blind 75 reference — coming soon</p>
+
+          {isReferenceOpen && selectedProblemId === null && (
+            // ── Picker mode: search + flat list of all 75 ──
+            <div className="flex-1 flex flex-col overflow-hidden px-3 pb-3">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Search problems..."
+                className="w-full px-2 py-1.5 mb-2 bg-[#0d1117] border border-[#30363d] rounded text-xs text-gray-300 placeholder-gray-600 focus:outline-none focus:border-[var(--accent)] transition flex-shrink-0"
+              />
+              <div className="flex-1 overflow-auto">
+                {filteredProblems.length === 0 ? (
+                  <p className="text-gray-600 text-xs italic mt-4">No matches</p>
+                ) : (
+                  <ul className="space-y-0.5">
+                    {filteredProblems.map(p => (
+                      <li key={p.id}>
+                        <button
+                          onClick={() => setSelectedProblemId(p.id)}
+                          className="w-full text-left px-2 py-1.5 rounded hover:bg-[#0d1117] transition group"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-gray-300 text-xs group-hover:text-[var(--accent)] truncate">
+                              {p.title}
+                            </span>
+                            <span className={`text-[10px] flex-shrink-0 ${getDifficultyColor(p.difficulty)}`}>
+                              {p.difficulty}
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-gray-600 truncate">
+                            {p.category} · {p.pattern}
+                          </div>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          )}
+
+          {isReferenceOpen && selectedProblemId !== null && selectedBlind75 && (
+            // ── View mode: description for the selected problem ──
+            <div className="flex-1 flex flex-col overflow-hidden px-3 pb-3">
+              <button
+                onClick={() => setSelectedProblemId(null)}
+                className="text-left text-gray-500 hover:text-[var(--accent)] text-xs mb-3 flex-shrink-0 transition"
+              >
+                ← Back to list
+              </button>
+              <div className="mb-3 flex-shrink-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <h3 className="text-[var(--accent)] text-sm font-bold">{selectedBlind75.title}</h3>
+                  <span className={`text-xs ${getDifficultyColor(selectedBlind75.difficulty)}`}>
+                    {selectedBlind75.difficulty}
+                  </span>
+                </div>
+                <p className="text-[10px] text-gray-600">
+                  {selectedBlind75.category} · {selectedBlind75.pattern}
+                </p>
+              </div>
+              <div className="flex-1 overflow-auto pr-1">
+                {selectedFullData && <ProblemDescription problem={selectedFullData} />}
+              </div>
             </div>
           )}
         </div>
 
-        {/* Center: drawing canvas. Gated on `loaded` so DrawingCanvas mounts
-            with seeded strokes (it reads initialStrokes once at mount). The
-            outer wrapper keeps its dimensions regardless of `loaded`, so the
-            layout doesn't shift when the canvas pops in. */}
+        {/* Center: drawing canvas */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {loaded && (
             <DrawingCanvas
@@ -136,9 +201,7 @@ function WhiteBoardPage() {
           )}
         </div>
 
-        {/* Right: chat / collab placeholder. Fixed width. Step 5 just shows
-            "coming soon" — future work will wire WebRTC + Socket.io for
-            2-person whiteboard sessions. */}
+        {/* Right: chat / collab placeholder */}
         <div className="w-[280px] bg-[#161b22] border-l border-[#30363d] flex items-center justify-center p-4 flex-shrink-0">
           <p className="text-gray-500 text-xs text-center opacity-60">
             Collaboration

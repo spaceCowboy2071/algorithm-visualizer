@@ -8,6 +8,7 @@ import { useTrackerStore } from '../hooks/useTrackerStore';
 import { useAuth } from '../hooks/useAuth';
 import StatusEditDropdown from '../components/blind75/StatusEditDropdown';
 import SketchZone from '../components/blind75/SketchZone';
+import ProblemDescription from '../components/blind75/ProblemDescription';
 import { executeCode, setPyodideStatusCallback } from '../services/codeRunner';
 import { validateComplexity } from '../utils/complexityValidator';
 import TestResults from '../components/shared/TestResults';
@@ -585,41 +586,8 @@ function ProblemPage() {
                       <p className="text-xs text-gray-600">Category: {problem.category}</p>
                     </div>
 
-                    {/* Problem Description */}
-                    <div className="mb-6">
-                      <h2 className="text-[var(--accent)] text-sm font-bold mb-2">Description</h2>
-                      <p className="text-gray-300 text-xs leading-relaxed whitespace-pre-line">
-                        {problem.description}
-                      </p>
-                    </div>
-
-                    {/* Examples */}
-                    <div className="mb-6">
-                      <h2 className="text-[var(--accent)] text-sm font-bold mb-2">Examples</h2>
-                      {problem.examples.map((example, idx) => (
-                        <div key={idx} className="mb-4 p-3 bg-[#161b22] border border-[#30363d] rounded">
-                          <p className="text-gray-400 text-xs mb-1">
-                            <span className="text-[var(--accent)]">Input:</span> {example.input}
-                          </p>
-                          <p className="text-gray-400 text-xs mb-1">
-                            <span className="text-[var(--accent)]">Output:</span> {example.output}
-                          </p>
-                          <p className="text-gray-500 text-xs">
-                            <span className="text-gray-600">Explanation:</span> {example.explanation}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Constraints */}
-                    <div className="mb-6">
-                      <h2 className="text-[var(--accent)] text-sm font-bold mb-2">Constraints</h2>
-                      <ul className="text-gray-400 text-xs space-y-1">
-                        {problem.constraints.map((constraint, idx) => (
-                          <li key={idx}>• {constraint}</li>
-                        ))}
-                      </ul>
-                    </div>
+                    {/* Problem body — extracted for reuse in WhiteBoardPage's reference panel */}
+                    <ProblemDescription problem={problem} />
 
 
                   </div>
