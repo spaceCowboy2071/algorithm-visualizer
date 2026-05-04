@@ -9,6 +9,7 @@ import HashTablesPage from './pages/HashTablesPage';
 import GraphsPage from './pages/GraphsPage';
 import Blind75Page from './pages/Blind75Page';
 import ProblemPage from './pages/ProblemPage';
+import WhiteBoardPage from './pages/WhiteBoardPage';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
         <Route path="/graphs" element={<GraphsPage />} />
         <Route path="/blind75" element={<Blind75Page />} />
         <Route path="/blind75/problem/:id" element={<ProblemPage />} />
+        <Route path="/whiteboard" element={<WhiteBoardPage />} />
       </Routes>
     </BrowserRouter>
     </AuthProvider>

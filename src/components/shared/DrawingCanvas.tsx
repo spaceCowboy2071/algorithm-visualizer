@@ -59,11 +59,13 @@ const THEMES: Record<DrawingTheme, ThemeColors> = {
       '#4a2d5f', // plum
     ],
   },
-  // Whiteboard — glossy off-white surface with classic dry-erase marker colors.
-  // Reads as "interview whiteboard." Starter palette; iterable.
+  // Whiteboard — slightly cool off-white surface with classic dry-erase marker
+  // colors. Tinted away from pure-white for eye comfort against the dark page
+  // chrome — closer to what real classroom/office whiteboards actually look
+  // like in person.
   whiteboard: {
-    canvasBg: '#fafafa',
-    panelBg: '#e8e8e8',
+    canvasBg: '#e8eced',
+    panelBg: '#d4d8db',
     border: '#888888',
     ink: '#1a1a1a',
     inkPalette: [
