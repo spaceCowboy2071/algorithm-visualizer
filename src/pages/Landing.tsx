@@ -21,7 +21,11 @@ const CHALLENGE_ITEMS: MenuItem[] = [
   { label: 'Blind 75 Challenge', desc: '75 interview problems', path: '/blind75' },
 ];
 
-const ALL_ITEMS = [...DATA_STRUCTURE_ITEMS, ...CHALLENGE_ITEMS];
+const STUDIO_ITEMS: MenuItem[] = [
+  { label: 'WhiteBoard', desc: 'Interview practice canvas', path: '/whiteboard' },
+];
+
+const ALL_ITEMS = [...DATA_STRUCTURE_ITEMS, ...CHALLENGE_ITEMS, ...STUDIO_ITEMS];
 
 type Screen = 'menu' | 'auth';
 type AuthMode = 'signin' | 'signup';
@@ -177,6 +181,54 @@ function Landing() {
 
       {CHALLENGE_ITEMS.map((item, origIdx) => {
         const i = DATA_STRUCTURE_ITEMS.length + origIdx;
+        return (
+          <div
+            key={item.path}
+            className="flex items-center cursor-pointer transition-colors duration-150"
+            style={{
+              padding: compact ? '8px 10px' : '5px 10px',
+              background: activeIndex === i ? colors.bg : 'transparent',
+              borderRadius: '2px',
+            }}
+            onClick={() => handleNavigate(item.path)}
+            onMouseEnter={() => setActiveIndex(i)}
+          >
+            <span
+              className="font-bold font-mono text-center"
+              style={{
+                padding: '0 5px',
+                fontSize: compact ? '12px' : '13px',
+                marginRight: compact ? '10px' : '12px',
+                minWidth: compact ? '23px' : '25px',
+                color: activeIndex === i ? colors.cursorText : 'transparent',
+                background: activeIndex === i ? colors.cursorBg : 'transparent',
+              }}
+            >
+              &gt;
+            </span>
+            <span
+              className="font-bold font-mono"
+              style={{ fontSize: compact ? '13px' : '13px', color: colors.main }}
+            >
+              {item.label}
+            </span>
+            <span
+              className="font-mono ml-auto"
+              style={{ fontSize: compact ? '10px' : '11px', color: colors.main, opacity: 0.45 }}
+            >
+              {item.desc}
+            </span>
+          </div>
+        );
+      })}
+
+      {/* Divider — separates Blind 75 challenge from the standalone studio tools */}
+      <div
+        style={{ borderTopWidth: '1px', borderTopStyle: 'solid', borderTopColor: colors.borderFaint, margin: '4px 0' }}
+      />
+
+      {STUDIO_ITEMS.map((item, origIdx) => {
+        const i = DATA_STRUCTURE_ITEMS.length + CHALLENGE_ITEMS.length + origIdx;
         return (
           <div
             key={item.path}
