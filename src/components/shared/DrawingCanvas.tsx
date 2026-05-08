@@ -98,10 +98,12 @@ export interface DrawingCanvasProps {
   /** Color/typography theme. Defaults to `'paper'` for SketchZone parity. */
   theme?: DrawingTheme;
 
-  /** Whether the toolbar lays out horizontally above the canvas (`'top'`) or
-   *  vertically beside it (`'side'`). The parent decides — DrawingCanvas can't
+  /** Toolbar layout. `'top'` = horizontal ribbon above the canvas, `'side'` =
+   *  vertical strip beside it, `'bottom-sheet'` = mobile-native pattern: the
+   *  canvas fills the wrapper and one floating button at the bottom-right opens
+   *  a sheet with all controls. The parent decides — DrawingCanvas can't
    *  measure its container without a feedback loop. */
-  toolbarPosition?: 'top' | 'side';
+  toolbarPosition?: 'top' | 'side' | 'bottom-sheet';
 
   /** Async save handler. If provided, the toolbar shows a Save button that
    *  calls this with the current state. DrawingCanvas tracks the save state
@@ -240,6 +242,9 @@ export function DrawingCanvas({
     visibleStrokes = strokes;
   }
 
+  // ── Bottom-sheet open state (only used when toolbarPosition === 'bottom-sheet') ──
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
   // ── Save state machine ──
   // 'idle' → 'saving' → 'saved' | 'error' → 'idle' (after 1.5s)
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -375,16 +380,21 @@ export function DrawingCanvas({
     return () => observer.disconnect();
   }, [visibleStrokes, inProgressStroke, selectorState, theme.ink]);
 
-  // ── Canvas mouse handlers ──
-  const getCanvasCoords = (e: React.MouseEvent<HTMLCanvasElement>): [number, number] => {
+  // ── Canvas pointer handlers ──
+  // Pointer events unify mouse, touch, and pen — same `clientX/clientY`
+  // shape as MouseEvent, but they actually fire on touchscreens. setPointerCapture
+  // in the down handler keeps move/up firing on this canvas even if the user
+  // drags their finger off the element mid-stroke.
+  const getCanvasCoords = (e: React.PointerEvent<HTMLCanvasElement>): [number, number] => {
     const canvas = canvasRef.current;
     if (!canvas) return [0, 0];
     const rect = canvas.getBoundingClientRect();
     return [e.clientX - rect.left, e.clientY - rect.top];
   };
 
-  const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const handleCanvasPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     e.stopPropagation();
+    e.currentTarget.setPointerCapture(e.pointerId);
     const [x, y] = getCanvasCoords(e);
 
     if (currentTool === 'selector') {
@@ -439,7 +449,7 @@ export function DrawingCanvas({
     }
   };
 
-  const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const handleCanvasPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const [x, y] = getCanvasCoords(e);
 
     if (isSelectingRef.current && selectorState.mode === 'drawing-rect') {
@@ -536,7 +546,7 @@ export function DrawingCanvas({
     setInProgressStroke(null);
   };
 
-  const handleCanvasMouseLeave = () => {
+  const handleCanvasPointerLeave = () => {
     setEraserCursor(null);
     commitInProgressStroke();
   };
@@ -750,6 +760,236 @@ export function DrawingCanvas({
     </div>
   );
 
+  // ── Shared canvas + eraser cursor JSX (used by all three layout variants) ──
+  const CanvasElement = (
+    <canvas
+      ref={canvasRef}
+      className="touch-none"
+      style={{
+        display: 'block',
+        width: '100%',
+        height: '100%',
+        cursor:
+          currentTool === 'eraser' ? 'none' :
+          currentTool === 'selector' && selectorState.mode === 'selected' ? 'move' :
+          'crosshair',
+      }}
+      onPointerDown={handleCanvasPointerDown}
+      onPointerMove={handleCanvasPointerMove}
+      onPointerUp={commitInProgressStroke}
+      onPointerLeave={handleCanvasPointerLeave}
+    />
+  );
+
+  const EraserCursorPreview = currentTool === 'eraser' && eraserCursor ? (
+    <div
+      style={{
+        position: 'absolute',
+        left: eraserCursor[0] - ERASER_RADIUS[currentSize],
+        top: eraserCursor[1] - ERASER_RADIUS[currentSize],
+        width: ERASER_RADIUS[currentSize] * 2,
+        height: ERASER_RADIUS[currentSize] * 2,
+        pointerEvents: 'none',
+        borderRadius: '50%',
+        border: `1.5px dashed ${theme.ink}`,
+        background: 'rgba(255, 255, 255, 0.25)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: theme.ink,
+      }}
+    >
+      <EraserIcon />
+    </div>
+  ) : null;
+
+  // ── Bottom-sheet variant (mobile) ──
+  // Canvas fills the wrapper. One floating button bottom-right opens a sheet
+  // with all controls stacked. Trades extra taps for clean canvas surface and
+  // thumb-friendly reach — standard mobile drawing-app pattern.
+  if (toolbarPosition === 'bottom-sheet') {
+    const ActiveToolIcon = TOOLS.find(t => t.id === currentTool)?.Icon ?? PencilIcon;
+    return (
+      <div className={`relative ${className}`} style={{ background: theme.canvasBg }}>
+        <div className="absolute inset-0 overflow-hidden">
+          {CanvasElement}
+          {EraserCursorPreview}
+        </div>
+
+        {/* Floating sheet trigger — shows current tool icon as visual feedback */}
+        <button
+          onClick={() => setIsSheetOpen(true)}
+          className="absolute bottom-4 right-4 z-30 rounded-full p-3 shadow-lg active:scale-95 transition"
+          style={{ background: theme.panelBg, color: theme.ink, border: `1px solid ${theme.border}` }}
+          aria-label="Open tools"
+        >
+          <ActiveToolIcon />
+        </button>
+
+        {/* Sheet + scrim */}
+        {isSheetOpen && (
+          <>
+            <div
+              onClick={() => setIsSheetOpen(false)}
+              className="absolute inset-0 bg-black/40 z-30"
+              aria-hidden="true"
+            />
+            <div
+              className="absolute bottom-0 left-0 right-0 z-40 rounded-t-xl px-4 pt-3 pb-5 shadow-xl"
+              style={{ background: theme.panelBg, borderTop: `1px solid ${theme.border}` }}
+            >
+              {/* Drag-handle affordance */}
+              <div
+                className="mx-auto mb-3 rounded-full"
+                style={{ width: 40, height: 4, background: theme.border }}
+              />
+
+              {/* Tools row */}
+              <div className="flex items-center justify-between gap-1 mb-3">
+                {TOOLS.map(({ id, label, Icon }) => (
+                  <button
+                    key={id}
+                    onClick={() => switchTool(id)}
+                    title={label}
+                    className="p-2 rounded transition flex-1"
+                    style={{
+                      color: theme.ink,
+                      background: currentTool === id ? theme.canvasBg : 'transparent',
+                      border: currentTool === id ? `1px solid ${theme.ink}` : `1px solid ${theme.border}`,
+                    }}
+                  >
+                    <div className="flex justify-center"><Icon /></div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Colors row */}
+              <div className="flex items-center justify-between gap-1 mb-3">
+                {theme.inkPalette.map(c => (
+                  <button
+                    key={c}
+                    onClick={() => setCurrentColor(c)}
+                    title={c}
+                    className="w-8 h-8 rounded transition"
+                    style={{
+                      background: c,
+                      outline: currentColor === c ? `2px solid ${theme.ink}` : 'none',
+                      outlineOffset: '1px',
+                      border: `1px solid ${theme.border}`,
+                    }}
+                  />
+                ))}
+              </div>
+
+              {/* Sizes + grid inputs (when grid tool active) */}
+              <div className="flex items-center gap-2 mb-3">
+                <div className="flex gap-1">
+                  {(['sm', 'md', 'lg'] as Size[]).map(s => (
+                    <button
+                      key={s}
+                      onClick={() => setCurrentSize(s)}
+                      className="px-3 py-1.5 text-xs font-bold rounded transition"
+                      style={{
+                        color: currentSize === s ? theme.canvasBg : theme.ink,
+                        background: currentSize === s ? theme.ink : 'transparent',
+                        border: `1px solid ${theme.border}`,
+                        minWidth: '40px',
+                      }}
+                    >
+                      {s.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+
+                {currentTool === 'grid' && (
+                  <div className="flex items-center gap-1 ml-auto">
+                    <input
+                      type="number"
+                      min={1}
+                      max={20}
+                      value={gridRows}
+                      onChange={e => setGridRows(clampGridDim(Number(e.target.value)))}
+                      title="Rows"
+                      className="text-xs font-bold rounded text-center"
+                      style={{
+                        color: theme.ink,
+                        background: theme.canvasBg,
+                        border: `1px solid ${theme.border}`,
+                        width: 44,
+                        height: 32,
+                      }}
+                    />
+                    <span className="text-xs font-bold" style={{ color: theme.ink }}>×</span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={20}
+                      value={gridCols}
+                      onChange={e => setGridCols(clampGridDim(Number(e.target.value)))}
+                      title="Columns"
+                      className="text-xs font-bold rounded text-center"
+                      style={{
+                        color: theme.ink,
+                        background: theme.canvasBg,
+                        border: `1px solid ${theme.border}`,
+                        width: 44,
+                        height: 32,
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Actions row: undo / redo / clear / save */}
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={handleUndo}
+                  disabled={!canUndo}
+                  title="Undo"
+                  className="p-2 rounded transition disabled:opacity-30"
+                  style={{ color: theme.ink, border: `1px solid ${theme.border}` }}
+                >
+                  <UndoIcon />
+                </button>
+                <button
+                  onClick={handleRedo}
+                  disabled={!canRedo}
+                  title="Redo"
+                  className="p-2 rounded transition disabled:opacity-30"
+                  style={{ color: theme.ink, border: `1px solid ${theme.border}` }}
+                >
+                  <RedoIcon />
+                </button>
+                <button
+                  onClick={handleClear}
+                  disabled={strokes.length === 0 && !inProgressStroke}
+                  title="Clear all"
+                  className="p-2 rounded transition disabled:opacity-30"
+                  style={{ color: theme.ink, border: `1px solid ${theme.border}` }}
+                >
+                  <ClearIcon />
+                </button>
+
+                {onSave && (
+                  <button
+                    onClick={handleSave}
+                    disabled={saveButtonDisabled}
+                    title={effectiveSaveTitle}
+                    className="ml-auto px-4 py-2 rounded transition flex items-center gap-2 disabled:opacity-30"
+                    style={{ color: theme.ink, background: saveBg !== 'transparent' ? saveBg : theme.canvasBg, border: `1px solid ${theme.ink}` }}
+                  >
+                    <SaveIcon />
+                    <span className="text-xs font-bold">Save</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className={`flex ${isLandscape ? 'flex-col' : 'flex-row'} ${className}`}>
       {Toolbar}
@@ -757,45 +997,8 @@ export function DrawingCanvas({
         className="flex-1 overflow-hidden relative"
         style={{ background: theme.canvasBg, minHeight: 0, minWidth: 0 }}
       >
-        <canvas
-          ref={canvasRef}
-          className="touch-none"
-          style={{
-            display: 'block',
-            width: '100%',
-            height: '100%',
-            cursor:
-              currentTool === 'eraser' ? 'none' :
-              currentTool === 'selector' && selectorState.mode === 'selected' ? 'move' :
-              'crosshair',
-          }}
-          onMouseDown={handleCanvasMouseDown}
-          onMouseMove={handleCanvasMouseMove}
-          onMouseUp={commitInProgressStroke}
-          onMouseLeave={handleCanvasMouseLeave}
-        />
-        {/* Eraser cursor preview */}
-        {currentTool === 'eraser' && eraserCursor && (
-          <div
-            style={{
-              position: 'absolute',
-              left: eraserCursor[0] - ERASER_RADIUS[currentSize],
-              top: eraserCursor[1] - ERASER_RADIUS[currentSize],
-              width: ERASER_RADIUS[currentSize] * 2,
-              height: ERASER_RADIUS[currentSize] * 2,
-              pointerEvents: 'none',
-              borderRadius: '50%',
-              border: `1.5px dashed ${theme.ink}`,
-              background: 'rgba(255, 255, 255, 0.25)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: theme.ink,
-            }}
-          >
-            <EraserIcon />
-          </div>
-        )}
+        {CanvasElement}
+        {EraserCursorPreview}
       </div>
     </div>
   );

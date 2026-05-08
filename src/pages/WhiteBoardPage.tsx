@@ -27,9 +27,27 @@ function getDifficultyColor(difficulty: string): string {
   }
 }
 
+// Tailwind's `sm` breakpoint is 640px — below that we hand the canvas a
+// thumb-friendly bottom-sheet toolbar instead of the desktop top ribbon.
+const MOBILE_QUERY = '(max-width: 639px)';
+
 function WhiteBoardPage() {
   const { user, isLoading: authLoading } = useAuth();
   const [isReferenceOpen, setIsReferenceOpen] = useState(false);
+
+  // ── Viewport-derived toolbar variant ──
+  // Read once at mount via lazy init so the canvas mounts with the correct
+  // variant (no flicker), then subscribe to media-query changes for live
+  // resize handling (devtools / window resize / orientation flip).
+  const [isMobile, setIsMobile] = useState<boolean>(() =>
+    typeof window !== 'undefined' && window.matchMedia(MOBILE_QUERY).matches
+  );
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_QUERY);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   // Reference panel state
   // selectedProblemId === null  → picker mode (search + list)
@@ -90,25 +108,51 @@ function WhiteBoardPage() {
   return (
     <div className="h-screen bg-[#0d1117] font-mono text-[var(--accent)] flex flex-col">
       {/* Title bar */}
-      <div className="bg-[#161b22] px-6 py-3 border-b border-[#30363d] flex items-center justify-between flex-shrink-0">
-        <span className="text-gray-500 text-xs">
-          {user?.displayName ?? 'terminal'}@algorithmviz/whiteboard
-        </span>
+      <div className="bg-[#161b22] px-3 sm:px-6 py-3 border-b border-[#30363d] flex items-center justify-between flex-shrink-0 gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <button
+            onClick={() => setIsReferenceOpen(prev => !prev)}
+            className="sm:hidden text-gray-400 hover:text-[var(--accent)] transition flex-shrink-0"
+            title="Toggle reference panel"
+            aria-label="Toggle reference panel"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+          </button>
+          <span className="text-gray-500 text-xs truncate">
+            {user?.displayName ?? 'terminal'}@algorithmviz/whiteboard
+          </span>
+        </div>
         <Link
           to="/"
-          className="text-gray-500 hover:text-[var(--accent)] text-xs transition"
+          className="text-gray-500 hover:text-[var(--accent)] text-xs transition flex-shrink-0"
         >
           ← Back
         </Link>
       </div>
 
       {/* Body — three columns: reference panel | canvas | chat panel */}
-      <div className="flex-1 flex flex-row overflow-hidden">
-        {/* Left: reference panel (Blind 75 picker + description) */}
+      <div className="flex-1 flex flex-row overflow-hidden relative">
+        {/* Mobile scrim — visible only when overlay panel is open on small screens */}
+        {isReferenceOpen && (
+          <div
+            onClick={() => setIsReferenceOpen(false)}
+            className="sm:hidden absolute inset-0 bg-black/50 z-20"
+            aria-hidden="true"
+          />
+        )}
+
+        {/* Left: reference panel (Blind 75 picker + description)
+            Mobile: fixed-position full-width overlay sliding in from the left.
+            Desktop (sm+): static sibling column toggling between 40px and 360px. */}
         <div
-          className={`bg-[#161b22] border-r border-[#30363d] transition-all duration-200 flex flex-col flex-shrink-0 ${
-            isReferenceOpen ? 'w-[360px]' : 'w-[40px]'
-          }`}
+          className={`bg-[#161b22] border-r border-[#30363d] flex flex-col flex-shrink-0
+            absolute inset-y-0 left-0 z-30 w-[85%] max-w-[360px] transition-transform duration-200
+            ${isReferenceOpen ? 'translate-x-0' : '-translate-x-full'}
+            sm:static sm:translate-x-0 sm:transition-all sm:max-w-none
+            ${isReferenceOpen ? 'sm:w-[360px]' : 'sm:w-[40px]'}
+          `}
         >
           <button
             onClick={() => setIsReferenceOpen(prev => !prev)}
@@ -192,7 +236,7 @@ function WhiteBoardPage() {
             <DrawingCanvas
               initialStrokes={initialStrokes}
               theme="whiteboard"
-              toolbarPosition="top"
+              toolbarPosition={isMobile ? 'bottom-sheet' : 'top'}
               onSave={handleSave}
               saveDisabled={!user}
               saveTitle={user ? 'Save' : 'Sign in to save'}
@@ -201,8 +245,8 @@ function WhiteBoardPage() {
           )}
         </div>
 
-        {/* Right: chat / collab placeholder */}
-        <div className="w-[280px] bg-[#161b22] border-l border-[#30363d] flex items-center justify-center p-4 flex-shrink-0">
+        {/* Right: chat / collab placeholder — hidden on mobile (no value when canvas is the priority) */}
+        <div className="hidden sm:flex w-[280px] bg-[#161b22] border-l border-[#30363d] items-center justify-center p-4 flex-shrink-0">
           <p className="text-gray-500 text-xs text-center opacity-60">
             Collaboration
             <br />
