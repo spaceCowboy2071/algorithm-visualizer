@@ -368,3 +368,35 @@ export function strokeBbox(s: Stroke): Rect {
     y2: Math.max(s.startY!, s.endY!),
   };
 }
+
+// ─── Collaboration operations ───
+// A unit of change broadcast between collaborating peers.
+//   - `add`: a single stroke was drawn. The high-frequency case. Concurrent
+//     adds from both peers commute (append-only), so this path is loss-free —
+//     two people drawing at the same instant never clobber each other.
+//   - `replace`: the full stroke array after a destructive/bulk action (erase,
+//     move/duplicate, clear, undo/redo). Lower-frequency; last-writer-wins is
+//     acceptable here (e.g. both erasing the same region resolves to "erased").
+export type CanvasOperation =
+  | { kind: 'add'; stroke: Stroke }
+  | { kind: 'replace'; strokes: Stroke[] };
+
+// Append a snapshot to history: drop any redo-future beyond the current index,
+// then cap depth at MAX_HISTORY (oldest dropped). Shared by the local edit path
+// (pushSnapshot) and the remote-operation path so both produce identical
+// history shapes.
+export function appendSnapshot(history: History, next: Stroke[]): History {
+  const base = history.snapshots.slice(0, history.index + 1);
+  base.push(next);
+  if (base.length > MAX_HISTORY) {
+    return { snapshots: base.slice(-MAX_HISTORY), index: MAX_HISTORY - 1 };
+  }
+  return { snapshots: base, index: history.index + 1 };
+}
+
+// Fold a remote collaboration operation into history, returning new state.
+export function applyOperationToHistory(history: History, op: CanvasOperation): History {
+  const current = history.snapshots[history.index];
+  const next = op.kind === 'add' ? [...current, op.stroke] : op.strokes;
+  return appendSnapshot(history, next);
+}

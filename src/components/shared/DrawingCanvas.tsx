@@ -13,16 +13,17 @@
 // Composition + reuse, not polymorphism. Both wrappers compose the same
 // component with different chrome around it.
 
-import { useState, useRef, useCallback, useEffect } from 'react';
-import type { Tool, Stroke, Rect, Size, History } from './drawingEngine';
+import { useState, useRef, useCallback, useEffect, forwardRef, useImperativeHandle } from 'react';
+import type { Tool, Stroke, Rect, Size, History, CanvasOperation } from './drawingEngine';
 import {
   ERASER_RADIUS,
-  MAX_HISTORY,
   drawStroke,
   eraseFromStrokes,
   splitStrokesByRect,
   translateStroke,
   strokeBbox,
+  appendSnapshot,
+  applyOperationToHistory,
 } from './drawingEngine';
 
 // ─── Theme system ───
@@ -122,6 +123,19 @@ export interface DrawingCanvasProps {
 
   /** Sizing wrapper class. Parent controls the outer dimensions. */
   className?: string;
+
+  /** Collaboration hook. Fires when a LOCAL action mutates the canvas (draw,
+   *  erase, move, clear, undo/redo). The parent broadcasts the op to the peer.
+   *  Remote ops applied via the `applyRemoteOperation` handle do NOT fire this
+   *  — that's the echo guard. Omitted by non-collaborative consumers, in which
+   *  case nothing is emitted and behavior is unchanged. */
+  onOperation?: (op: CanvasOperation) => void;
+}
+
+/** Imperative handle exposed via ref so a collaborating parent can fold a
+ *  peer's operation into this canvas without re-broadcasting it. */
+export interface DrawingCanvasHandle {
+  applyRemoteOperation: (op: CanvasOperation) => void;
 }
 
 // ─── Internal state types ───
@@ -140,7 +154,7 @@ const PASTE_OFFSET = 20;
 
 // ─── Component ───
 
-export function DrawingCanvas({
+export const DrawingCanvas = forwardRef<DrawingCanvasHandle, DrawingCanvasProps>(function DrawingCanvas({
   initialStrokes = [],
   theme: themeName = 'paper',
   toolbarPosition = 'top',
@@ -148,7 +162,8 @@ export function DrawingCanvas({
   saveDisabled = false,
   saveTitle = 'Save',
   className = '',
-}: DrawingCanvasProps) {
+  onOperation,
+}: DrawingCanvasProps, ref) {
   const theme = THEMES[themeName];
   const isLandscape = toolbarPosition === 'top';
 
@@ -175,16 +190,27 @@ export function DrawingCanvas({
   const canUndo = history.index > 0;
   const canRedo = history.index < history.snapshots.length - 1;
   const pushSnapshot = useCallback((next: Stroke[]) => {
-    setHistory(prev => {
-      // Drop any "future" snapshots beyond current index — new edit invalidates redo.
-      const base = prev.snapshots.slice(0, prev.index + 1);
-      base.push(next);
-      if (base.length > MAX_HISTORY) {
-        return { snapshots: base.slice(-MAX_HISTORY), index: MAX_HISTORY - 1 };
-      }
-      return { snapshots: base, index: prev.index + 1 };
-    });
+    setHistory(prev => appendSnapshot(prev, next));
   }, []);
+
+  // ── Collaboration emit helpers ──
+  // Called right after a LOCAL mutation commits, so the parent can broadcast it.
+  // No-ops when onOperation isn't provided (non-collaborative consumers). The
+  // remote-apply path below deliberately does NOT call these — that prevents an
+  // echo loop where applying a peer's op re-broadcasts it back.
+  const emitAdd = useCallback((stroke: Stroke) => {
+    onOperation?.({ kind: 'add', stroke });
+  }, [onOperation]);
+  const emitReplace = useCallback((strokes: Stroke[]) => {
+    onOperation?.({ kind: 'replace', strokes });
+  }, [onOperation]);
+
+  // Fold a peer's operation into our history via the same pure helper the local
+  // path uses, without emitting (echo guard). Exposed through the ref handle.
+  const applyRemoteOperation = useCallback((op: CanvasOperation) => {
+    setHistory(prev => applyOperationToHistory(prev, op));
+  }, []);
+  useImperativeHandle(ref, () => ({ applyRemoteOperation }), [applyRemoteOperation]);
 
   const [inProgressStroke, setInProgressStroke] = useState<Stroke | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -289,6 +315,7 @@ export function DrawingCanvas({
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectorState.mode === 'selected') {
         e.preventDefault();
         pushSnapshot(selectorState.remaining);
+        emitReplace(selectorState.remaining);
         setSelectorState({ mode: 'idle' });
         return;
       }
@@ -301,6 +328,7 @@ export function DrawingCanvas({
         e.preventDefault();
         setClipboard(selectorState.selected);
         pushSnapshot(selectorState.remaining);
+        emitReplace(selectorState.remaining);
         setSelectorState({ mode: 'idle' });
         return;
       }
@@ -309,6 +337,7 @@ export function DrawingCanvas({
         const pasted = clipboard.map(s => translateStroke(s, PASTE_OFFSET, PASTE_OFFSET));
         const next = [...strokes, ...pasted];
         pushSnapshot(next);
+        emitReplace(next);
         const bboxes = pasted.map(strokeBbox);
         const x1 = Math.min(...bboxes.map(b => b.x1));
         const y1 = Math.min(...bboxes.map(b => b.y1));
@@ -325,7 +354,7 @@ export function DrawingCanvas({
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [currentTool, selectorState, clipboard, strokes, pushSnapshot]);
+  }, [currentTool, selectorState, clipboard, strokes, pushSnapshot, emitReplace]);
 
   // ── Canvas: keep drawing buffer in sync with display size and redraw ──
   // ResizeObserver handles ANY display-size change.
@@ -519,6 +548,7 @@ export function DrawingCanvas({
       const translated = selected.map(s => translateStroke(s, dx, dy));
       const nextStrokes = isDuplicate ? [...strokes, ...translated] : [...remaining, ...translated];
       pushSnapshot(nextStrokes);
+      emitReplace(nextStrokes);
       const newRect = { x1: rect.x1 + dx, y1: rect.y1 + dy, x2: rect.x2 + dx, y2: rect.y2 + dy };
       setSelectorState({
         mode: 'selected',
@@ -533,6 +563,7 @@ export function DrawingCanvas({
       isErasingRef.current = false;
       if (didEraseRef.current && workingStrokes) {
         pushSnapshot(workingStrokes);
+        emitReplace(workingStrokes);
       }
       didEraseRef.current = false;
       setWorkingStrokes(null);
@@ -542,6 +573,7 @@ export function DrawingCanvas({
     isDrawingRef.current = false;
     if (inProgressStroke) {
       pushSnapshot([...strokes, inProgressStroke]);
+      emitAdd(inProgressStroke);
     }
     setInProgressStroke(null);
   };
@@ -553,10 +585,17 @@ export function DrawingCanvas({
 
   // ── Toolbar action handlers ──
   const handleUndo = () => {
+    if (history.index === 0) return;
+    // Broadcast the snapshot we're landing on as a full replace so the peer's
+    // canvas tracks ours. (Undo/redo across two diverged histories is a known
+    // v1 limitation — see the collaboration design doc.)
+    emitReplace(history.snapshots[history.index - 1]);
     setHistory(prev => prev.index === 0 ? prev : { ...prev, index: prev.index - 1 });
   };
 
   const handleRedo = () => {
+    if (history.index === history.snapshots.length - 1) return;
+    emitReplace(history.snapshots[history.index + 1]);
     setHistory(prev =>
       prev.index === prev.snapshots.length - 1 ? prev : { ...prev, index: prev.index + 1 }
     );
@@ -565,6 +604,7 @@ export function DrawingCanvas({
   const handleClear = () => {
     if (strokes.length === 0 && !inProgressStroke) return;
     pushSnapshot([]);
+    emitReplace([]);
     setInProgressStroke(null);
   };
 
@@ -1002,7 +1042,7 @@ export function DrawingCanvas({
       </div>
     </div>
   );
-}
+});
 
 // ─── Tool icons ───
 
